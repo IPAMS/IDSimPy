@@ -10,7 +10,7 @@ from tempfile import NamedTemporaryFile
 from matplotlib import animation
 
 
-def read_trajectory_file(trajectoryFileName):
+def read_old_trajectory_file(trajectoryFileName):
 	"""
 	Reads a trajectory file and returns a trajectory object
 
@@ -46,6 +46,50 @@ def read_trajectory_file(trajectoryFileName):
 	return{"trajectories":t,"times":times,"masses":masses}
 
 
+def read_trajectory_file(trajectoryFileName):
+	"""
+	Reads a trajectory file and returns a trajectory object
+
+	Trajectory objects are dictionaries which contain three elements:
+	trajectories: a vector which contains the x,y,z positions of all particles for all time steps
+	(a vector of lists one vector entry per time step)
+	times: vector of times of the individual time steps
+	masses: the vector of particle masses
+
+	:param trajectoryFileName: the file name of the file to read
+	:return: the trajectory data dictionary
+	"""
+	if (trajectoryFileName[-8:] == ".json.gz"):
+		with gzip.open(trajectoryFileName) as tf:
+			tj = json.load(io.TextIOWrapper(tf))
+	else:
+		with open(trajectoryFileName) as tf:
+			tj = json.load(tf)
+
+	steps = tj["steps"]
+	nIons = len(steps[0]["ions"])
+
+	times = np.zeros(len(steps))
+	positions = np.zeros([nIons,3,len(steps)])
+
+	n_additional_parameters = len(steps[0]["ions"][0])-1
+	print(n_additional_parameters)
+	additional_parameters = np.zeros([nIons,n_additional_parameters,len(steps)])
+
+	for i in range(len(steps)):
+		for j in range (nIons):
+			positions[j,:,i] = np.array(steps[i]["ions"][j][0])
+			additional_parameters[j,:,i] = np.array(steps[i]["ions"][j][1:])
+
+		times[i] = float(steps[i]["time"])
+
+	masses = np.zeros([nIons])
+	massesJson = tj["ionMasses"]
+	for i in range(len(massesJson)):
+		masses[i] = float(massesJson[i])
+	return{"positions":positions,"additional_parameters":additional_parameters,"times":times,"masses":masses}
+
+
 def read_QIT_conf(confFileName):
 	"""
 	Reads and parses the QIT simulation configuration file
@@ -58,18 +102,19 @@ def read_QIT_conf(confFileName):
 	return (confJson)
 
 
-def filter_mass(trajectories,masses,massToFilter):
+def filter_mass(positions,masses,massToFilter):
 	"""
 	Filters out trajectories of ions with a given mass
 
-	:param trajectories: a trajectories vector from an imported trajectories object
-	:type trajectories: trajectories vector from dict returned from readTrajectoryFile
+	:param positions: a positions vector from an imported trajectories object
+	:type trajectory positions: positions vector from dict returned from readTrajectoryFile
 	:param masses: a mass vector from an imported trajectories object
 	:param massToFilter: the mass to filter for
-	:return: a filtered trajectories vector
+	:return: a filtered positions vector
 	"""
-	massIndexes = np.nonzero(masses == massToFilter)
-	return(trajectories[massIndexes,:,:][0])
+	mass_indexes = np.nonzero(masses == massToFilter)
+	return positions[mass_indexes,:,:][0]
+
 
 def center_of_charge(tr):
 	"""
@@ -314,7 +359,7 @@ def animate_simulation_z_vs_x_density(dat,masses,nFrames,interval,
 
 	:param dat: imported trajectories object
 	:type dat: dict returned from readTrajectoryFile
-	:param masses: two element list with two particle masses to render the center of charges for
+	:param masses: two element list with two particle masses to render the particle densities for
 	:type masses: list
 	:param nFrames: number of frames to export
 	:param interval: interval in terms of time steps in the input data between the animation frames
@@ -330,8 +375,8 @@ def animate_simulation_z_vs_x_density(dat,masses,nFrames,interval,
 
 
 	times = dat[0]["times"]
-	datA = filter_mass(dat[0]["trajectories"],dat[0]["masses"],masses[0])
-	datB = filter_mass(dat[1]["trajectories"],dat[1]["masses"],masses[1])
+	datA = filter_mass(dat[0]["positions"],dat[0]["masses"],masses[0])
+	datB = filter_mass(dat[1]["positions"],dat[1]["masses"],masses[1])
 
 	if fileMode=='video':
 		fig = plt.figure(figsize=[10,10])
@@ -431,3 +476,6 @@ def display_animation(anim):
 	"""
 	plt.close(anim._fig)
 	return HTML(anim_to_html(anim))
+
+
+
