@@ -183,7 +183,7 @@ def animate_simulation_z_vs_x_spacecharge_density(dat, nFrames, interval,
 		if analysis_mode == 'space_charge_magnitude':
 			weights = sc_force[:, tsNumber]
 		elif analysis_mode == 'space_charge_z_direction':
-			weights = sc_force_z_dir[:, tsNumber]
+			weights = np.abs(sc_force_z_dir[:, tsNumber])
 		elif analysis_mode == 'rf_force':
 			weights = rf_force[:, tsNumber]
 
