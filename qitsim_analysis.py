@@ -6,13 +6,46 @@ import json
 import gzip
 import io
 import base64
+from .constants import *
 from tempfile import NamedTemporaryFile
 from matplotlib import animation
 
 
-def read_old_trajectory_file(trajectoryFileName):
+################## Utility Methods  ######################
+def qit_stability_parameters(
+		m_amu,  # = 80    # ion mass [Da]
+		Vrf,  # = 300    # voltage 0-p
+		frf_Hz,  # rf frequency [Hz]
+		r0=0.01  # ring electrode radius [m])
+):
+
+
+#####################
+	# calculate secular frequency and period of the ion
+	m_kg = m_amu * KG_PER_AMU
+	frf_rad = 2*np.pi*frf_Hz
+	fion = (np.sqrt(2) * ELEMENTARY_CHARGE * Vrf) / (4 * np.square(np.pi) * np.square(r0) * frf_Hz * m_kg)
+
+	# calculate q value for the ion
+	qz = 8 * ELEMENTARY_CHARGE * Vrf / (m_kg * 2 * np.square(r0) * np.square(frf_rad))
+
+	# calculate cut off voltage for the ion, stability limit is q = 0.908
+	Vcutoff = Vrf / qz * 0.908
+
+	# calculate low mass cut off (lmco), satbility limit is q = 0.908
+	lmco = (m_amu * qz / 0.908)
+
+	# calculate pseudopotential (Dehmelt) for the ion
+	D = qz * Vrf / 8
+
+	return {"fion": fion, "qz": qz, "Vcutoff": Vcutoff, "lmco": lmco, "D": D}
+
+
+################## Data Read Methods ######################
+
+def read_legacy_trajectory_file(trajectoryFileName):
 	"""
-	Reads a trajectory file and returns a trajectory object
+	Reads a legacy trajectory file and returns a legacy trajectory object
 
 	Trajectory objects are dictionaries which contain three elements:
 	trajectories: a vector which contains the x,y,z positions of all particles for all time steps
@@ -59,7 +92,7 @@ def read_trajectory_file(trajectoryFileName):
 	:param trajectoryFileName: the file name of the file to read
 	:return: the trajectory data dictionary
 	"""
-	if (trajectoryFileName[-8:] == ".json.gz"):
+	if trajectoryFileName[-8:] == ".json.gz":
 		with gzip.open(trajectoryFileName) as tf:
 			tj = json.load(io.TextIOWrapper(tf))
 	else:
@@ -73,7 +106,6 @@ def read_trajectory_file(trajectoryFileName):
 	positions = np.zeros([nIons,3,len(steps)])
 
 	n_additional_parameters = len(steps[0]["ions"][0])-1
-	print(n_additional_parameters)
 	additional_parameters = np.zeros([nIons,n_additional_parameters,len(steps)])
 
 	for i in range(len(steps)):
@@ -87,7 +119,7 @@ def read_trajectory_file(trajectoryFileName):
 	massesJson = tj["ionMasses"]
 	for i in range(len(massesJson)):
 		masses[i] = float(massesJson[i])
-	return{"positions":positions,"additional_parameters":additional_parameters,"times":times,"masses":masses}
+	return{"positions":positions,"additional_parameters":additional_parameters,"times":times,"masses":masses,"n_ions":nIons}
 
 
 def read_QIT_conf(confFileName):
@@ -101,6 +133,20 @@ def read_QIT_conf(confFileName):
 
 	return (confJson)
 
+
+def read_FFT_record(projectPath):
+	"""
+	Loads a fft record file, which contains the mean position of the charged particle cloud over the time
+
+	:param projectPath: path of the simulation project
+	:return: two vectors: the time and the mean position of the charged particle cloud from the fft file
+	"""
+	dat = np.loadtxt(projectPath + "_fft.txt")
+	t = dat[:, 0]
+	z = dat[:, 3]
+	return t,z
+
+################## Data Processing Methods ######################
 
 def filter_mass(positions,masses,massToFilter):
 	"""
@@ -134,18 +180,6 @@ def center_of_charge(tr):
 	return(coc)
 
 
-def load_FFT_record(projectPath):
-	"""
-	Loads a fft record file, which contains the mean position of the charged particle cloud over the time
-
-	:param projectPath: path of the simulation project
-	:return: two vectors: the time and the mean position of the charged particle cloud from the fft file
-	"""
-	dat = np.loadtxt(projectPath + "_fft.txt")
-	t = dat[:, 0]
-	z = dat[:, 3]
-	return t,z
-
 def reconstruct_transient_from_trajectories(dat):
 	"""
 	Reconstructs a QIT transient (center of charge position in detection, z, direction) from trajectory data
@@ -155,7 +189,7 @@ def reconstruct_transient_from_trajectories(dat):
 	"""
 	times = dat["times"] / 1
 	nSteps = len(times)
-	tr = dat["trajectories"]
+	tr = dat["positions"]
 	result = np.zeros([nSteps, 1])
 	for i in range(nSteps):
 		r = np.sqrt(tr[:, 0, i] ** 2.0 + tr[:, 1, i] ** 2.0 + tr[:, 2, i] ** 2.0)
@@ -164,7 +198,7 @@ def reconstruct_transient_from_trajectories(dat):
 	return times,result
 
 
-def get_FFT_spectrum(t,z):
+def calculate_FFT_spectrum(t, z):
 	"""
 	Calculates the spectrum via fft from a given transient
 	:param t: the time vector of the transient
@@ -184,6 +218,8 @@ def get_FFT_spectrum(t,z):
 	return frq,abs(Y)
 
 
+################## High Level Simulation Project Processing Methods ######################
+
 def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMode="fft_record"):
 	"""
 	Analyses a transient of a QIT simulation and calculates/plots the spectrum from it
@@ -201,14 +237,14 @@ def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMod
 		confJson = json.load(jsonFile)
 
 	if loadMode == "fft_record":
-		t,z = load_FFT_record(projectPath)
+		t,z = read_FFT_record(projectPath)
 	elif loadMode == "reconstruct_from_trajectories":
 		tr = read_trajectory_file(projectPath + "_trajectories.json.gz")
 		t,z = reconstruct_transient_from_trajectories(tr)
 		t= t*1e-6
 		print(t)
 
-	frq,Y = get_FFT_spectrum(t,z)
+	frq,Y = calculate_FFT_spectrum(t, z)
 
 	fig, ax = plt.subplots(1, 2,figsize=[20,5],dpi=50)
 	ax[0].plot(t,z)
@@ -237,12 +273,12 @@ def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMod
 	plt.figtext(0.1,0.94,titlestring,fontsize=17)
 
 	plt.savefig(projectName+"_fftAnalysis.pdf",format="pdf")
-	plt.savefig(projectName+"_fftAnalysis.png",format="png")
+	plt.savefig(projectName+"_fftAnalysis.png",format="png",dpi=180)
 
 	return({"freqs":frq[freqsPl],"amplitude":abs(Y[freqsPl]),"time":t,"transient":z})
 
 
-def centerOfChargesSimulation(dat,speciesMasses,tRange=[]):
+def center_of_charges_from_simulation(dat,speciesMasses,tRange=[]):
 	"""
 	Calculates the center of charges for two species, defined by their mass, from a simulation
 	:param dat: imported trajectories object
@@ -263,7 +299,7 @@ def centerOfChargesSimulation(dat,speciesMasses,tRange=[]):
 	else:
 		times=times[tRange]
 
-	tr = dat["trajectories"][:,:,tRange]
+	tr = dat["positions"][:,:,tRange]
 
 	cocA = center_of_charge(filter_mass(tr,masses,speciesMasses[0]))
 	cocB = center_of_charge(filter_mass(tr,masses,speciesMasses[1]))
@@ -272,7 +308,43 @@ def centerOfChargesSimulation(dat,speciesMasses,tRange=[]):
 	return{"t":times,"cocA":cocA,"cocB":cocB,"cocAll":cocAll}
 
 
-def animate_simulation_z_vs_x(dat,masses,nFrames,interval,frameLen,zLim=3,xLim=0.1):
+def plot_average_z_position(sim_projects, masses):
+	"""
+	Plots a comparison plot of averaged z-positions for individual masses in a qit simulation
+
+	:param list[str] sim_projects: a list of simulation project names
+	:param list[float] masses: a list of masses to draw the plot for
+	"""
+	n_projects = len(sim_projects)
+	fig_size = [12, 2 * n_projects]
+	plt.figure(figsize=fig_size)
+
+	print(n_projects)
+	for si in range(n_projects):
+		tj = read_trajectory_file(sim_projects[si] + "_trajectories.json.gz")
+		conf = read_QIT_conf(sim_projects[si] + "_conf.json")
+
+		i_pos = tj["positions"]
+		i_masses = tj["masses"]
+		# i_ap = tj["additional_parameters"]
+		times = tj["times"]
+
+		plt.subplot(n_projects, 1, si + 1)
+		for mass in masses:
+			i_pos_mfiltered = filter_mass(i_pos, i_masses, mass)
+			# i_ap_mfiltered = lq.filter_mass(i_ap, i_masses, mass)
+			coc = center_of_charge(i_pos_mfiltered)
+			plt.plot(times, coc[:, 2], label=str(mass))
+
+		plt.title(sim_projects[si] + ", " + str(conf["V_rf_start"]) +
+		          "V " + str(conf["f_rf"] / 1000) +
+		          "kHz RF, scf=" + str(conf["space_charge_factor"]))
+		plt.legend()
+	plt.xlabel("t (microseconds)")
+	plt.tight_layout()
+
+
+def animate_simulation_center_of_masses_z_vs_x(dat,masses,nFrames,interval,frameLen,zLim=3,xLim=0.1):
 	"""
 	Animate the center of charges of the ion clouds in a QIT simulation in a z-x projection. The center of charges
 	are rendered as a trace with a given length (in terms of simulation time steps)
@@ -317,7 +389,6 @@ def animate_simulation_z_vs_x(dat,masses,nFrames,interval,frameLen,zLim=3,xLim=0
 								   frames=nFrames, blit=True)
 	# call our new function to display the animation
 	return(anim)
-
 
 def plot_density_z_vs_x(trajectories,timeIndex):
 	"""
