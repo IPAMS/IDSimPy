@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
+"""
+Detailed analysis of space charge dynamics in FT-QIT simulations
+"""
+
 import numpy as np
-import matplotlib as mpl
 from matplotlib import animation
 import pylab as plt
-import json
-import gzip
-import btree_analysis.qitsim_analysis as lq
+from . import qitsim_analysis as lq
 
 
 def ion_radius_from_trajectories(positions, radius_center=[]):
@@ -140,7 +142,8 @@ def animate_simulation_z_vs_x_spacecharge_density(dat, nFrames, interval,
 												h_min=1e-17,
 												h_max=1e-15,
 												alphaFactor=1, colormap=plt.cm.viridis,
-												annotateString=""):
+												annotateString="",
+                                                background_color=(1,1,1)):
 	"""
 	Space charge density plot
 	"""
@@ -162,6 +165,7 @@ def animate_simulation_z_vs_x_spacecharge_density(dat, nFrames, interval,
 	zedges = np.linspace(-sLim, sLim, nBins)
 	H = np.random.rand(len(xedges), len(zedges))
 	ax = plt.axes(ylim=(zedges[0], zedges[-1]), xlim=(xedges[0], xedges[-1]))
+	ax.set_facecolor(background_color)
 
 	im1 = ax.imshow(H, interpolation='nearest', origin='low', alpha=1, vmin=0, vmax=10, cmap="Reds",
 					extent=[xedges[0], xedges[-1], zedges[0], zedges[-1]])
