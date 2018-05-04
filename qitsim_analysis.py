@@ -98,7 +98,7 @@ def load_FFT_record(projectPath):
 	"""
 	dat = np.loadtxt(projectPath + "_fft.txt")
 	t = dat[:, 0]
-	z = dat[:, 3]
+	z = dat[:, 1]
 	return t,z
 
 def reconstruct_transient_from_trajectories(dat):
@@ -174,10 +174,10 @@ def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMod
 
 	#ax[1].semilogy(frq[freqsPl],abs(Y[freqsPl]),'r') # plotting the spectrum
 	if ampMode == "lin":
-		ax[1].plot(frq[freqsPl],abs(Y[freqsPl]),'r') # plotting the spectrum
+		ax[1].plot(frq[freqsPl]/1000,abs(Y[freqsPl]),'r') # plotting the spectrum
 	elif ampMode == "log":
-		ax[1].semilogy(frq[freqsPl], abs(Y[freqsPl]), 'r')  # plotting the spectrum logarithmic
-	ax[1].set_xlabel('Freq (Hz)')
+		ax[1].semilogy(frq[freqsPl]/1000, abs(Y[freqsPl]), 'r')  # plotting the spectrum logarithmic
+	ax[1].set_xlabel('Freq (kHz)')
 	ax[1].set_ylabel('Amplitude (arb.)')
 
 	projectName = projectPath.split("/")[-1]
