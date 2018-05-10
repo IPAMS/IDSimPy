@@ -136,15 +136,28 @@ def read_QIT_conf(confFileName):
 
 def read_FFT_record(projectPath):
 	"""
-	Loads a fft record file, which contains the mean position of the charged particle cloud over the time
+	Loads a fft record file, which contains the exported mirror charge current on some detector electrodes
 
 	:param projectPath: path of the simulation project
-	:return: two vectors: the time and the mean position of the charged particle cloud from the fft file
+	:return: two vectors: the time and simulated mirror charge from the fft file
 	"""
 	dat = np.loadtxt(projectPath + "_fft.txt")
 	t = dat[:, 0]
 	z = dat[:, 1]
 	return t,z
+
+def read_center_of_charge_record(projectPath):
+	"""
+	Loads a center of charge (coc) record file, which contains the mean position of the charged particle cloud over the time
+
+	:param projectPath: path of the simulation project
+	:return: two vectors: the time and the mean position of the charged particle cloud from the coc file
+	"""
+	dat = np.loadtxt(projectPath + "_averagePosition.txt")
+	t = dat[:, 0]
+	z = dat[:, 3]
+	return t,z
+
 
 ################## Data Processing Methods ######################
 
@@ -237,6 +250,8 @@ def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMod
 
 	if loadMode == "fft_record":
 		t,z = read_FFT_record(projectPath)
+	elif loadMode == "center_of_charge_record":
+		t,z = read_center_of_charge_record(projectPath)
 	elif loadMode == "reconstruct_from_trajectories":
 		tr = read_trajectory_file(projectPath + "_trajectories.json.gz")
 		t,z = reconstruct_transient_from_trajectories(tr)
