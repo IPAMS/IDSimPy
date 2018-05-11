@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from . import qitsim_analysis as qa
+import qitsim_analysis as qa
 
 
 def translate_json_trajectories_to_vtk(json_file_name, vtk_file_base_name):

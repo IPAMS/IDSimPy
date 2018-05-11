@@ -5,7 +5,7 @@ ion_cloud_generation: Generation of ion cloud initialization files
 """
 
 import numpy as np
-from .constants import *
+from btree.constants import *
 
 
 def write_cloud_file(ion_cloud, filename):

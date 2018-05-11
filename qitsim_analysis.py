@@ -146,6 +146,21 @@ def read_FFT_record(projectPath):
 	z = dat[:, 1]
 	return t,z
 
+
+def read_ions_inactive_record(projectPath):
+	"""
+	Loads an ions inactive record file, which contains the number of inactive ions over the time
+
+	:param projectPath: path of the simulation project
+	:return: two vectors: the time and the number of inactive ions
+	"""
+	dat = np.loadtxt(projectPath + "_ionsInactive.txt")
+	t = dat[:, 0]
+	ions_inactive = dat[:, 1]
+	return t, ions_inactive
+
+
+
 ################## Data Processing Methods ######################
 
 def filter_mass(positions,masses,massToFilter):
@@ -275,6 +290,45 @@ def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMod
 	plt.savefig(projectName+"_fftAnalysis.png",format="png",dpi=180)
 
 	return({"freqs":frq[freqsPl],"amplitude":abs(Y[freqsPl]),"time":t,"transient":z})
+
+def analyze_stability_scan(projectName, t_start=0, t_stop=1):
+	time, inactive_ions = read_ions_inactive_record(projectName)
+
+	with open(projectName + "_conf.json") as jsonFile:
+		confJson = json.load(jsonFile)
+
+	V_rf_start = confJson["V_rf_start"]
+	V_rf_end = confJson["V_rf_end"]
+	V_rf = np.linspace(V_rf_start, V_rf_end, len(time))
+
+	n_samples = len(time)
+	i_start = int(t_start * n_samples)
+	i_stop = int(t_stop * n_samples)
+	t_range = np.arange(i_start, i_stop)
+	plt.figure(figsize=[15, 5])
+	plt.subplot(1, 2, 1)
+	# plt.plot(time[t_range],inactive_ions[t_range])
+	plt.plot(V_rf[t_range], inactive_ions[t_range])
+	plt.ylabel("# ions ejected")
+	plt.xlabel("time (s)")
+	plt.subplot(1, 2, 2)
+	plt.plot(time[t_range[:-1]], np.diff(inactive_ions[t_range]))
+	plt.ylabel(" d ions ejected / dt")
+	plt.xlabel("time (s)")
+	titlestring = projectName + " p " + str(confJson["background_pressure"]) + " Pa, c. gas " + str(
+		confJson["collision_gas_mass_amu"]) + " amu, "
+	titlestring = titlestring + "spc:" + '%4g, ' % (confJson["space_charge_factor"])
+	titlestring = titlestring + "RF: " + str(V_rf_start) + " to " + str(V_rf_end) + " V @ " + str(
+		confJson["f_rf"] / 1000.0) + " kHz"
+
+	dUdt = (confJson["V_rf_end"] - confJson["V_rf_start"]) / time[-1]
+	titlestring = titlestring + (' (%2g V/s), ' % (dUdt))
+	titlestring = titlestring + str(confJson["excite_pulse_potential"]) + " V exci."
+	plt.figtext(0.1, 0.94, titlestring, fontsize=12)
+
+	plt.savefig(projectName + "_ionEjectionAnalysis.pdf", format="pdf")
+	plt.savefig(projectName + "_ionEjectionAnalysis.png", format="png")
+
 
 
 def center_of_charges_from_simulation(dat,speciesMasses,tRange=[]):
