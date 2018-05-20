@@ -2,6 +2,7 @@
 
 import numpy as np
 import pylab as plt
+import pandas as pd
 import json
 import gzip
 import io
@@ -9,6 +10,7 @@ import base64
 from .constants import *
 from tempfile import NamedTemporaryFile
 from matplotlib import animation
+
 
 
 ################## Utility Methods  ######################
@@ -171,6 +173,28 @@ def read_center_of_charge_record(projectPath):
 	return t,z
 
 
+def read_and_analyze_stability_scan(projectName,t_range=[0,1]):
+	time, inactive_ions = read_ions_inactive_record(projectName)
+
+	with open(projectName + "_conf.json") as jsonFile:
+		conf_json = json.load(jsonFile)
+
+	V_rf_start = conf_json["V_rf_start"]
+	V_rf_end = conf_json["V_rf_end"]
+	V_rf = np.linspace(V_rf_start, V_rf_end, len(time))
+
+	n_samples = len(time)
+	i_start = int(t_range[0] * n_samples)
+	i_stop = int(t_range[1] * n_samples)
+	i_range = np.arange(i_start, i_stop)
+
+	df = pd.DataFrame({"time": time, "inactive_ions": inactive_ions, "V_rf": V_rf})
+	df_slice = df.loc[i_range]
+	ions_diff = np.append(np.diff(df_slice["inactive_ions"]), 0)
+	df_slice["ions_diff"] = ions_diff
+
+	return (df_slice)
+
 ################## Data Processing Methods ######################
 
 def filter_mass(positions,masses,massToFilter):
@@ -303,7 +327,8 @@ def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMod
 
 	return({"freqs":frq[freqsPl],"amplitude":abs(Y[freqsPl]),"time":t,"transient":z})
 
-def analyze_stability_scan(projectName, t_start=0, t_stop=1):
+
+def analyze_stability_scan_old(projectName, t_start=0, t_stop=1):
 	time, inactive_ions = read_ions_inactive_record(projectName)
 
 	with open(projectName + "_conf.json") as jsonFile:
@@ -320,13 +345,13 @@ def analyze_stability_scan(projectName, t_start=0, t_stop=1):
 	plt.figure(figsize=[15, 5])
 	plt.subplot(1, 2, 1)
 	# plt.plot(time[t_range],inactive_ions[t_range])
-	plt.plot(V_rf[t_range], inactive_ions[t_range])
+	plt.plot(time[t_range],inactive_ions[t_range])
 	plt.ylabel("# ions ejected")
 	plt.xlabel("time (s)")
 	plt.subplot(1, 2, 2)
-	plt.plot(time[t_range[:-1]], np.diff(inactive_ions[t_range]))
+	plt.plot(V_rf[t_range[:-1]],np.diff(inactive_ions[t_range]))
 	plt.ylabel(" d ions ejected / dt")
-	plt.xlabel("time (s)")
+	plt.xlabel(r"$U_{\mathrm{rf}}$ (V)")
 	titlestring = projectName + " p " + str(confJson["background_pressure"]) + " Pa, c. gas " + str(
 		confJson["collision_gas_mass_amu"]) + " amu, "
 	titlestring = titlestring + "spc:" + '%4g, ' % (confJson["space_charge_factor"])
@@ -341,6 +366,68 @@ def analyze_stability_scan(projectName, t_start=0, t_stop=1):
 	plt.savefig(projectName + "_ionEjectionAnalysis.pdf", format="pdf")
 	plt.savefig(projectName + "_ionEjectionAnalysis.png", format="png")
 
+
+def analyze_stability_scan(projectName,window_width=0,t_range=[0,1]):
+	with open(projectName + "_conf.json") as jsonFile:
+		confJson = json.load(jsonFile)
+
+	V_rf_start = confJson["V_rf_start"]
+	V_rf_end = confJson["V_rf_end"]
+
+	titlestring = projectName + " p " + str(confJson["background_pressure"]) + " Pa, c. gas " + str(
+		confJson["collision_gas_mass_amu"]) + " amu, "
+	titlestring = titlestring + "spc:" + '%4g, ' % (confJson["space_charge_factor"])
+	titlestring = titlestring + "RF: " + str(V_rf_start) + " to " + str(V_rf_end) + " V @ " + str(
+		confJson["f_rf"] / 1000.0) + " kHz"
+
+	t_end = confJson["sim_time_steps"]*confJson["dt"]
+	dUdt = (confJson["V_rf_end"] - confJson["V_rf_start"]) / t_end
+	titlestring = titlestring + (' (%2g V/s), ' % (dUdt))
+	titlestring = titlestring + str(confJson["excite_pulse_potential"]) + " V exci."
+
+	project = [[projectName, ""]]
+	plot_fn = projectName + "_ionEjectionAnalysis"
+	analyze_stability_scan_comparison(project, plot_fn, window_width=window_width, titlestring=titlestring,t_range=t_range)
+
+
+def analyze_stability_scan_comparison(projects, plot_fn, mode="absolute", window_width=0, titlestring="",t_range=[0,1]):
+	fig = plt.figure(figsize=[15, 5])
+	ax1 = fig.add_subplot(1, 2, 1)
+	ax2 = fig.add_subplot(1, 2, 2)
+	for pr in projects:
+		dat = read_and_analyze_stability_scan(pr[0],t_range=t_range)
+
+		if mode == "normalized":
+			dat["inactive_ions"] = dat["inactive_ions"] / np.max(dat["inactive_ions"])
+			dat["ions_diff"] = dat["ions_diff"] / np.max(dat["ions_diff"])
+
+		if window_width > 0:
+			dat = dat.rolling(window_width).mean()
+
+		if len(pr) > 2:
+			dat["V_rf"] = dat["V_rf"] + pr[2]
+
+		ax1.plot(dat["time"], dat["inactive_ions"])
+		ax2.plot(dat["V_rf"], dat["ions_diff"], alpha=0.9, label=pr[1])
+
+	ax1.set_xlabel("time (ms)")
+	ax2.set_xlabel("$U_{rf}$ (V)")
+
+	if mode == 'absolute':
+		ax1.set_ylabel("# ions ejected")
+		ax2.set_ylabel("ion ejection rate")
+	if mode == 'normalized':
+		ax1.set_ylabel("fraction of ions ejected")
+		ax2.set_ylabel("normalized ion ejection rate")
+
+	if len(projects)>1:
+		plt.legend()
+
+	if len(titlestring)>1:
+		plt.figtext(0.1, 0.94, titlestring, fontsize=12)
+
+	plt.savefig(plot_fn + ".pdf", format="pdf")
+	plt.savefig(plot_fn + ".png", format="png", dpi=100)
 
 
 def center_of_charges_from_simulation(dat,speciesMasses,tRange=[]):
