@@ -118,10 +118,21 @@ def read_trajectory_file(trajectoryFileName):
 		times[i] = float(steps[i]["time"])
 
 	masses = np.zeros([nIons])
-	massesJson = tj["ionMasses"]
-	for i in range(len(massesJson)):
-		masses[i] = float(massesJson[i])
-	return{"positions":positions,"additional_parameters":additional_parameters,"times":times,"masses":masses,"n_ions":nIons}
+	masses_json = tj["ionMasses"]
+	for i in range(len(masses_json)):
+		masses[i] = float(masses_json[i])
+
+	splat_times = np.zeros([nIons])
+	splat_times_json = tj["splatTimes"]
+	for i in range(len(splat_times_json)):
+		splat_times[i] = float(splat_times_json[i])
+		
+	return{"positions":positions,
+	       "additional_parameters":additional_parameters,
+	       "times":times,
+	       "masses":masses,
+	       "n_ions":nIons,
+	       "splat_times":splat_times}
 
 
 def read_QIT_conf(confFileName):
