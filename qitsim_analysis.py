@@ -126,7 +126,7 @@ def read_trajectory_file(trajectoryFileName):
 	splat_times_json = tj["splatTimes"]
 	for i in range(len(splat_times_json)):
 		splat_times[i] = float(splat_times_json[i])
-		
+
 	return{"positions":positions,
 	       "additional_parameters":additional_parameters,
 	       "times":times,
@@ -276,6 +276,34 @@ def calculate_FFT_spectrum(t, z):
 
 	return frq,abs(Y)
 
+################## Simple Plot Methods ######################
+
+def plot_particles_path(tr, pl_filename, p_indices):
+	"""
+	Plots the paths of a selection of particles in a x,z and y,z projection
+	:param tr: trajectory input data
+	:type tr: trajectory dictionary from read_trajectory_file
+	:param pl_filename: the basename of the plot image files to create
+	:param p_indices:
+	:type p_indices: list of integers
+	"""
+	times = tr['times']
+	pos = tr['positions']
+	fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+	for p in p_indices:
+		p_pos = pos[p, :, :]
+		ax1.plot(p_pos[0, :], p_pos[2, :], '*-')
+		ax2.plot(p_pos[1, :], p_pos[2, :], '*-', label='particle ' + str(p))
+
+	ax1.set_xlabel('x')
+	ax1.set_ylabel('z')
+	ax2.set_xlabel('y')
+	ax2.set_ylabel('z')
+	ax2.legend()
+
+	plt.tight_layout()
+	plt.savefig(pl_filename + '.pdf', format='pdf')
+
 
 ################## High Level Simulation Project Processing Methods ######################
 
@@ -337,45 +365,6 @@ def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMod
 	plt.savefig(projectName+"_fftAnalysis.png",format="png",dpi=180)
 
 	return({"freqs":frq[freqsPl],"amplitude":abs(Y[freqsPl]),"time":t,"transient":z})
-
-
-def analyze_stability_scan_old(projectName, t_start=0, t_stop=1):
-	time, inactive_ions = read_ions_inactive_record(projectName)
-
-	with open(projectName + "_conf.json") as jsonFile:
-		confJson = json.load(jsonFile)
-
-	V_rf_start = confJson["V_rf_start"]
-	V_rf_end = confJson["V_rf_end"]
-	V_rf = np.linspace(V_rf_start, V_rf_end, len(time))
-
-	n_samples = len(time)
-	i_start = int(t_start * n_samples)
-	i_stop = int(t_stop * n_samples)
-	t_range = np.arange(i_start, i_stop)
-	plt.figure(figsize=[15, 5])
-	plt.subplot(1, 2, 1)
-	# plt.plot(time[t_range],inactive_ions[t_range])
-	plt.plot(time[t_range],inactive_ions[t_range])
-	plt.ylabel("# ions ejected")
-	plt.xlabel("time (s)")
-	plt.subplot(1, 2, 2)
-	plt.plot(V_rf[t_range[:-1]],np.diff(inactive_ions[t_range]))
-	plt.ylabel(" d ions ejected / dt")
-	plt.xlabel(r"$U_{\mathrm{rf}}$ (V)")
-	titlestring = projectName + " p " + str(confJson["background_pressure"]) + " Pa, c. gas " + str(
-		confJson["collision_gas_mass_amu"]) + " amu, "
-	titlestring = titlestring + "spc:" + '%4g, ' % (confJson["space_charge_factor"])
-	titlestring = titlestring + "RF: " + str(V_rf_start) + " to " + str(V_rf_end) + " V @ " + str(
-		confJson["f_rf"] / 1000.0) + " kHz"
-
-	dUdt = (confJson["V_rf_end"] - confJson["V_rf_start"]) / time[-1]
-	titlestring = titlestring + (' (%2g V/s), ' % (dUdt))
-	titlestring = titlestring + str(confJson["excite_pulse_potential"]) + " V exci."
-	plt.figtext(0.1, 0.94, titlestring, fontsize=12)
-
-	plt.savefig(projectName + "_ionEjectionAnalysis.pdf", format="pdf")
-	plt.savefig(projectName + "_ionEjectionAnalysis.png", format="png")
 
 
 def analyze_stability_scan(projectName,window_width=0,t_range=[0,1]):
