@@ -278,22 +278,34 @@ def calculate_FFT_spectrum(t, z):
 
 ################## Simple Plot Methods ######################
 
-def plot_particles_path(tr, pl_filename, p_indices):
+def plot_particles_path(trajectories, pl_filename, p_indices, plot_mark='*-',time_range=(0,1)):
 	"""
 	Plots the paths of a selection of particles in a x,z and y,z projection
 	:param tr: trajectory input data
-	:type tr: trajectory dictionary from read_trajectory_file
+	:type tr: list of lists of trajectory dictionaries from read_trajectory_file and an according label
 	:param pl_filename: the basename of the plot image files to create
 	:param p_indices:
 	:type p_indices: list of integers
+	:param plot_mark: matplotlib plot format string which is used for the path-plots
+	:type plot_mark: str
+	:param time_range: range of times to plot (given as a fraction between 0 and 1)
+	:type time_range: tuple of two floats between 0 and 1
 	"""
-	times = tr['times']
-	pos = tr['positions']
 	fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
-	for p in p_indices:
-		p_pos = pos[p, :, :]
-		ax1.plot(p_pos[0, :], p_pos[2, :], '*-')
-		ax2.plot(p_pos[1, :], p_pos[2, :], '*-', label='particle ' + str(p))
+
+	for tr in trajectories:
+		times = tr[0]['times']
+		n_times = len(times)
+		pos = tr[0]['positions']
+
+		i_start = int(n_times*time_range[0])
+		i_stop = int(n_times * time_range[1])
+		i_range = np.arange(i_start,i_stop)
+
+		for p in p_indices:
+			p_pos = pos[p, :, i_range]
+			ax1.plot(p_pos[:, 0], p_pos[:, 2], plot_mark)
+			ax2.plot(p_pos[:, 1], p_pos[:, 2], plot_mark, label=tr[1] + ' p ' + str(p))
 
 	ax1.set_xlabel('x')
 	ax1.set_ylabel('z')
@@ -460,20 +472,27 @@ def center_of_charges_from_simulation(dat,speciesMasses,tRange=[]):
 	return{"t":times,"cocA":cocA,"cocB":cocB,"cocAll":cocAll}
 
 
-def plot_average_z_position(sim_projects, masses):
+def plot_average_z_position(sim_projects, masses,compressed=True):
 	"""
 	Plots a comparison plot of averaged z-positions for individual masses in a qit simulation
 
 	:param list[str] sim_projects: a list of simulation project names
+	(the configuration file of the simulation is expected to have the same base-name)
 	:param list[float] masses: a list of masses to draw the plot for
+	:param bool compressed: flag if trajectory file is gzip compressed
 	"""
 	n_projects = len(sim_projects)
 	fig_size = [12, 2 * n_projects]
 	plt.figure(figsize=fig_size)
 
+	if compressed:
+		file_ext =  "_trajectories.json.gz"
+	else:
+		file_ext = "_trajectories.json"
+
 	print(n_projects)
 	for si in range(n_projects):
-		tj = read_trajectory_file(sim_projects[si] + "_trajectories.json.gz")
+		tj = read_trajectory_file(sim_projects[si] + file_ext)
 		conf = read_QIT_conf(sim_projects[si] + "_conf.json")
 
 		i_pos = tj["positions"]
@@ -488,9 +507,14 @@ def plot_average_z_position(sim_projects, masses):
 			coc = center_of_charge(i_pos_mfiltered)
 			plt.plot(times, coc[:, 2], label=str(mass))
 
-		plt.title(sim_projects[si] + ", " + str(conf["V_rf_start"]) +
-		          "V " + str(conf["f_rf"] / 1000) +
-		          "kHz RF, scf=" + str(conf["space_charge_factor"]))
+		title_str = sim_projects[si] + ", "
+		if "V_rf_start" in conf:
+			title_str += str(conf["V_rf_start"])
+		else:
+			title_str += str(conf["V_rf"])
+
+		title_str += "V " + str(conf["f_rf"] / 1000) + "kHz RF, scf=" + str(conf["space_charge_factor"])
+		plt.title(title_str)
 		plt.legend()
 	plt.xlabel("t (microseconds)")
 	plt.tight_layout()
@@ -666,6 +690,34 @@ def animate_simulation_z_vs_x_density(dat,masses,nFrames,interval,
 	elif fileMode == 'singleFrame':
 		animate(nFrames)
 		return (fig)
+
+
+def render_XZ_density_animation(projectNames,masses,resultName,nFrames=400,delay=1,annotation="",compressed=True):
+	"""
+	:param projectNames: simulation projects to compare (given as project basenames)
+	:type projectNames: tuple of two strings
+	:param masses: list of masses in the two simulation projects to compare
+	:type masses: tuple of two floats
+	:param resultName: basename for the rendering result
+	:param nFrames: number of frames to render
+	:param delay: interval in terms of time steps in the input data between the animation frames
+	:type delay: int
+	:param annotation: annotation string
+	:type annotation: str
+	:param compressed: flag if the input trajectory data is gzip compressed
+	"""
+
+	if compressed:
+		file_ext =  "_trajectories.json.gz"
+	else:
+		file_ext = "_trajectories.json"
+
+
+	tj0 = read_trajectory_file(projectNames[0]+file_ext)
+	tj1 = read_trajectory_file(projectNames[1]+file_ext)
+	anim = animate_simulation_z_vs_x_density([tj0,tj1],masses,nFrames,delay,sLim=7,annotateString=annotation)
+	anim.save(resultName+"_densitiesComparisonXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
+	display_animation(anim)
 
 
 #### animation / jupyter stuff ####
