@@ -720,6 +720,81 @@ def render_XZ_density_animation(projectNames,masses,resultName,nFrames=400,delay
 	display_animation(anim)
 
 
+def plot_phase_space_frame(tr, timestep):
+	print(len(tr['times']))
+	pos = tr['positions']
+	ap = tr['additional_parameters']
+	print(np.shape(pos))
+	plt.subplot(1, 2, 1)
+	plt.scatter(pos[:, 0, timestep], ap[:, 0, timestep], s=0.5, alpha=0.5)
+	plt.subplot(1, 2, 2)
+	plt.scatter(pos[:, 2, timestep], ap[:, 2, timestep], s=0.5, alpha=0.5)
+
+
+def plot_phase_space_trajectory(tr, pdef):
+	print(len(tr['times']))
+	pos = tr['positions']
+	ap = tr['additional_parameters']
+	print(np.shape(pos))
+	for pi in pdef:
+		plt.scatter(pos[pi, 0, :], ap[pi, 0, :], s=10, alpha=1)
+
+
+def animate_phase_space(tr, resultName, xlim=None, ylim=None, numframes=None,alpha=1.0):
+	fig = plt.figure(figsize=(13, 5))
+	pos = tr['positions']
+	ap = tr['additional_parameters']
+	masses = tr['masses']
+
+	if not numframes:
+		numframes = len(tr['times'])
+
+	plt.subplot(1, 2, 1)
+	scat1 = plt.scatter(pos[:, 0, 0], ap[:, 0, 0], s=10, alpha=alpha, c=masses)
+	plt.xlabel("x position")
+	plt.ylabel("x velocity")
+
+	if ylim:
+		plt.ylim(ylim[0])
+	else:
+		plt.ylim((np.min(ap[:, 0, :]), np.max(ap[:, 0, :])))
+
+	if xlim:
+		plt.xlim(xlim[0])
+	else:
+		plt.xlim((np.min(pos[:, 0, :]), np.max(pos[:, 0, :])))
+
+	plt.subplot(1, 2, 2)
+	scat2 = plt.scatter(pos[:, 2, 0], ap[:, 2, 0], s=10, alpha=alpha, c=masses)
+	plt.xlabel("z position")
+	plt.ylabel("z velocity")
+
+	if ylim:
+		plt.ylim(ylim[1])
+	else:
+		plt.ylim((np.min(ap[:, 2, :]), np.max(ap[:, 2, :])))
+
+	if xlim:
+		plt.xlim(xlim[1])
+	else:
+		plt.xlim((np.min(pos[:, 2, :]), np.max(pos[:, 2, :])))
+
+	ani = animation.FuncAnimation(fig, update_phase_space_plot, frames=range(numframes),
+	                              fargs=(pos, ap, scat1, scat2))
+	ani.save(resultName + "_phaseSpace.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
+
+
+def update_phase_space_plot(i, pos, ap, scat1, scat2):
+	scat1.set_offsets(np.transpose(np.vstack([pos[:, 0, i], ap[:, 0, i]])))
+	scat2.set_offsets(np.transpose(np.vstack([pos[:, 2, i], ap[:, 2, i]])))
+	return scat1, scat2
+
+
+def render_phase_space_animation(pname,ylim=None,xlim=None,numframes=None,alpha=1.0):
+	tr = read_trajectory_file(pname + "_trajectories.json.gz")
+	animate_phase_space(tr, pname, ylim=ylim, xlim=xlim,alpha=alpha,numframes=numframes)
+
+
 #### animation / jupyter stuff ####
 ##animation machinery:
 #http://jakevdp.github.io/blog/2013/05/12/embedding-matplotlib-animations/
