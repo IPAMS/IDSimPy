@@ -790,8 +790,12 @@ def update_phase_space_plot(i, pos, ap, scat1, scat2):
 	return scat1, scat2
 
 
-def render_phase_space_animation(pname,ylim=None,xlim=None,numframes=None,alpha=1.0):
-	tr = read_trajectory_file(pname + "_trajectories.json.gz")
+def render_phase_space_animation(pname,ylim=None,xlim=None,numframes=None,alpha=1.0,compressed=True):
+
+	if compressed:
+		tr = read_trajectory_file(pname + "_trajectories.json.gz")
+	else:
+		tr = read_trajectory_file(pname + "_trajectories.json")
 	animate_phase_space(tr, pname, ylim=ylim, xlim=xlim,alpha=alpha,numframes=numframes)
 
 
