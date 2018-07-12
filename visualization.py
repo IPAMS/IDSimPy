@@ -199,7 +199,7 @@ def render_XZ_density_animation(projectNames,masses,resultName,nFrames=400,delay
 	anim.save(resultName+"_densitiesComparisonXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 
 
-def animate_z_vs_x_scatter_plot(tr, xlim=None, ylim=None, numframes=None):
+def animate_scatter_plot(tr, xlim=None, ylim=None, numframes=None):
 	fig = plt.figure(figsize=(13, 5))
 	pos = tr['positions']
 	# ap = tr['additional_parameters']
@@ -212,8 +212,8 @@ def animate_z_vs_x_scatter_plot(tr, xlim=None, ylim=None, numframes=None):
 
 	plt.subplot(1, 2, 1)
 	scat1 = plt.scatter(pos[:, 0, 0], pos[:, 1, 0], s=10, alpha=0.1, c=masses, cmap=cmap)
-	# plt.xlabel("x position")
-	# plt.ylabel("x velocity")
+	plt.xlabel("x position")
+	plt.ylabel("y position")
 
 	if ylim:
 		plt.ylim(ylim[0])
@@ -227,8 +227,8 @@ def animate_z_vs_x_scatter_plot(tr, xlim=None, ylim=None, numframes=None):
 
 	plt.subplot(1, 2, 2)
 	scat2 = plt.scatter(pos[:, 1, 0], pos[:, 2, 0], s=10, alpha=0.1, c=masses, cmap=cmap)
-	# plt.xlabel("z position")
-	# plt.ylabel("z velocity")
+	plt.xlabel("x position")
+	plt.ylabel("z position")
 
 	if ylim:
 		plt.ylim(ylim[1])
@@ -255,14 +255,14 @@ def animate_z_vs_x_scatter_plot(tr, xlim=None, ylim=None, numframes=None):
 	return(ani)
 
 
-def render_XZ_scatter_animation(pname,result_name=None, xlim=None, ylim=None, numframes=None,compressed=True):
+def render_scatter_animation(pname,result_name=None, xlim=None, ylim=None, numframes=None,compressed=True):
 	if compressed:
 		file_ext =  "_trajectories.json.gz"
 	else:
 		file_ext = "_trajectories.json"
 
 	tr = tra.read_trajectory_file(pname + file_ext)
-	ani = animate_z_vs_x_scatter_plot(tr, xlim=xlim,ylim=ylim,numframes=numframes)
+	ani = animate_scatter_plot(tr, xlim=xlim, ylim=ylim, numframes=numframes)
 
 	if not result_name:
 		result_name = pname
