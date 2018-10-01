@@ -173,7 +173,7 @@ def animate_z_vs_x_density_plot(dat,masses,nFrames,interval,
 		return (fig)
 
 
-def render_XZ_density_animation(projectNames,masses,resultName,nFrames=400,delay=1,annotation="",compressed=True):
+def render_XZ_density_animation(projectNames,masses,resultName,nFrames=400,delay=1,slim=7,annotation="",compressed=True):
 	"""
 	:param projectNames: simulation projects to compare (given as project basenames)
 	:type projectNames: tuple of two strings
@@ -183,6 +183,8 @@ def render_XZ_density_animation(projectNames,masses,resultName,nFrames=400,delay
 	:param nFrames: number of frames to render
 	:param delay: interval in terms of time steps in the input data between the animation frames
 	:type delay: int
+	:param slim: size of the rendered area
+	:type slim: float
 	:param annotation: annotation string
 	:type annotation: str
 	:param compressed: flag if the input trajectory data is gzip compressed
@@ -195,7 +197,7 @@ def render_XZ_density_animation(projectNames,masses,resultName,nFrames=400,delay
 
 	tj0 = tra.read_trajectory_file(projectNames[0]+file_ext)
 	tj1 = tra.read_trajectory_file(projectNames[1]+file_ext)
-	anim = animate_z_vs_x_density_plot([tj0,tj1],masses,nFrames,delay,sLim=7,annotateString=annotation)
+	anim = animate_z_vs_x_density_plot([tj0,tj1],masses,nFrames,delay,sLim=slim,annotateString=annotation)
 	anim.save(resultName+"_densitiesComparisonXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 
 
