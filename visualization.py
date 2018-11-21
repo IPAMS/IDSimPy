@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import matplotlib.pylab as plt
+import matplotlib.pyplot as plt
 from matplotlib import animation
+from matplotlib.image import NonUniformImage
 from . import trajectory as tra
 
 ################## Simple Plot Methods ######################
@@ -46,24 +47,25 @@ def plot_particles_path(trajectories, pl_filename, p_indices, plot_mark='*-',tim
 	plt.savefig(pl_filename + '.pdf', format='pdf')
 
 
-def plot_density_z_vs_x(trajectories,timeIndex):
+def plot_density_z_vs_x(trajectories,timeIndex,
+        xedges = np.linspace(-10,10,80),
+		zedges = np.linspace(-10,10,80)
+):
 	"""
 	Renders an density plot in a z-x projection
 	:param trajectories: a trajectories vector from an imported trajectories object
 	:type trajectories: trajectories vector from dict returned from readTrajectoryFile
 	:param timeIndex: index of the time step to render
 	"""
-	xedges = np.linspace(-10,10,80)
-	zedges = np.linspace(-10,10,80)
 	x = trajectories[:,0,timeIndex]
 	z = trajectories[:,2,timeIndex]
-	H, xedges, yedges = np.histogram2d(z,x, bins=(xedges, zedges))
+	H, xedges, yedges = np.histogram2d(x,z, bins=(xedges, zedges))
+	H = H.T
 	fig = plt.figure(figsize=(7, 7))
-
 
 	ax = fig.add_subplot(111)
 	ax.set_title('NonUniformImage: interpolated')
-	im = plt.image.NonUniformImage(ax, interpolation='bilinear')
+	im = NonUniformImage(ax, interpolation='nearest')
 	xcenters = xedges[:-1] + 0.5 * (xedges[1:] - xedges[:-1])
 	zcenters = zedges[:-1] + 0.5 * (zedges[1:] - zedges[:-1])
 	im.set_data(xcenters, zcenters, H)
@@ -71,7 +73,6 @@ def plot_density_z_vs_x(trajectories,timeIndex):
 	ax.set_xlim(xedges[0], xedges[-1])
 	ax.set_ylim(zedges[0], zedges[-1])
 	ax.set_aspect('equal')
-	plt.show()
 
 ################## High Level Simulation Project Processing Methods ######################
 
