@@ -1,6 +1,7 @@
 import unittest
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 import IDSimF_analysis as ia
 
 
@@ -16,3 +17,7 @@ class TestVisualization(unittest.TestCase):
 		ia.plot_density_z_vs_x(traj_10_11['positions'], t_indd,
 			xedges=np.linspace(-1, 5, 500),
 		    zedges=np.linspace(-3, 3, 100) )
+
+		plt.title("test title")
+		plt.xlabel("x label test")
+		plt.show()
