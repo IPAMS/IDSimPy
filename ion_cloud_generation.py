@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-
 """
 ion_cloud_generation: Generation of ion cloud initialization files
 """
+
+import numpy as np
 
 #from IDSimF_analysis.constants import *
 

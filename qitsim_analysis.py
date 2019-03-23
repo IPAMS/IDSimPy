@@ -171,6 +171,10 @@ def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMod
 
 	if loadMode == "fft_record":
 		t,z = read_FFT_record(projectPath)
+	elif loadMode == "legacy_fft_record":
+		dat = np.loadtxt(projectPath + "_fft.txt")
+		t = dat[:, 0]
+		z = dat[:, 3]
 	elif loadMode == "center_of_charge_record":
 		t,z = read_center_of_charge_record(projectPath)
 	elif loadMode == "reconstruct_from_trajectories":

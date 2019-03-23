@@ -151,9 +151,9 @@ def animate_z_vs_x_density_plot(dat,masses,nFrames,interval,
 		nf_B_log = np.max(h_B_log)
 		abs_dens = (h_A + h_B) / (nf_A + nf_B)
 		abs_dens_log_raw = (h_A_log + h_B_log) / (nf_A_log + nf_B_log)
-		abs_dens_log = abs_dens_log_raw * 0.5
+		abs_dens_log = abs_dens_log_raw * 0.8
 		nonzero = np.nonzero(abs_dens_log > 0)
-		abs_dens_log[nonzero] = abs_dens_log[nonzero] + 0.5
+		abs_dens_log[nonzero] = abs_dens_log[nonzero] + 0.2
 
 		if mode == "lin":
 			img_data_RGB[:, :, 3] = abs_dens*alphaFactor
@@ -174,7 +174,8 @@ def animate_z_vs_x_density_plot(dat,masses,nFrames,interval,
 		return (fig)
 
 
-def render_XZ_density_animation(projectNames,masses,resultName,nFrames=400,delay=1,slim=7,annotation="",compressed=True):
+def render_XZ_density_animation(projectNames, masses, resultName, nFrames=400, delay=1, slim=7,
+                                annotation="",mode="lin", compressed=True):
 	"""
 	:param projectNames: simulation projects to compare (given as project basenames)
 	:type projectNames: tuple of two strings
@@ -188,6 +189,7 @@ def render_XZ_density_animation(projectNames,masses,resultName,nFrames=400,delay
 	:type slim: float
 	:param annotation: annotation string
 	:type annotation: str
+	:param mode: scale density linearly ("lin") or logarithmically ("log")
 	:param compressed: flag if the input trajectory data is gzip compressed
 	"""
 
@@ -196,10 +198,11 @@ def render_XZ_density_animation(projectNames,masses,resultName,nFrames=400,delay
 	else:
 		file_ext = "_trajectories.json"
 
-	tj0 = tra.read_trajectory_file(projectNames[0]+file_ext)
-	tj1 = tra.read_trajectory_file(projectNames[1]+file_ext)
-	anim = animate_z_vs_x_density_plot([tj0,tj1],masses,nFrames,delay,sLim=slim,annotateString=annotation)
-	anim.save(resultName+"_densitiesComparisonXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
+	tj0 = tra.read_trajectory_file(projectNames[0] + file_ext)
+	tj1 = tra.read_trajectory_file(projectNames[1] + file_ext)
+	anim = animate_z_vs_x_density_plot([tj0, tj1], masses, nFrames, delay, mode=mode, sLim=slim,
+	                                   annotateString=annotation)
+	anim.save(resultName + "_densitiesComparisonXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 
 
 def animate_scatter_plot(tr, xlim=None, ylim=None, numframes=None):
