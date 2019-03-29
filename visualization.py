@@ -79,12 +79,11 @@ def plot_density_z_vs_x(trajectories,timeIndex,
 def animate_z_vs_x_density_plot(dat,masses,nFrames,interval,
 										fileMode='video',
 										mode="lin",
-										sLim=3,nBins=100,
+										s_lim=3,n_bins=100,basesize = 22,
 										alphaFactor = 1,colormap = plt.cm.coolwarm,
 										annotateString=""):
 	"""
-	Animate the center of charges of the ion clouds in a QIT simulation in a z-x projection. The center of charges
-	are rendered as a trace with a given length (in terms of simulation time steps)
+	Animate the denisties of two ion clouds in a QIT simulation in a z-x projection.
 
 	:param dat: imported trajectories object
 	:type dat: dict returned from readTrajectoryFile
@@ -94,28 +93,50 @@ def animate_z_vs_x_density_plot(dat,masses,nFrames,interval,
 	:param interval: interval in terms of time steps in the input data between the animation frames
 	:param fileMode: render either a video ("video") or single frames as image files ("singleFrame")
 	:param mode: scale density linearly ("lin") or logarithmically ("log")
-	:param sLim: spatial limits of the rendered spatial domain (given as distance from the origin of the coordinate system)
-	:param nBins: number of density bins in the spatial directions
+	:param s_lim: spatial limits of the rendered spatial domain
+			(given as distance from the origin of the coordinate system or explicit limits: [xlo, xhi, zlo, zhi]
+	:param n_bins: number of density bins in the spatial directions or list of bin numbers ([x z])
+	:type n_bins: int or list of two ints
+	:param basesize: the base size of the plot
+	:type basestring: float
 	:param alphaFactor: blending factor for graphical blending the densities of the two species
 	:param colormap: a colormap for the density rendering (a pure species will end up on one side of the colormap)
 	:param annotateString: an optional string which is rendered into the animation as annotation
 	:return: animation object or figure (depends on the file mode)
 	"""
-
-
 	times = dat[0]["times"]
-	datA = tra.filter_mass(dat[0]["positions"],dat[0]["masses"],masses[0])
-	datB = tra.filter_mass(dat[1]["positions"],dat[1]["masses"],masses[1])
+	if masses[0] == "all":
+		datA = dat[0]["positions"]
+	else:
+		datA = tra.filter_mass(dat[0]["positions"], dat[0]["masses"], masses[0])
+
+
+	if masses[1] == "all":
+		datB = dat[1]["positions"]
+	else:
+		datB = tra.filter_mass(dat[1]["positions"],dat[1]["masses"],masses[1])
 
 	if fileMode=='video':
 		fig = plt.figure(figsize=[10,10])
 	elif fileMode=='singleFrame':
 		fig = plt.figure(figsize=[ 6, 6])
 
-	xedges = np.linspace(-sLim,sLim,nBins)
-	zedges = np.linspace(-sLim,sLim,nBins)
+	if not hasattr(s_lim, "__iter__"): #is not iterable
+		limits = [-s_lim,s_lim,-s_lim,s_lim]
+	else:
+		limits = s_lim
+
+	if not hasattr(n_bins, "__iter__"): #is not iterable
+		bins = [n_bins,n_bins]
+	else:
+		bins = n_bins
+
+	xedges = np.linspace(limits[0],limits[1],bins[0])
+	zedges = np.linspace(limits[2],limits[3],bins[1])
 	H = np.random.rand(len(xedges),len(zedges))
-	ax = plt.axes(ylim=(zedges[0], zedges[-1]), xlim=(xedges[0], xedges[-1]))
+	fig_ratio = (limits[3]-limits[2]) / (limits[1]-limits[0])
+	fig = plt.figure(figsize=(basesize,basesize*fig_ratio+basesize/10.0))
+	ax = fig.add_subplot(1, 1, 1, ylim=(zedges[0], zedges[-1]), xlim=(xedges[0], xedges[-1]))
 
 	im1 = ax.imshow(H, interpolation='nearest', origin='low', alpha=1, vmin=0, vmax=10, cmap="Reds",
 				extent=[xedges[0], xedges[-1], zedges[0], zedges[-1]])
@@ -125,7 +146,7 @@ def animate_z_vs_x_density_plot(dat,masses,nFrames,interval,
 	                        verticalalignment="top",
 	                        fontsize=20);
 
-	plt.xlabel("r (mm)")
+	plt.xlabel("x (mm)")
 	plt.ylabel("z (mm)")
 	fillChannel = np.ones([len(xedges)-1,len(zedges)-1])
 
@@ -133,12 +154,12 @@ def animate_z_vs_x_density_plot(dat,masses,nFrames,interval,
 		tsNumber = i*interval
 		x = datA[:,0,tsNumber]
 		z = datA[:,2,tsNumber]
-		h_A, xedges2, zedges2 = np.histogram2d(z,x, bins=(xedges, zedges))
+		h_A, zedges2, xedges2 = np.histogram2d(z,x, bins=(zedges, xedges))
 		#im1.set_array(H2);
 
 		x = datB[:,0,tsNumber]
 		z = datB[:,2,tsNumber]
-		h_B, xedges2, zedges2 = np.histogram2d(z,x, bins=(xedges, zedges))
+		h_B, zedges2, xedges2 = np.histogram2d(z,x, bins=(zedges, xedges))
 
 		nf_A = np.max(h_A)
 		nf_B = np.max(h_B)
@@ -174,7 +195,7 @@ def animate_z_vs_x_density_plot(dat,masses,nFrames,interval,
 		return (fig)
 
 
-def render_XZ_density_animation(projectNames, masses, resultName, nFrames=400, delay=1, slim=7,
+def render_XZ_density_animation(projectNames, masses, resultName, nFrames=400, delay=1, s_lim=7,n_bins=50,
                                 annotation="",mode="lin", compressed=True):
 	"""
 	:param projectNames: simulation projects to compare (given as project basenames)
@@ -185,8 +206,11 @@ def render_XZ_density_animation(projectNames, masses, resultName, nFrames=400, d
 	:param nFrames: number of frames to render
 	:param delay: interval in terms of time steps in the input data between the animation frames
 	:type delay: int
-	:param slim: size of the rendered area
-	:type slim: float
+	:param s_lim: spatial limits of the rendered spatial domain
+			(given as distance from the origin of the coordinate system or explicit limits: [xlo, xhi, zlo, zhi]
+	:type s_lim: float or list of two floats
+	:param n_bins: number of density bins in the spatial directions or list of bin numbers ([x z])
+	:type n_bins: int or list of two ints
 	:param annotation: annotation string
 	:type annotation: str
 	:param mode: scale density linearly ("lin") or logarithmically ("log")
@@ -200,7 +224,7 @@ def render_XZ_density_animation(projectNames, masses, resultName, nFrames=400, d
 
 	tj0 = tra.read_trajectory_file(projectNames[0] + file_ext)
 	tj1 = tra.read_trajectory_file(projectNames[1] + file_ext)
-	anim = animate_z_vs_x_density_plot([tj0, tj1], masses, nFrames, delay, mode=mode, sLim=slim,
+	anim = animate_z_vs_x_density_plot([tj0, tj1], masses, nFrames, delay, mode=mode, s_lim=s_lim,
 	                                   annotateString=annotation)
 	anim.save(resultName + "_densitiesComparisonXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 

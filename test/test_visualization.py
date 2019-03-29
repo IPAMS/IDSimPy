@@ -10,6 +10,8 @@ class TestVisualization(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		cls.test_fname = os.path.join('data', '2018_10_15_001.json_result.txt_trajectories.json')
+		cls.test_projectName = os.path.join('data', '2018_10_15_001.json_result.txt')
+		cls.result_path = "test_results"
 
 	def test_basic_density_plotting(self):
 		t_indd = 1
@@ -21,3 +23,18 @@ class TestVisualization(unittest.TestCase):
 		plt.title("test title")
 		plt.xlabel("x label test")
 		plt.show()
+
+	def test_basic_density_animation(self):
+		projectNames = [self.test_projectName,self.test_projectName]
+		masses = ['all','all']
+		resultName = os.path.join(self.result_path, 'animation_test.mp4')
+		ia.render_XZ_density_animation(projectNames, masses, resultName, nFrames=100, delay=1, s_lim=7,
+		                               annotation="", mode="lin", compressed=False)
+
+	def test_density_animation_with_custom_limits(self):
+		projectNames = [self.test_projectName,self.test_projectName]
+		masses = ['all','all']
+		resultName = os.path.join(self.result_path, 'animation_test_2.mp4')
+		ia.render_XZ_density_animation(projectNames, masses, resultName, nFrames=100, delay=1, s_lim=[-1, 5, -1, 1],
+		                               n_bins=[100, 20],
+		                               annotation="", mode="log", compressed=False)
