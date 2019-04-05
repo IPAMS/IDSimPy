@@ -15,7 +15,6 @@ def qit_stability_parameters(
 		r0=0.01  # ring electrode radius [m])
 ):
 
-
 #####################
 	# calculate secular frequency and period of the ion
 	m_kg = m_amu * KG_PER_AMU
@@ -39,59 +38,72 @@ def qit_stability_parameters(
 
 ################## Data Read Methods ######################
 
-def read_QIT_conf(confFileName):
+def read_QIT_conf(conf_file_name):
 	"""
 	Reads and parses the QIT simulation configuration file
-	:param confFileName: the filename of the simulation configuration file
+	:param conf_file_name: the filename of the simulation configuration file
 	:return: a parsed dictionary with the configuration parameters
 	"""
-	with open(confFileName) as jsonFile:
+	with open(conf_file_name) as jsonFile:
 		confJson = json.load(jsonFile)
 
 	return (confJson)
 
 
-def read_FFT_record(projectPath):
+def read_FFT_record(project_path):
 	"""
-	Loads a fft record file, which contains the exported mirror charge current on some detector electrodes
+	Reads a fft record file, which contains the exported mirror charge current on some detector electrodes
 
-	:param projectPath: path of the simulation project
+	:param project_path: path of the simulation project
 	:return: two vectors: the time and simulated mirror charge from the fft file
 	"""
-	dat = np.loadtxt(projectPath + "_fft.txt")
+	dat = np.loadtxt(project_path + "_fft.txt")
 	t = dat[:, 0]
 	z = dat[:, 1]
 	return t,z
 
-def read_ions_inactive_record(projectPath):
+def read_ions_inactive_record(project_path):
 	"""
-	Loads an ions inactive record file, which contains the number of inactive ions over the time
+	Reads an ions inactive record file, which contains the number of inactive ions over the time
 
-	:param projectPath: path of the simulation project
+	:param project_path: path of the simulation project
 	:return: two vectors: the time and the number of inactive ions
 	"""
-	dat = np.loadtxt(projectPath + "_ionsInactive.txt")
+	dat = np.loadtxt(project_path + "_ionsInactive.txt")
 	t = dat[:, 0]
 	ions_inactive = dat[:, 1]
 	return t, ions_inactive
 
-def read_center_of_charge_record(projectPath):
+def read_center_of_charge_record(project_path):
 	"""
-	Loads a center of charge (coc) record file, which contains the mean position of the charged particle cloud over the time
+	Reads a center of charge (coc) record file, which contains the mean position of the charged particle cloud over the time
 
-	:param projectPath: path of the simulation project
-	:return: two vectors: the time and the mean position of the charged particle cloud from the coc file
+	:param project_path: path of the simulation project
+	:return: the time vector and the mean positions of the charged particle cloud from the coc file in a two dim matrix
 	"""
-	dat = np.loadtxt(projectPath + "_averagePosition.txt")
+	dat = np.loadtxt(project_path + "_averagePosition.txt")
 	t = dat[:, 0]
-	z = dat[:, 3]
-	return t,z
+	pos = dat[:, 1:]
+	return t,pos
 
 
-def read_and_analyze_stability_scan(projectName,t_range=[0,1]):
-	time, inactive_ions = read_ions_inactive_record(projectName)
+def read_and_analyze_stability_scan(project_path, t_range=(0, 1)):
+	"""
+	Reads and analyzes an ions inactive record.
 
-	with open(projectName + "_conf.json") as jsonFile:
+	:param project_path: path of the simulation project
+	:type project_path: str
+	:param t_range: a time
+	:type t_range: tuple of floats with t_start, t_stop
+	:return: a pandas dataframe with
+		the trap RF amplitude (V_rf),
+		the time,
+		the number of inactive ions
+		and the differential number of inactive ions (ion termination per timestep)
+	"""
+	time, inactive_ions = read_ions_inactive_record(project_path)
+
+	with open(project_path + "_conf.json") as jsonFile:
 		conf_json = json.load(jsonFile)
 
 	V_rf_start = conf_json["V_rf_start"]
