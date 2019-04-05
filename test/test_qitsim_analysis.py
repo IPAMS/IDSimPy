@@ -62,4 +62,5 @@ class TestQitSimAnalysis(unittest.TestCase):
 		self.assertAlmostEqual(fft_dat['time'][-1], 8e-05)
 
 
-	#self.assertEqual(np.shape(ions_inactive), (2, 2001))
+	def test_stability_scan_analysis(self):
+		qa.analyze_stability_scan(self.sim_name,result_path=self.result_path)

@@ -235,12 +235,14 @@ def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMod
 	return({"freqs":frq[freqsPl],"amplitude":abs(Y[freqsPl]),"time":t,"transient":z})
 
 
-def analyze_stability_scan(projectName,window_width=0,t_range=[0,1]):
-	with open(projectName + "_conf.json") as jsonFile:
+def analyze_stability_scan(projectPath,window_width=0,t_range=[0,1],result_path=None):
+	with open(projectPath + "_conf.json") as jsonFile:
 		confJson = json.load(jsonFile)
 
 	V_rf_start = confJson["V_rf_start"]
 	V_rf_end = confJson["V_rf_end"]
+
+	projectName = projectPath.split("/")[-1]
 
 	titlestring = projectName + " p " + str(confJson["background_pressure"]) + " Pa, c. gas " + str(
 		confJson["collision_gas_mass_amu"]) + " amu, "
@@ -253,8 +255,13 @@ def analyze_stability_scan(projectName,window_width=0,t_range=[0,1]):
 	titlestring = titlestring + (' (%2g V/s), ' % (dUdt))
 	titlestring = titlestring + str(confJson["excite_pulse_potential"]) + " V exci."
 
-	project = [[projectName, ""]]
-	plot_fn = projectName + "_ionEjectionAnalysis"
+	project = [[projectPath, ""]]
+	plot_fn = projectPath
+	if result_path:
+		plot_fn = os.path.join(result_path,projectName)
+
+	plot_fn += "_ionEjectionAnalysis"
+
 	analyze_stability_scan_comparison(project, plot_fn, window_width=window_width, titlestring=titlestring,t_range=t_range)
 
 
