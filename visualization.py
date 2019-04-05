@@ -222,8 +222,8 @@ def render_XZ_density_animation(projectNames, masses, resultName, nFrames=400, d
 	else:
 		file_ext = "_trajectories.json"
 
-	tj0 = tra.read_trajectory_file(projectNames[0] + file_ext)
-	tj1 = tra.read_trajectory_file(projectNames[1] + file_ext)
+	tj0 = tra.read_json_trajectory_file(projectNames[0] + file_ext)
+	tj1 = tra.read_json_trajectory_file(projectNames[1] + file_ext)
 	anim = animate_z_vs_x_density_plot([tj0, tj1], masses, nFrames, delay, mode=mode, s_lim=s_lim,
 	                                   annotateString=annotation)
 	anim.save(resultName + "_densitiesComparisonXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])

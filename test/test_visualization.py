@@ -9,13 +9,13 @@ class TestVisualization(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
-		cls.test_fname = os.path.join('data', '2018_10_15_001.json_result.txt_trajectories.json')
-		cls.test_projectName = os.path.join('data', '2018_10_15_001.json_result.txt')
+		cls.test_fname = os.path.join('data', 'test_trajectories.json')
+		cls.test_projectName = os.path.join('data', 'test')
 		cls.result_path = "test_results"
 
 	def test_basic_density_plotting(self):
 		t_indd = 1
-		traj_10_11 = ia.tra.read_trajectory_file(self.test_fname)
+		traj_10_11 = ia.tra.read_json_trajectory_file(self.test_fname)
 		ia.plot_density_z_vs_x(traj_10_11['positions'], t_indd,
 			xedges=np.linspace(-1, 5, 500),
 		    zedges=np.linspace(-3, 3, 100) )

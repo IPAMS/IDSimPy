@@ -10,7 +10,7 @@ class TestVisualization(unittest.TestCase):
 	def setUpClass(cls):
 		cls.test_hdf5_bare_fname = os.path.join('data', 'QIT_test_trajectory.hd5')
 		cls.test_hdf5_aux_fname = os.path.join('data', 'QIT_test_trajectory_aux.hd5')
-		cls.test_json_fname = os.path.join('data', 'test_trajectory.json')
+		cls.test_json_fname = os.path.join('data', 'test_trajectories.json')
 		cls.result_path = "test_results"
 
 	def test_basic_hdf5_trajectory_reading(self):
