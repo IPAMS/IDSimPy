@@ -3,6 +3,7 @@
 import gzip
 import json
 import io
+import h5py
 import numpy as np
 
 ################## Trajectory input ######################
@@ -43,7 +44,7 @@ def read_legacy_trajectory_file(trajectoryFileName):
 	return{"trajectories":t,"times":times,"masses":masses}
 
 
-def read_trajectory_file(trajectoryFileName):
+def read_json_trajectory_file(trajectoryFileName):
 	"""
 	Reads a trajectory file and returns a trajectory object
 
@@ -93,8 +94,36 @@ def read_trajectory_file(trajectoryFileName):
 	       "additional_parameters":additional_parameters,
 	       "times":times,
 	       "masses":masses,
-	       "n_ions":nIons,
+	       "n_particles":nIons,
 	       "splat_times":splat_times}
+
+
+
+def read_hdf5_trajectory_file(trajectory_file_name):
+	##fixme: impletment HDF5 reader
+	hdf5File = h5py.File(trajectory_file_name, 'r')
+
+	tra_group = hdf5File['particle_trajectory']
+	attribs = tra_group.attrs
+	n_particles = attribs['number of particles'][0]
+	n_timesteps = attribs['number of timesteps'][0]
+	positions = tra_group['positions']
+	times = tra_group['times']
+
+	aux_parameters = None
+	if 'aux_parameters' in tra_group.keys():
+		aux_parameters_names = [name.decode('UTF-8') for name in attribs['auxiliary parameter names']]
+		aux_parameters = tra_group['aux_parameters']
+
+	return {"positions": positions,
+	        "additional_parameters": aux_parameters,
+	        "additional_names": aux_parameters_names,
+	        "times": times,
+	        "n_particles": n_particles}
+
+
+
+
 
 
 ################## Trajectory output / translation ######################
