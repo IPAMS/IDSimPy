@@ -3,6 +3,7 @@ import numpy as np
 import pylab as plt
 import pandas as pd
 import json
+import os
 from matplotlib import animation
 from .constants import *
 from . import trajectory as tra
@@ -165,7 +166,7 @@ def calculate_FFT_spectrum(t, z):
 
 ################## High Level Simulation Project Processing Methods ######################
 
-def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMode="fft_record"):
+def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMode="fft_record",result_path=None):
 	"""
 	Analyses a transient of a QIT simulation and calculates/plots the spectrum from it
 
@@ -223,8 +224,13 @@ def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMod
 	#titlestring = titlestring + ", nIons:"+str(confJson["n_ions"])+ ", ion masses:"+str(confJson["ion_masses"])
 	plt.figtext(0.1,0.94,titlestring,fontsize=17)
 
-	plt.savefig(projectName+"_fftAnalysis.pdf",format="pdf")
-	plt.savefig(projectName+"_fftAnalysis.png",format="png",dpi=180)
+	if result_path:
+		result_project_path = os.path.join(result_path,projectName)
+	else:
+		result_project_path = projectName
+
+	plt.savefig(result_project_path + "_fftAnalysis.pdf", format="pdf")
+	plt.savefig(result_project_path + "_fftAnalysis.png", format="png", dpi=180)
 
 	return({"freqs":frq[freqsPl],"amplitude":abs(Y[freqsPl]),"time":t,"transient":z})
 

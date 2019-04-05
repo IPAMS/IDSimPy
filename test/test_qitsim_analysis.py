@@ -51,4 +51,15 @@ class TestQitSimAnalysis(unittest.TestCase):
 		self.assertEqual(dat.loc[row]['ions_diff'], 41)
 
 
+	def test_fft_simulation_analysis(self):
+		fft_dat = qa.analyse_FFT_sim(self.sim_name,result_path=self.result_path)
+
+		self.assertEqual(len(fft_dat['freqs']),2000)
+		self.assertEqual(len(fft_dat['amplitude']), 2000)
+		self.assertEqual(len(fft_dat['transient']), 4001)
+		self.assertEqual(len(fft_dat['time']), 4001)
+
+		self.assertAlmostEqual(fft_dat['time'][-1], 8e-05)
+
+
 	#self.assertEqual(np.shape(ions_inactive), (2, 2001))
