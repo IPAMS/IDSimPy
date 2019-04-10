@@ -8,7 +8,8 @@ class TestQitSimAnalysis(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
-		cls.sim_name = os.path.join('data', 'qitSim_2019_04_scanningTrapTest','qitSim_2019_04_04_001')
+		cls.sim_name_staticrf = os.path.join('data', 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_001')
+		cls.sim_name_scanned =  os.path.join('data', 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_002')
 		cls.result_path = "test_results"
 
 	def test_qit_stability_parameters(self):
@@ -16,51 +17,64 @@ class TestQitSimAnalysis(unittest.TestCase):
 		self.assertAlmostEqual(sparams['lmco'],86.126419,places=5)
 
 	def test_simple_simulation_readers(self):
-		conf = qa.read_QIT_conf(self.sim_name+'_conf.json')
+		conf = qa.read_QIT_conf(self.sim_name_scanned + '_conf.json')
 		self.assertEqual(conf['geometry_mode'],'scaled')
-		fft_time,fft_dat = qa.read_FFT_record(self.sim_name)
-		coc_time,coc_pos = qa.read_center_of_charge_record(self.sim_name)
-		ionsinac_time,ionsinac = qa.read_ions_inactive_record(self.sim_name)
+		fft_time,fft_dat = qa.read_FFT_record(self.sim_name_scanned)
+		coc_time,coc_pos = qa.read_center_of_charge_record(self.sim_name_scanned)
+		ionsinac_time,ionsinac = qa.read_ions_inactive_record(self.sim_name_scanned)
 
-		self.assertEqual(np.shape(fft_time), (4001,))
-		self.assertEqual(np.shape(fft_dat), (4001,))
-		self.assertEqual(np.shape(coc_time), (4001,))
-		self.assertEqual(np.shape(coc_pos), (4001, 3))
-		self.assertEqual(np.shape(ionsinac_time), (4001,))
-		self.assertEqual(np.shape(ionsinac), (4001,))
+		n_ftsamples = 777
+		self.assertEqual(np.shape(fft_time), (n_ftsamples,))
+		self.assertEqual(np.shape(fft_dat), (n_ftsamples, 1))
+		self.assertEqual(np.shape(coc_time), (n_ftsamples,))
+		self.assertEqual(np.shape(coc_pos), (n_ftsamples, 3))
+		self.assertEqual(np.shape(ionsinac_time), (n_ftsamples,))
+		self.assertEqual(np.shape(ionsinac), (n_ftsamples,))
 
-		self.assertAlmostEqual(fft_time[-1], 8e-5)
-		self.assertAlmostEqual(fft_dat[2000], -28.8141)
-		self.assertAlmostEqual(fft_dat[-1], -618.981)
+		last_time = 7.76e-05
+		self.assertAlmostEqual(fft_time[-1],  last_time)
+		self.assertAlmostEqual(fft_dat[500,0], -219.457)
+		self.assertAlmostEqual(fft_dat[-1], -203.522)
 
-		self.assertAlmostEqual(coc_time[-1], 8e-5)
-		self.assertTrue(np.all(coc_pos[-1] == [2.89441e-05, 1.06989e-05, -0.000842188]))
+		self.assertAlmostEqual(coc_time[-1],  last_time)
+		self.assertTrue(np.all(coc_pos[-1] == [-7.92499e-06, 2.35529e-07, -0.000107667]))
 
-		self.assertAlmostEqual(ionsinac_time[-1], 8e-5)
-		self.assertEqual(ionsinac[1838], 376)
-		self.assertEqual(ionsinac[-1], 800)
+		self.assertAlmostEqual(ionsinac_time[-1], last_time)
+		self.assertEqual(ionsinac[568], 191)
+		self.assertEqual(ionsinac[-1], 399)
 
-	def test_nonreactive_stability_scan(self):
-		dat = qa.read_and_analyze_stability_scan(self.sim_name)
-		self.assertEqual(len(dat), 4001)
+	def test_stability_scan(self):
+		n_samples = 777
+		dat = qa.read_and_analyze_stability_scan(self.sim_name_scanned)
+		self.assertEqual(len(dat), n_samples)
 
-		row = 1794
-		self.assertAlmostEqual(dat.loc[row]['V_rf'], 334.55)
-		self.assertAlmostEqual(dat.loc[row]['inactive_ions'], 175.0)
-		self.assertAlmostEqual(dat.loc[row]['time'], 3.588e-05)
-		self.assertEqual(dat.loc[row]['ions_diff'], 41)
-
-
-	def test_fft_simulation_analysis(self):
-		fft_dat = qa.analyse_FFT_sim(self.sim_name,result_path=self.result_path)
-
-		self.assertEqual(len(fft_dat['freqs']),2000)
-		self.assertEqual(len(fft_dat['amplitude']), 2000)
-		self.assertEqual(len(fft_dat['transient']), 4001)
-		self.assertEqual(len(fft_dat['time']), 4001)
-
-		self.assertAlmostEqual(fft_dat['time'][-1], 8e-05)
-
+		row = 709
+		self.assertAlmostEqual(dat.loc[row]['V_rf'], 465.46,places=2)
+		self.assertEqual(dat.loc[row]['inactive_ions'], 341)
+		self.assertAlmostEqual(dat.loc[row]['time'], 7.09e-05)
+		self.assertEqual(dat.loc[row]['ions_diff'], 2)
 
 	def test_stability_scan_analysis(self):
-		qa.analyze_stability_scan(self.sim_name,result_path=self.result_path)
+		# FIXME: test analysis with scanned trap sim
+		qa.analyze_stability_scan(self.sim_name_scanned, result_path=self.result_path)
+
+	def test_nonresolved_fft_simulation_analysis(self):
+		fft_dat = qa.analyse_FFT_sim(self.sim_name_scanned, result_path=self.result_path)
+
+		n_ftsamples = 777
+		n_freqs = 388
+		last_time = 7.76e-05
+		self.assertEqual(len(fft_dat['freqs']),n_freqs)
+		self.assertEqual(len(fft_dat['amplitude']), n_freqs)
+		self.assertEqual(len(fft_dat['transient']), n_ftsamples)
+		self.assertEqual(len(fft_dat['time']), n_ftsamples)
+
+		self.assertAlmostEqual(fft_dat['time'][-1], last_time)
+
+	def test_massresolved_fft_simulation_analysis(self):
+		"""At least the mass resolved fft analysis should not produce an exception and should produce a basic plot"""
+		fft_dat = qa.analyse_FFT_sim(self.sim_name_staticrf, result_path=self.result_path)
+		n_ftsamples = 1001
+		n_freqs = 500
+		self.assertEqual(np.shape(fft_dat['amplitude']), (n_freqs,3))
+		self.assertEqual(len(fft_dat['transient']), n_ftsamples)

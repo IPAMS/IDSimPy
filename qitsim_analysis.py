@@ -60,7 +60,7 @@ def read_FFT_record(project_path):
 	"""
 	dat = np.loadtxt(project_path + "_fft.txt")
 	t = dat[:, 0]
-	z = dat[:, 1]
+	z = dat[:, 1:]
 	return t,z
 
 def read_ions_inactive_record(project_path):
@@ -215,10 +215,10 @@ def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMod
 
 	projectName = projectPath.split("/")[-1]
 	if "space_charge_factor" in confJson:
-		titlestring = projectName+" p:"+str(confJson["background_pressure"])+" Pa, c gas mass:"+str(confJson["collision_gas_mass_amu"])+" amu, "
+		titlestring = projectName+" p:"+str(confJson["background_pressure_Pa"])+" Pa, c gas mass:"+str(confJson["collision_gas_mass_amu"])+" amu, "
 		titlestring = titlestring + "space charge factor:"+'%6g' % (confJson["space_charge_factor"])
 	else:
-		titlestring = projectName+" p:"+str(confJson["background_pressure"])+" Pa"
+		titlestring = projectName+" p:"+str(confJson["background_pressure_Pa"])+" Pa"
 
 
 	#titlestring = titlestring + ", nIons:"+str(confJson["n_ions"])+ ", ion masses:"+str(confJson["ion_masses"])
@@ -244,7 +244,7 @@ def analyze_stability_scan(projectPath,window_width=0,t_range=[0,1],result_path=
 
 	projectName = projectPath.split("/")[-1]
 
-	titlestring = projectName + " p " + str(confJson["background_pressure"]) + " Pa, c. gas " + str(
+	titlestring = projectName + " p " + str(confJson["background_pressure_Pa"]) + " Pa, c. gas " + str(
 		confJson["collision_gas_mass_amu"]) + " amu, "
 	titlestring = titlestring + "spc:" + '%4g, ' % (confJson["space_charge_factor"])
 	titlestring = titlestring + "RF: " + str(V_rf_start) + " to " + str(V_rf_end) + " V @ " + str(
@@ -426,6 +426,8 @@ def animate_simulation_center_of_masses_z_vs_x(dat,masses,nFrames,interval,frame
 								   frames=nFrames, blit=True)
 	# call our new function to display the animation
 	return(anim)
+
+### Phase Space Analysis ###
 
 def plot_phase_space_frame(tr, timestep):
 	print(len(tr['times']))
