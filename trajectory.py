@@ -100,7 +100,6 @@ def read_json_trajectory_file(trajectoryFileName):
 
 
 def read_hdf5_trajectory_file(trajectory_file_name):
-	##fixme: impletment HDF5 reader
 	hdf5File = h5py.File(trajectory_file_name, 'r')
 
 	tra_group = hdf5File['particle_trajectory']
@@ -110,16 +109,17 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 	positions = tra_group['positions']
 	times = tra_group['times']
 
-	aux_parameters = None
+	result = {"positions": np.array(positions),
+	          "times": np.array(times),
+	          "n_particles": n_particles}
+
 	if 'aux_parameters' in tra_group.keys():
 		aux_parameters_names = [name.decode('UTF-8') for name in attribs['auxiliary parameter names']]
 		aux_parameters = tra_group['aux_parameters']
+		result["additional_parameters"] = np.array(aux_parameters)
+		result["additional_names"] = aux_parameters_names
 
-	return {"positions": positions,
-	        "additional_parameters": aux_parameters,
-	        "additional_names": aux_parameters_names,
-	        "times": times,
-	        "n_particles": n_particles}
+	return result
 
 
 
@@ -158,17 +158,18 @@ POINTS """
 
 ################## Data Processing Methods ######################
 
-def filter_mass(positions,masses,massToFilter):
+
+def filter_parameter(positions, param_vector, value):
 	"""
-	Filters out trajectories of ions with a given mass
+	Filters out trajectories of ions according to a given parameter vector
 
 	:param positions: a positions vector from an imported trajectories object
 	:type trajectory positions: positions vector from dict returned from readTrajectoryFile
-	:param masses: a mass vector from an imported trajectories object
-	:param massToFilter: the mass to filter for
+	:param param_vector: a parameter vector from an imported trajectories object
+	:param value: the value to filter for
 	:return: a filtered positions vector
 	"""
-	mass_indexes = np.nonzero(masses == massToFilter)
+	mass_indexes = np.nonzero(param_vector == value)
 	return positions[mass_indexes,:,:][0]
 
 
