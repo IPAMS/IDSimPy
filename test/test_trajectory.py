@@ -4,24 +4,69 @@ import numpy as np
 import IDSimF_analysis as ia
 
 
-class TestVisualization(unittest.TestCase):
+class TestTrajectory(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
 		cls.test_hdf5_bare_fname = os.path.join('data', 'QIT_test_trajectory.hd5')
 		cls.test_hdf5_aux_fname = os.path.join('data', 'QIT_test_trajectory_aux.hd5')
+		cls.test_hdf5_reactive_fname = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
+		                                            'qitSim_2019_04_10_002_trajectories.hd5')
+
 		cls.test_json_fname = os.path.join('data', 'test_trajectories.json')
 		cls.result_path = "test_results"
 
-	def test_basic_hdf5_trajectory_reading(self):
+	def generate_test_trajectory(self, n_ions, n_steps):
+		pos = np.zeros((n_ions, 3, n_steps))
+		add_param = np.zeros((n_ions, 4, n_steps))
+		add_param_names = ('param1', 'param2', 'param3', 'chemical id')
 
+		x_pos = np.arange(0,n_ions)*2.0
+		for ts in range(n_steps):
+			add_frame = np.zeros((n_ions, 4))
+			add_frame[:ts, 3] = 1
+			add_frame[:, :2] = ts
+			add_param[:, :, ts] = add_frame
+
+			pos[:, 0, ts] = x_pos
+			pos[:, 1, ts] = ts*0.1
+
+			#for i in range(n_ions):
+
+		result = {'additional_parameters':add_param,'additional_names':add_param_names,'positions':pos}
+		return(result)
+
+
+	def test_basic_hdf5_trajectory_reading(self):
 		tra = ia.read_hdf5_trajectory_file(self.test_hdf5_aux_fname)
 		self.assertEqual(np.shape(tra['positions']), (600,3,41))
 		self.assertEqual(np.shape(tra['additional_parameters']), (600, 9, 41))
-
 
 	def test_basic_json_trajectory_reading(self):
 		tra = ia.read_json_trajectory_file(self.test_json_fname)
 		print(np.shape(tra['positions']))
 		print(np.shape(tra['additional_parameters']))
 		print(np.shape(tra['masses']))
+
+	def test_parameter_filter(self):
+		tra = self.generate_test_trajectory(20,15)
+		#tra_r = ia.read_hdf5_trajectory_file(self.test_hdf5_reactive_fname)
+		id_column = tra['additional_names'].index('chemical id')
+		tra_filtered_vec = ia.filter_parameter(tra['positions'], tra['additional_parameters'][:, id_column, 5], 1)
+		self.assertTrue(isinstance(tra_filtered_vec, np.ndarray))
+		self.assertEqual(np.shape(tra_filtered_vec), (5,3,15))
+
+		chem_id = tra['additional_parameters'][:, id_column, :]
+		tra_filtered= ia.filter_parameter(tra['positions'], tra['additional_parameters'][:, id_column, :], 1)
+		self.assertTrue(isinstance(tra_filtered,list))
+
+		n_ts = 15
+		self.assertEqual(len(tra_filtered),n_ts)
+
+		self.assertTrue(isinstance(tra_filtered[0], np.ndarray))
+		self.assertTrue(isinstance(tra_filtered[1], np.ndarray))
+
+		ts_result = np.array([[0.0, 0.3, 0.0], [2.0, 0.3, 0.0], [4.0, 0.3, 0.0]])
+		np.testing.assert_allclose(tra_filtered[3], ts_result)
+		for i in range(n_ts):
+			self.assertEqual(np.shape(tra_filtered[i]),(i,3))

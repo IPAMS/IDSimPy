@@ -159,18 +159,37 @@ POINTS """
 ################## Data Processing Methods ######################
 
 
-def filter_parameter(positions, param_vector, value):
+def filter_parameter(positions, filter_param, value):
 	"""
 	Filters out trajectories of ions according to a given parameter vector
 
 	:param positions: a positions vector from an imported trajectories object
 	:type trajectory positions: positions vector from dict returned from readTrajectoryFile
-	:param param_vector: a parameter vector from an imported trajectories object
+	:param filter_param: a parameter from an imported trajectories object to filter for
+		if a vector is provided it is assumed, that the filtering is stable across all timesteps
+		if a two dimensional array is provided, the filtering is performed with individual filter param vectors
+		for the timesteps
 	:param value: the value to filter for
-	:return: a filtered positions vector
+	:return: filtered particle positions
+		if a filter vector is provided: Numpy array is returned with the particles, spatial dimensions and timesteps
+		as dimensions
+		if a filter matrix (individual filter param vectors for the individual timesteps) is provided:
+		list of individual filterd position vectors for the individual timesteps
 	"""
-	mass_indexes = np.nonzero(param_vector == value)
-	return positions[mass_indexes,:,:][0]
+
+	# if filter_param is a vector: Same filtering for all timesteps
+	if filter_param.ndim == 1:
+		filtered_indexes = np.nonzero(filter_param == value)
+		return positions[filtered_indexes,:,:][0]
+	if filter_param.ndim == 2:
+		# we have a different filter parameter vector per timestep
+		# filtered particles per timestep could variate: generate a vector per timestep
+		n_ts = np.shape(filter_param)[1]
+		filtered_indexes = [np.nonzero(filter_param[:,i] == value) for i in range(n_ts)]
+		result = [positions[filtered_indexes[i], :, i][0] for i in range(len(filtered_indexes))]
+		return result
+	else:
+		raise ValueError('Filter parameter is not a vector nor a two dimensional array')
 
 
 def center_of_charge(tr):
