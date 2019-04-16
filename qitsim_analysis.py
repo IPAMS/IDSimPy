@@ -152,7 +152,7 @@ def calculate_FFT_spectrum(t, z):
 	"""
 	n = len(t)  # length of the signal
 	Fs = float(n) / (t[-1] - t[0])
-	Y = np.fft.fft(z) / n  # fft computing and normalization
+	Y = np.fft.fft(z,axis=0) / n  # fft computing and normalization
 	Y = Y[range(n // 2)]
 
 	k = np.arange(n)

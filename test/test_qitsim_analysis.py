@@ -1,6 +1,7 @@
 import unittest
 import os
 import numpy as np
+import matplotlib.pylab as plt
 import IDSimF_analysis.qitsim_analysis as qa
 
 
@@ -25,7 +26,7 @@ class TestQitSimAnalysis(unittest.TestCase):
 
 		n_ftsamples = 758
 		self.assertEqual(np.shape(fft_time), (n_ftsamples,))
-		self.assertEqual(np.shape(fft_dat), (n_ftsamples, 1))
+		self.assertEqual(np.shape(fft_dat), (n_ftsamples,1))
 		self.assertEqual(np.shape(coc_time), (n_ftsamples,))
 		self.assertEqual(np.shape(coc_pos), (n_ftsamples, 3))
 		self.assertEqual(np.shape(ionsinac_time), (n_ftsamples,))
@@ -33,7 +34,7 @@ class TestQitSimAnalysis(unittest.TestCase):
 
 		last_time = 7.57e-05
 		self.assertAlmostEqual(fft_time[-1],  last_time)
-		self.assertAlmostEqual(fft_dat[500,0], 94.9953)
+		self.assertAlmostEqual(fft_dat[500], 94.9953)
 		self.assertAlmostEqual(fft_dat[-1], 1002.44)
 
 		self.assertAlmostEqual(coc_time[-1],  last_time)
@@ -78,3 +79,5 @@ class TestQitSimAnalysis(unittest.TestCase):
 		n_freqs = 500
 		self.assertEqual(np.shape(fft_dat['amplitude']), (n_freqs,3))
 		self.assertEqual(len(fft_dat['transient']), n_ftsamples)
+
+
