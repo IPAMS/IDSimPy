@@ -328,8 +328,8 @@ def center_of_charges_from_simulation(dat,speciesMasses,tRange=[]):
 
 	tr = dat["positions"][:,:,tRange]
 
-	cocA = tra.center_of_charge(tra.filter_mass(tr,masses,speciesMasses[0]))
-	cocB = tra.center_of_charge(tra.filter_mass(tr,masses,speciesMasses[1]))
+	cocA = tra.center_of_charge(tra.filter_parameter(tr, masses, speciesMasses[0]))
+	cocB = tra.center_of_charge(tra.filter_parameter(tr, masses, speciesMasses[1]))
 	cocAll = tra.center_of_charge(tr)
 
 	return{"t":times,"cocA":cocA,"cocB":cocB,"cocAll":cocAll}
@@ -364,8 +364,8 @@ def plot_average_z_position(sim_projects, masses,compressed=True):
 
 		plt.subplot(n_projects, 1, si + 1)
 		for mass in masses:
-			i_pos_mfiltered = tra.filter_mass(i_pos, i_masses, mass)
-			# i_ap_mfiltered = lq.filter_mass(i_ap, i_masses, mass)
+			i_pos_mfiltered = tra.filter_parameter(i_pos, i_masses, mass)
+			# i_ap_mfiltered = lq.filter_parameter(i_ap, i_masses, mass)
 			coc = tra.center_of_charge(i_pos_mfiltered)
 			plt.plot(times, coc[:, 2], label=str(mass))
 

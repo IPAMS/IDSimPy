@@ -10,8 +10,10 @@ class TestTrajectory(unittest.TestCase):
 	def setUpClass(cls):
 		cls.test_hdf5_bare_fname = os.path.join('data', 'QIT_test_trajectory.hd5')
 		cls.test_hdf5_aux_fname = os.path.join('data', 'QIT_test_trajectory_aux.hd5')
-		cls.test_hdf5_reactive_fname = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
+		cls.test_hdf5_reactive_fn_a = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
 		                                            'qitSim_2019_04_10_002_trajectories.hd5')
+		cls.test_hdf5_reactive_fn_b = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
+		                                           'qitSim_2019_04_15_001_trajectories.hd5')
 
 		cls.test_json_fname = os.path.join('data', 'test_trajectories.json')
 		cls.result_path = "test_results"
@@ -36,7 +38,6 @@ class TestTrajectory(unittest.TestCase):
 		result = {'additional_parameters':add_param,'additional_names':add_param_names,'positions':pos}
 		return(result)
 
-
 	def test_basic_hdf5_trajectory_reading(self):
 		tra = ia.read_hdf5_trajectory_file(self.test_hdf5_aux_fname)
 		self.assertEqual(np.shape(tra['positions']), (600,3,41))
@@ -48,7 +49,7 @@ class TestTrajectory(unittest.TestCase):
 		print(np.shape(tra['additional_parameters']))
 		print(np.shape(tra['masses']))
 
-	def test_parameter_filter(self):
+	def test_parameter_filter_with_synthetic_trajectory(self):
 		tra = self.generate_test_trajectory(20,15)
 		#tra_r = ia.read_hdf5_trajectory_file(self.test_hdf5_reactive_fname)
 		id_column = tra['additional_names'].index('chemical id')
@@ -57,7 +58,7 @@ class TestTrajectory(unittest.TestCase):
 		self.assertEqual(np.shape(tra_filtered_vec), (5,3,15))
 
 		chem_id = tra['additional_parameters'][:, id_column, :]
-		tra_filtered= ia.filter_parameter(tra['positions'], tra['additional_parameters'][:, id_column, :], 1)
+		tra_filtered = ia.filter_parameter(tra['positions'], chem_id, 1)
 		self.assertTrue(isinstance(tra_filtered,list))
 
 		n_ts = 15
@@ -70,3 +71,13 @@ class TestTrajectory(unittest.TestCase):
 		np.testing.assert_allclose(tra_filtered[3], ts_result)
 		for i in range(n_ts):
 			self.assertEqual(np.shape(tra_filtered[i]),(i,3))
+
+	def test_parameter_filter_with_qit_trajectory(self):
+		tra = ia.read_hdf5_trajectory_file(self.test_hdf5_reactive_fn_b)
+
+		id_column = tra['additional_names'].index('chemical id')
+		chem_id = tra['additional_parameters'][:, id_column, :]
+		tra_filtered = [ia.filter_parameter(tra['positions'], chem_id, i) for i in (0, 1, 2)]
+		for tra_f in tra_filtered:
+			self.assertTrue(isinstance(tra_f, list))
+			self.assertEqual(len(tra_f),51)

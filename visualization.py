@@ -76,22 +76,26 @@ def plot_density_z_vs_x(trajectories,timeIndex,
 
 ################## High Level Simulation Project Processing Methods ######################
 
-def animate_z_vs_x_density_plot(dat,masses,nFrames,interval,
-										fileMode='video',
-										mode="lin",
-										s_lim=3,n_bins=100,basesize = 22,
-										alphaFactor = 1,colormap = plt.cm.coolwarm,
-										annotateString=""):
+def animate_z_vs_x_density_plot(dat, selected, nFrames, interval,
+                                select_mode='substance',
+                                output_mode='video',
+                                mode='lin',
+                                s_lim=3, n_bins=100, basesize = 17,
+                                alpha = 1, colormap = plt.cm.coolwarm,
+                                annotate_string=""):
 	"""
 	Animate the denisties of two ion clouds in a QIT simulation in a z-x projection.
 
 	:param dat: imported trajectories object
 	:type dat: dict returned from readTrajectoryFile
-	:param masses: two element list with two particle masses to render the particle densities for
-	:type masses: list
+	:param selected: two element list with values to select particles to be rendered
+	:type selected: list
 	:param nFrames: number of frames to export
 	:param interval: interval in terms of time steps in the input data between the animation frames
-	:param fileMode: render either a video ("video") or single frames as image files ("singleFrame")
+	:param select_mode: defines the mode for selection of particles:
+		"mass" for selecting by mass,
+		"substance" for chemical substance / chemical id
+	:param output_mode: render either a video ("video") or single frames as image files ("singleFrame")
 	:param mode: scale density linearly ("lin") or logarithmically ("log")
 	:param s_lim: spatial limits of the rendered spatial domain
 			(given as distance from the origin of the coordinate system or explicit limits: [xlo, xhi, zlo, zhi]
@@ -99,26 +103,50 @@ def animate_z_vs_x_density_plot(dat,masses,nFrames,interval,
 	:type n_bins: int or list of two ints
 	:param basesize: the base size of the plot
 	:type basestring: float
-	:param alphaFactor: blending factor for graphical blending the densities of the two species
+	:param alpha: blending factor for graphical blending the densities of the two species
 	:param colormap: a colormap for the density rendering (a pure species will end up on one side of the colormap)
-	:param annotateString: an optional string which is rendered into the animation as annotation
+	:param annotate_string: an optional string which is rendered into the animation as annotation
 	:return: animation object or figure (depends on the file mode)
 	"""
+
+
+	if select_mode == 'mass':
+		select_parameter = [dat[0]['masses'],dat[1]['masses']]
+
+	elif select_mode == 'substance':
+		id_column = dat[0]['additional_names'].index('chemical id')
+		select_parameter = [dat[0]['additional_parameters'][:, id_column, :],
+	                        dat[1]['additional_parameters'][:, id_column, :]]
+	else:
+		raise ValueError('Invalid select_mode')
+
+
 	times = dat[0]["times"]
-	if masses[0] == "all":
+	times_B = dat[1]["times"]
+
+	if len(times) != len(times_B):
+		raise ValueError('Length of trajectories differ')
+	if not (times == times_B).all():
+		raise ValueError('The times of the trajectories differ')
+	if nFrames*interval > len(times):
+		raise ValueError('number of frames * interval is longer than trajectory')
+
+
+	if selected[0] == "all":
 		datA = dat[0]["positions"]
 	else:
-		datA = tra.filter_mass(dat[0]["positions"], dat[0]["masses"], masses[0])
+		datA = tra.filter_parameter(dat[0]["positions"], select_parameter[0], selected[0])
 
-
-	if masses[1] == "all":
+	if selected[1] == "all":
 		datB = dat[1]["positions"]
 	else:
-		datB = tra.filter_mass(dat[1]["positions"],dat[1]["masses"],masses[1])
+		datB = tra.filter_parameter(dat[1]["positions"], select_parameter[1], selected[1])
 
-	if fileMode=='video':
+
+
+	if output_mode== 'video':
 		fig = plt.figure(figsize=[10,10])
-	elif fileMode=='singleFrame':
+	elif output_mode== 'singleFrame':
 		fig = plt.figure(figsize=[ 6, 6])
 
 	if not hasattr(s_lim, "__iter__"): #is not iterable
@@ -152,13 +180,23 @@ def animate_z_vs_x_density_plot(dat,masses,nFrames,interval,
 
 	def animate(i):
 		tsNumber = i*interval
-		x = datA[:,0,tsNumber]
-		z = datA[:,2,tsNumber]
+		#if the dat objects are lists: we have filtered the particles in a way that the number of selected
+		#particles change between the timesteps and we got a list of individual particle vectors
+		if isinstance(datA, list):
+			x = datA[tsNumber][:, 0]
+			z = datA[tsNumber][:, 2]
+		else:
+			x = datA[:,0,tsNumber]
+			z = datA[:,2,tsNumber]
 		h_A, zedges2, xedges2 = np.histogram2d(z,x, bins=(zedges, xedges))
-		#im1.set_array(H2);
 
-		x = datB[:,0,tsNumber]
-		z = datB[:,2,tsNumber]
+		if isinstance(datB, list):
+			x = datB[tsNumber][:, 0]
+			z = datB[tsNumber][:, 2]
+		else:
+			x = datB[:,0,tsNumber]
+			z = datB[:,2,tsNumber]
+
 		h_B, zedges2, xedges2 = np.histogram2d(z,x, bins=(zedges, xedges))
 
 		nf_A = np.max(h_A)
@@ -177,35 +215,38 @@ def animate_z_vs_x_density_plot(dat,masses,nFrames,interval,
 		abs_dens_log[nonzero] = abs_dens_log[nonzero] + 0.2
 
 		if mode == "lin":
-			img_data_RGB[:, :, 3] = abs_dens*alphaFactor
+			img_data_RGB[:, :, 3] = abs_dens * alpha
 		elif mode== "log":
-			img_data_RGB[:, :, 3] = abs_dens_log*alphaFactor
+			img_data_RGB[:, :, 3] = abs_dens_log * alpha
 
 		im1.set_array(img_data_RGB)
-		text_time.set_text("t="+str(times[tsNumber])+u"µs"+" "+annotateString)
+		text_time.set_text("t=" + str(times[tsNumber]) +u"µs" +" " + annotate_string)
 
 		return im1
 
 	# call the animator.  blit=True means only re-draw the parts that have changed.
-	if fileMode == 'video':
+	if output_mode == 'video':
 		anim = animation.FuncAnimation(fig, animate, frames=nFrames, blit=False)
 		return (anim)
-	elif fileMode == 'singleFrame':
+	elif output_mode == 'singleFrame':
 		animate(nFrames)
 		return (fig)
 
 
-def render_XZ_density_animation(projectNames, masses, resultName, nFrames=400, delay=1, s_lim=7,n_bins=50,
-                                annotation="",mode="lin", compressed=True):
+def render_XZ_density_animation(projectNames, selected, resultName, select_mode='substance', nFrames=400, interval=1,
+                                s_lim=7, n_bins=50, annotation="", mode="lin", file_type='hdf5'):
 	"""
 	:param projectNames: simulation projects to compare (given as project basenames)
 	:type projectNames: tuple of two strings
-	:param masses: list of masses in the two simulation projects to compare
-	:type masses: tuple of two floats
+	:param selected: list of masses in the two simulation projects to compare
+	:type selected: tuple of two floats
 	:param resultName: basename for the rendering result
+	:param select_mode: defines the mode for selection of particles:
+		"mass" for selecting by mass,
+		"substance" for chemical substance / chemical id
 	:param nFrames: number of frames to render
-	:param delay: interval in terms of time steps in the input data between the animation frames
-	:type delay: int
+	:param interval: interval in terms of time steps in the input data between the animation frames
+	:type interval: int
 	:param s_lim: spatial limits of the rendered spatial domain
 			(given as distance from the origin of the coordinate system or explicit limits: [xlo, xhi, zlo, zhi]
 	:type s_lim: float or list of two floats
@@ -214,18 +255,30 @@ def render_XZ_density_animation(projectNames, masses, resultName, nFrames=400, d
 	:param annotation: annotation string
 	:type annotation: str
 	:param mode: scale density linearly ("lin") or logarithmically ("log")
-	:param compressed: flag if the input trajectory data is gzip compressed
+	:param file_type: type of the trajectory file,
+		'json' for uncompressed json,
+		'compressed' for compressed json
+		'hdf5' for compressed hdf5
 	"""
 
-	if compressed:
-		file_ext =  "_trajectories.json.gz"
-	else:
+	if file_type == 'hdf5':
+		file_ext = "_trajectories.hd5"
+		tj0 = tra.read_hdf5_trajectory_file(projectNames[0] + file_ext)
+		tj1 = tra.read_hdf5_trajectory_file(projectNames[1] + file_ext)
+	elif file_type == 'compressed':
+		file_ext = "_trajectories.json.gz"
+		tj0 = tra.read_json_trajectory_file(projectNames[0] + file_ext)
+		tj1 = tra.read_json_trajectory_file(projectNames[1] + file_ext)
+	elif file_type == 'json':
 		file_ext = "_trajectories.json"
+		tj0 = tra.read_json_trajectory_file(projectNames[0] + file_ext)
+		tj1 = tra.read_json_trajectory_file(projectNames[1] + file_ext)
+	else:
+		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
 
-	tj0 = tra.read_json_trajectory_file(projectNames[0] + file_ext)
-	tj1 = tra.read_json_trajectory_file(projectNames[1] + file_ext)
-	anim = animate_z_vs_x_density_plot([tj0, tj1], masses, nFrames, delay, mode=mode, s_lim=s_lim,
-	                                   annotateString=annotation)
+	anim = animate_z_vs_x_density_plot([tj0, tj1], selected, nFrames, interval,
+	                                   mode=mode, s_lim=s_lim, select_mode=select_mode,
+	                                   annotate_string=annotation)
 	anim.save(resultName + "_densitiesComparisonXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 
 
