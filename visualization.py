@@ -102,7 +102,7 @@ def animate_z_vs_x_density_plot(dat, selected, nFrames, interval,
 	:param n_bins: number of density bins in the spatial directions or list of bin numbers ([x z])
 	:type n_bins: int or list of two ints
 	:param basesize: the base size of the plot
-	:type basestring: float
+	:type basesize: float
 	:param alpha: blending factor for graphical blending the densities of the two species
 	:param colormap: a colormap for the density rendering (a pure species will end up on one side of the colormap)
 	:param annotate_string: an optional string which is rendered into the animation as annotation
@@ -234,7 +234,7 @@ def animate_z_vs_x_density_plot(dat, selected, nFrames, interval,
 
 
 def render_XZ_density_animation(projectNames, selected, resultName, select_mode='substance', nFrames=400, interval=1,
-                                s_lim=7, n_bins=50, annotation="", mode="lin", file_type='hdf5'):
+                                s_lim=7, n_bins=50,base_size=12, annotation="", mode="lin", file_type='hdf5'):
 	"""
 	:param projectNames: simulation projects to compare (given as project basenames)
 	:type projectNames: tuple of two strings
@@ -252,6 +252,8 @@ def render_XZ_density_animation(projectNames, selected, resultName, select_mode=
 	:type s_lim: float or list of two floats
 	:param n_bins: number of density bins in the spatial directions or list of bin numbers ([x z])
 	:type n_bins: int or list of two ints
+	:param base_size: the base size of the plot
+	:type base_size: float
 	:param annotation: annotation string
 	:type annotation: str
 	:param mode: scale density linearly ("lin") or logarithmically ("log")
@@ -278,7 +280,7 @@ def render_XZ_density_animation(projectNames, selected, resultName, select_mode=
 
 	anim = animate_z_vs_x_density_plot([tj0, tj1], selected, nFrames, interval,
 	                                   mode=mode, s_lim=s_lim, select_mode=select_mode,
-	                                   annotate_string=annotation)
+	                                   basesize=base_size, annotate_string=annotation)
 	anim.save(resultName + "_densitiesComparisonXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 
 
