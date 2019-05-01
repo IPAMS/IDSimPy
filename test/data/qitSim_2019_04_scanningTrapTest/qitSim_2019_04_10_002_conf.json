@@ -18,7 +18,7 @@
 "space_charge_factor":0,
 "collision_gas_mass_amu":28.0,
 "collision_gas_diameter_angstrom":3.64,
-"excite_pulse_potential":0.0,
+"excite_potential":0.0,
 "excite_pulse_length":5.0,
 "max_ion_radius_m":0.005
 }

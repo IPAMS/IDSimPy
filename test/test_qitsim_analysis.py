@@ -56,7 +56,6 @@ class TestQitSimAnalysis(unittest.TestCase):
 		self.assertEqual(dat.loc[row]['ions_diff'], 5)
 
 	def test_stability_scan_analysis(self):
-		# FIXME: test analysis with scanned trap sim
 		qa.analyze_stability_scan(self.sim_name_scanned, result_path=self.result_path)
 
 	def test_nonresolved_fft_simulation_analysis(self):
