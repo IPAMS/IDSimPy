@@ -253,7 +253,7 @@ def analyze_stability_scan(projectPath,window_width=0,t_range=[0,1],result_path=
 	t_end = confJson["sim_time_steps"]*confJson["dt"]
 	dUdt = (confJson["V_rf_end"] - confJson["V_rf_start"]) / t_end
 	titlestring = titlestring + (' (%2g V/s), ' % (dUdt))
-	titlestring = titlestring + str(confJson["excite_pulse_potential"]) + " V exci."
+	titlestring = titlestring + str(confJson["excite_potential"]) + " V exci."
 
 	project = [[projectPath, ""]]
 	plot_fn = projectPath

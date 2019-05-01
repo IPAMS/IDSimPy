@@ -129,8 +129,7 @@ def animate_z_vs_x_density_plot(dat, selected, nFrames, interval,
 	if not (times == times_B).all():
 		raise ValueError('The times of the trajectories differ')
 	if nFrames*interval > len(times):
-		raise ValueError('number of frames * interval is longer than trajectory')
-
+		raise ValueError('number of frames * interval ('+str(nFrames*interval)+') is longer than trajectory ('+str(len(times))+')')
 
 	if selected[0] == "all":
 		datA = dat[0]["positions"]
