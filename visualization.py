@@ -11,8 +11,8 @@ from . import trajectory as tra
 def plot_particles_path(trajectories, pl_filename, p_indices, plot_mark='*-',time_range=(0,1)):
 	"""
 	Plots the paths of a selection of particles in a x,z and y,z projection
-	:param tr: trajectory input data
-	:type tr: list of lists of trajectory dictionaries from read_trajectory_file and an according label
+	:param trajectories: trajectory input data
+	:type trajectories: list of lists of trajectory dictionaries from read_trajectory_file and an according label
 	:param pl_filename: the basename of the plot image files to create
 	:param p_indices:
 	:type p_indices: list of integers
@@ -235,6 +235,8 @@ def animate_z_vs_x_density_plot(dat, selected, nFrames, interval,
 def render_XZ_density_animation(projectNames, selected, resultName, select_mode='substance', nFrames=400, interval=1,
                                 s_lim=7, n_bins=50,base_size=12, annotation="", mode="lin", file_type='hdf5'):
 	"""
+	XZ density projection of a
+
 	:param projectNames: simulation projects to compare (given as project basenames)
 	:type projectNames: tuple of two strings
 	:param selected: list of masses in the two simulation projects to compare
