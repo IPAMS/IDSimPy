@@ -1,5 +1,6 @@
 import unittest
 import os
+import numpy as np
 import IDSimF_analysis.trajectory as tra
 import IDSimF_analysis.visualization as vis
 
@@ -46,46 +47,65 @@ class TestVisualization_animations(unittest.TestCase):
 
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 
+	def test_density_animation_low_level(self):
+		traj_hdf5 = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_a)
+		anim = vis.animate_xz_density(traj_hdf5['positions'],
+		                              xedges=np.linspace(-0.001, 0.001, 50),
+		                              zedges=np.linspace(-0.001, 0.001, 50),
+		                              figsize=(10, 5))
 
-	def test_basic_density_animation_with_json(self):
+		result_name = os.path.join(self.result_path, 'density_animation_test_1.mp4')
+		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
+
+	def test_density_animation(self):
+		resultName = os.path.join(self.result_path, 'density_animation_test_2')
+		vis.render_xz_density_animation(self.test_reactive_projectName, resultName)
+
+
+		resultName = os.path.join(self.result_path, 'density_animation_test_3')
+		vis.render_xz_density_animation(self.test_reactive_projectName, resultName, xedges=10,
+		                                zedges=np.linspace(-0.004, 0.004, 100),axis_equal=False)
+
+
+	def test_comparison_density_animation_with_json(self):
 		projectNames = [self.test_json_projectName, self.test_json_projectName]
 		masses = [73,55]
 		resultName = os.path.join(self.result_path, 'animation_test_1')
-		vis.render_XZ_density_comparison_animation(projectNames, masses, resultName, n_frames=100, interval=1, s_lim=7,
+		vis.render_xz_density_comparison_animation(projectNames, masses, resultName, n_frames=100, interval=1, s_lim=7,
 		                                           select_mode='mass',
 		                                           annotation="", mode="lin", file_type='json')
 
-	def test_density_animation_with_custom_limits_with_json(self):
+	def test_comparison_animation_with_custom_limits_with_json(self):
 		projectNames = [self.test_json_projectName, self.test_json_projectName]
 		masses = [73,55]
 		resultName = os.path.join(self.result_path, 'animation_test_2')
-		vis.render_XZ_density_comparison_animation(projectNames, masses, resultName, n_frames=100, interval=1,
+		vis.render_xz_density_comparison_animation(projectNames, masses, resultName, n_frames=100, interval=1,
 		                                           select_mode='mass',
 		                                           s_lim=[-1, 5, -1, 1],
 		                                           n_bins=[100, 20],
 		                                           annotation="", mode="log", file_type='json')
 
-	def test_low_level_reactive_density_animation_with_hdf5(self):
+	def test_low_level_reactive_density_comparison_animation_with_hdf5(self):
 		tra_b = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_b)
 		tra_c = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_c)
 
 		self.assertRaises( #too many frames: n_frames*interval > trajectory length
 			ValueError,
-			vis.animate_z_vs_x_density_comparison_plot, [tra_c, tra_c], [0, 1], 71, 1)
+			vis.animate_xz_density_comparison_plot, [tra_c, tra_c], [0, 1], 71, 1)
 
-		anim = vis.animate_z_vs_x_density_comparison_plot([tra_c, tra_c], [0, 1], 51, 1, s_lim=0.001, select_mode='substance')
+		anim = vis.animate_xz_density_comparison_plot([tra_c, tra_c], [0, 1], 51, 1, s_lim=0.001, select_mode='substance')
 		result_name = os.path.join(self.result_path, 'reactive_density_animation_test_1.mp4')
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 
 		self.assertRaises( #time vector length differs
 			ValueError,
-			vis.animate_z_vs_x_density_comparison_plot, [tra_b, tra_c], [0, 0], 71, 1)
+			vis.animate_xz_density_comparison_plot, [tra_b, tra_c], [0, 0], 71, 1)
 
 
-	def test_reactive_density_animation(self):
+	def test_reactive_density_comparison_animation(self):
 		projectNames = [self.test_reactive_projectName, self.test_reactive_projectName]
 		substances = [0,1]
 		resultName = os.path.join(self.result_path, 'reactive_density_animation_test_2')
-		vis.render_XZ_density_comparison_animation(projectNames, substances, resultName, n_frames=51, interval=1,
+		vis.render_xz_density_comparison_animation(projectNames, substances, resultName, n_frames=51, interval=1,
 		                                           select_mode='substance',
 		                                           s_lim=0.001, annotation="", file_type='hdf5')

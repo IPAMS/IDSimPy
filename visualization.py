@@ -48,57 +48,174 @@ def plot_particles_path(trajectory_data, pl_filename, p_indices, plot_mark='*-',
 	plt.savefig(pl_filename + '.pdf', format='pdf')
 
 
-def plot_density_z_vs_x(trajectory_data, time_index,
-                        xedges = np.linspace(-10,10,80),
-                        zedges = np.linspace(-10,10,80),
-                        figsize=(7,7),
-                        axis_equal = True
-                        ):
+def plot_density_xz(trajectory_data, time_index,
+                    xedges = None,
+                    zedges = None,
+                    figsize=(7,7),
+                    axis_equal = True
+                    ):
 	"""
 	Renders an density plot in a z-x projection
 	:param trajectory_data: a trajectories vector from an imported trajectories object
 	:type trajectory_data: trajectories vector from dict returned from readTrajectoryFile
 	:param time_index: index of the time step to render
 	:type time_index: int
-	:param xedges: the edges of the bins of the density plot (2d histogram bins) in x direction
-	:type xedges: iterable or list / array
-	:param yedges: the edges of the bins of the density plot (2d histogram bins) in y direction
-	:type yedges: iterable or list / array
+	:param xedges: the edges of the bins of the density plot (2d histogram bins) in x direction, if None the
+	maxium extend is used with 50 bins, if a number n, the maximum extend is used with n bins
+	:type xedges: iterable or list / array or int
+	:param zedges: the edges of the bins of the density plot (2d histogram bins) in z direction, if None the
+	maxium extend is used with 50 bins, if a number n, the maximum extend is used with n bins
+	:type zedges: iterable or list / array or int
 	:param figsize: the figure size
 	:type figsize: tuple of two floats
 	:param axis_equal: if true, the axis are rendered with equal scaling
 	"""
-	x = trajectory_data[:, 0, time_index]
-	z = trajectory_data[:, 2, time_index]
-	H, xedges, yedges = np.histogram2d(x,z, bins=(xedges, zedges))
-	H = H.T
-	fig = plt.figure(figsize=figsize)
 
-	ax = fig.add_subplot(111)
-	im = NonUniformImage(ax, interpolation='nearest')
-	xcenters = xedges[:-1] + 0.5 * (xedges[1:] - xedges[:-1])
-	zcenters = zedges[:-1] + 0.5 * (zedges[1:] - zedges[:-1])
-	im.set_data(xcenters, zcenters, H)
-	ax.images.append(im)
-	im.set_extent(im.get_extent()) # workaround for minor issue in matplotlib ocurring in jupyter lab
-	ax.set_xlim(xedges[0], xedges[-1])
-	ax.set_ylim(zedges[0], zedges[-1])
-	if axis_equal:
-		ax.set_aspect('equal')
+	fig = animate_xz_density(trajectory_data, xedges=xedges, zedges=zedges, n_frames=time_index, figsize=figsize,
+	                         axis_equal=axis_equal, output_mode= 'singleFrame')
+	return fig
 
 ################## High Level Simulation Project Processing Methods ######################
 
 
 ####### density plots #############################################################
 
+def animate_xz_density(trajectory_data,
+                       xedges = None,
+                       zedges = None,
+                       figsize=(7,7),
+                       interval=1,
+                       n_frames=10,
+                       output_mode = 'animation',
+                       axis_equal = True):
 
-def animate_z_vs_x_density_comparison_plot(trajectory_data, selected, n_frames, interval,
-                                           select_mode='substance',
-                                           output_mode='video',
-                                           mode='lin',
-                                           s_lim=3, n_bins=100, basesize = 17,
-                                           alpha = 1, colormap = plt.cm.coolwarm,
-                                           annotate_string=""):
+	"""
+	Animates an density plot in a z-x projection, still frames can also be rendered
+
+	:param trajectory_data: a trajectories vector from an imported trajectories object
+	:type trajectory_data: trajectories vector from dict returned from readTrajectoryFile
+	:param xedges: the edges of the bins of the density plot (2d histogram bins) in x direction, if None the
+	maxium extend is used with 50 bins, if a number n, the maximum extend is used with n bins
+	:type xedges: iterable or list / array or int
+	:param zedges: the edges of the bins of the density plot (2d histogram bins) in z direction, if None the
+	maxium extend is used with 50 bins, if a number n, the maximum extend is used with n bins
+	:type zedges: iterable or list / array or int
+	:param figsize: the figure size
+	:type figsize: tuple of two floats
+	:param n_frames: number of frames to render or the frame index to render if single frame mode
+	:type n_frames: int
+	:param output_mode: returns animation object when 'animation', 'singleFrame' returns a single frame figure
+	:param axis_equal: if true, the axis are rendered with equal scaling
+
+	:return: animation or figure
+	"""
+
+	x = trajectory_data[:, 0, :]
+	z = trajectory_data[:, 2, :]
+
+	x_min = np.min(x)
+	x_max = np.max(x)
+	z_min = np.min(z)
+	z_max = np.max(z)
+
+	if xedges is None:
+		xedges = np.linspace(x_min, x_max, 50)
+	elif type(xedges) == int:
+		xedges = np.linspace(x_min, x_max, xedges)
+
+	if zedges is None:
+		zedges = np.linspace(z_min, z_max, 50)
+	elif type(zedges) == int:
+		zedges = np.linspace(z_min, z_max, zedges)
+
+	H, xed, zed = np.histogram2d(x[:,0],z[:,0], bins=(xedges, zedges))
+	H = H.T
+	fig = plt.figure(figsize=figsize)
+
+	ax = fig.add_subplot(111)
+	im = NonUniformImage(ax, interpolation='nearest')
+	xcenters = xed[:-1] + 0.5 * (xed[1:] - xed[:-1])
+	zcenters = zed[:-1] + 0.5 * (zed[1:] - zed[:-1])
+	im.set_data(xcenters, zcenters, H)
+	ax.images.append(im)
+	im.set_extent(im.get_extent()) # workaround for minor issue in matplotlib ocurring in jupyter lab
+	ax.set_xlim(xed[0], xed[-1])
+	ax.set_ylim(zed[0], zed[-1])
+	if axis_equal:
+		ax.set_aspect('equal')
+
+	def animate(i):
+		ts_number = i*interval
+		H, _, _ = np.histogram2d(x[:, ts_number], z[:,ts_number], bins=(xedges, zedges))
+		H = H.T
+		im.set_data(xcenters, zcenters, H)
+
+	if output_mode == 'animation':
+		anim = animation.FuncAnimation(fig, animate, frames=n_frames, blit=False)
+		return (anim)
+	elif output_mode == 'singleFrame':
+		animate(n_frames)
+		return (fig)
+
+
+def render_xz_density_animation(project_name, result_name,
+                                xedges=None,
+                                zedges=None,
+                                figsize=(7, 7),
+                                interval=1,
+                                n_frames=10,
+                                output_mode='animation',
+                                axis_equal=True, file_type='hdf5'):
+	"""
+	Reads an ion trajectory file, generates a scatter animation of the particles in an ion trajectory and
+	writes a video file with the animation
+
+	:param project_name: simulation project to read and animate (given as basename)
+	:type project_name: str
+	:param result_name: name of the result video file
+	:type result_name: str
+	:param xlim: limits of the plot in x direction (if None, the maximum of the x position range is used)
+	:type xlim: tuple of two floats
+	:param ylim: limits of the plot in y direction (if None, the maximum of the y position range is used)
+	:type ylim: tuple of two floats
+	:param zlim: limits of the plot in z direction (if None, the maximum of the z position range is used)
+	:type zlim: tuple of two floats
+	:param n_frames: number of rendered frames, (if None the maximum number of frames is rendered)
+	:param color_parameter: index of a parameter in the additional values vector of the trajectory used for coloring
+	:type color_parameter: int
+	:param alpha: an alpha value for the plots
+	:type alpha: float
+	:param file_type: type of the trajectory file,
+		'json' for uncompressed json,
+		'compressed' for compressed json
+		'hdf5' for compressed hdf5
+	:type file_type: str
+	"""
+	if file_type == 'hdf5':
+		file_ext = "_trajectories.hd5"
+		tr = tra.read_hdf5_trajectory_file(project_name + file_ext)
+	elif file_type == 'compressed':
+		file_ext = "_trajectories.json.gz"
+		tr = tra.read_json_trajectory_file(project_name + file_ext)
+	elif file_type == 'json':
+		file_ext = "_trajectories.json"
+		tr = tra.read_json_trajectory_file(project_name + file_ext)
+	else:
+		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
+
+	ani = animate_xz_density(tr['positions'], xedges=xedges, zedges=zedges, n_frames=n_frames, figsize=figsize,
+	                         axis_equal=axis_equal, interval= interval, output_mode='animation')
+
+	ani.save(result_name + "_densityXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
+
+
+def animate_xz_density_comparison_plot(trajectory_data, selected, n_frames, interval,
+                                       select_mode='substance',
+                                       output_mode='video',
+                                       mode='lin',
+                                       s_lim=3, n_bins=100, basesize = 17,
+                                       alpha = 1, colormap = plt.cm.coolwarm,
+                                       annotate_string=""):
 	"""
 	Animate the densities of two ion clouds in a QIT simulation in a z-x projection.
 
@@ -246,7 +363,7 @@ def animate_z_vs_x_density_comparison_plot(trajectory_data, selected, n_frames, 
 		return (fig)
 
 
-def render_XZ_density_comparison_animation(project_names, selected, result_name, select_mode='substance', n_frames=400, interval=1,
+def render_xz_density_comparison_animation(project_names, selected, result_name, select_mode='substance', n_frames=400, interval=1,
                                            s_lim=7, n_bins=50, base_size=12, annotation="", mode="lin", file_type='hdf5'):
 	"""
 	Reads two trajectories, renders XZ density projection of two ion colouds in the trajectories and writes
@@ -294,9 +411,9 @@ def render_XZ_density_comparison_animation(project_names, selected, result_name,
 	else:
 		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
 
-	anim = animate_z_vs_x_density_comparison_plot([tj0, tj1], selected, n_frames, interval,
-	                                              mode=mode, s_lim=s_lim, select_mode=select_mode, n_bins = n_bins,
-	                                              basesize=base_size, annotate_string=annotation)
+	anim = animate_xz_density_comparison_plot([tj0, tj1], selected, n_frames, interval,
+	                                          mode=mode, s_lim=s_lim, select_mode=select_mode, n_bins = n_bins,
+	                                          basesize=base_size, annotate_string=annotation)
 	anim.save(result_name + "_densitiesComparisonXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 
 
