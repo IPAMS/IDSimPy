@@ -163,7 +163,7 @@ def render_xz_density_animation(project_name, result_name,
                                 zedges=None,
                                 figsize=(7, 7),
                                 interval=1,
-                                n_frames=10,
+                                n_frames=None,
                                 output_mode='animation',
                                 axis_equal=True, file_type='hdf5'):
 	"""
@@ -202,6 +202,9 @@ def render_xz_density_animation(project_name, result_name,
 		tr = tra.read_json_trajectory_file(project_name + file_ext)
 	else:
 		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
+
+	if not n_frames:
+		n_frames = len(tr['times'])
 
 	ani = animate_xz_density(tr['positions'], xedges=xedges, zedges=zedges, n_frames=n_frames, figsize=figsize,
 	                         axis_equal=axis_equal, interval= interval, output_mode='animation')
