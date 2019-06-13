@@ -9,11 +9,11 @@ from . import trajectory as tra
 ################## Simple Plot Methods ######################
 
 
-def plot_particles_path(trajectories, pl_filename, p_indices, plot_mark='*-',time_range=(0,1)):
+def plot_particles_path(trajectory_data, pl_filename, p_indices, plot_mark='*-', time_range=(0, 1)):
 	"""
 	Plots the paths of a selection of particles in a x,z and y,z projection
-	:param trajectories: trajectory input data
-	:type trajectories: list of lists of trajectory dictionaries from read_trajectory_file and an according label
+	:param trajectory_data: trajectory input data
+	:type trajectory_data: list of lists of trajectory dictionaries from read_trajectory_file and an according label
 	:param pl_filename: the basename of the plot image files to create
 	:param p_indices:
 	:type p_indices: list of integers
@@ -24,7 +24,7 @@ def plot_particles_path(trajectories, pl_filename, p_indices, plot_mark='*-',tim
 	"""
 	fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
 
-	for tr in trajectories:
+	for tr in trajectory_data:
 		times = tr[0]['times']
 		n_times = len(times)
 		pos = tr[0]['positions']
@@ -48,7 +48,7 @@ def plot_particles_path(trajectories, pl_filename, p_indices, plot_mark='*-',tim
 	plt.savefig(pl_filename + '.pdf', format='pdf')
 
 
-def plot_density_z_vs_x(trajectories, time_index,
+def plot_density_z_vs_x(trajectory_data, time_index,
                         xedges = np.linspace(-10,10,80),
                         zedges = np.linspace(-10,10,80),
                         figsize=(7,7),
@@ -56,8 +56,8 @@ def plot_density_z_vs_x(trajectories, time_index,
                         ):
 	"""
 	Renders an density plot in a z-x projection
-	:param trajectories: a trajectories vector from an imported trajectories object
-	:type trajectories: trajectories vector from dict returned from readTrajectoryFile
+	:param trajectory_data: a trajectories vector from an imported trajectories object
+	:type trajectory_data: trajectories vector from dict returned from readTrajectoryFile
 	:param time_index: index of the time step to render
 	:type time_index: int
 	:param xedges: the edges of the bins of the density plot (2d histogram bins) in x direction
@@ -68,8 +68,8 @@ def plot_density_z_vs_x(trajectories, time_index,
 	:type figsize: tuple of two floats
 	:param axis_equal: if true, the axis are rendered with equal scaling
 	"""
-	x = trajectories[:,0, time_index]
-	z = trajectories[:,2, time_index]
+	x = trajectory_data[:, 0, time_index]
+	z = trajectory_data[:, 2, time_index]
 	H, xedges, yedges = np.histogram2d(x,z, bins=(xedges, zedges))
 	H = H.T
 	fig = plt.figure(figsize=figsize)
@@ -80,6 +80,7 @@ def plot_density_z_vs_x(trajectories, time_index,
 	zcenters = zedges[:-1] + 0.5 * (zedges[1:] - zedges[:-1])
 	im.set_data(xcenters, zcenters, H)
 	ax.images.append(im)
+	im.set_extent(im.get_extent()) # workaround for minor issue in matplotlib ocurring in jupyter lab
 	ax.set_xlim(xedges[0], xedges[-1])
 	ax.set_ylim(zedges[0], zedges[-1])
 	if axis_equal:
@@ -91,7 +92,7 @@ def plot_density_z_vs_x(trajectories, time_index,
 ####### density plots #############################################################
 
 
-def animate_z_vs_x_density_comparison_plot(dat, selected, n_frames, interval,
+def animate_z_vs_x_density_comparison_plot(trajectory_data, selected, n_frames, interval,
                                            select_mode='substance',
                                            output_mode='video',
                                            mode='lin',
@@ -101,8 +102,8 @@ def animate_z_vs_x_density_comparison_plot(dat, selected, n_frames, interval,
 	"""
 	Animate the densities of two ion clouds in a QIT simulation in a z-x projection.
 
-	:param dat: imported trajectories object
-	:type dat: dict returned from the readTrajectoryFile methods
+	:param trajectory_data: imported trajectories object
+	:type trajectory_data: dict returned from the readTrajectoryFile methods
 	:param selected: two element list with values to select particles to be rendered
 	:type selected: list
 	:param n_frames: number of frames to export
@@ -126,18 +127,18 @@ def animate_z_vs_x_density_comparison_plot(dat, selected, n_frames, interval,
 
 
 	if select_mode == 'mass':
-		select_parameter = [dat[0]['masses'],dat[1]['masses']]
+		select_parameter = [trajectory_data[0]['masses'], trajectory_data[1]['masses']]
 
 	elif select_mode == 'substance':
-		id_column = dat[0]['additional_names'].index('chemical id')
-		select_parameter = [dat[0]['additional_parameters'][:, id_column, :],
-	                        dat[1]['additional_parameters'][:, id_column, :]]
+		id_column = trajectory_data[0]['additional_names'].index('chemical id')
+		select_parameter = [trajectory_data[0]['additional_parameters'][:, id_column, :],
+		                    trajectory_data[1]['additional_parameters'][:, id_column, :]]
 	else:
 		raise ValueError('Invalid select_mode')
 
 
-	times = dat[0]["times"]
-	times_B = dat[1]["times"]
+	times = trajectory_data[0]["times"]
+	times_B = trajectory_data[1]["times"]
 
 	if len(times) != len(times_B):
 		raise ValueError('Length of trajectories differ')
@@ -147,14 +148,14 @@ def animate_z_vs_x_density_comparison_plot(dat, selected, n_frames, interval,
 		raise ValueError('number of frames * interval (' + str(n_frames * interval) + ') is longer than trajectory (' + str(len(times)) + ')')
 
 	if selected[0] == "all":
-		datA = dat[0]["positions"]
+		datA = trajectory_data[0]["positions"]
 	else:
-		datA = tra.filter_parameter(dat[0]["positions"], select_parameter[0], selected[0])
+		datA = tra.filter_parameter(trajectory_data[0]["positions"], select_parameter[0], selected[0])
 
 	if selected[1] == "all":
-		datB = dat[1]["positions"]
+		datB = trajectory_data[1]["positions"]
 	else:
-		datB = tra.filter_parameter(dat[1]["positions"], select_parameter[1], selected[1])
+		datB = tra.filter_parameter(trajectory_data[1]["positions"], select_parameter[1], selected[1])
 
 	if output_mode== 'video':
 		fig = plt.figure(figsize=[10,10])
@@ -301,12 +302,12 @@ def render_XZ_density_comparison_animation(project_names, selected, result_name,
 
 
 ####### scatter plots #############################################################
-def animate_scatter_plot(tr, xlim=None, ylim=None, zlim=None, n_frames=None, color_parameter=None, alpha = 0.1):
+def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_frames=None, color_parameter=None, alpha = 0.1):
 	"""
 	Generates a scatter animation of the particles in an ion trajectory
 
-	:param tr: a particle trajectory
-	:type tr: dict returned from the readTrajectoryFile methods
+	:param trajectory_data: a particle trajectory
+	:type trajectory_data: dict returned from the readTrajectoryFile methods
 	:param xlim: limits of the plot in x direction (if None, the maximum of the x position range is used)
 	:type xlim: tuple of two floats
 	:param ylim: limits of the plot in y direction (if None, the maximum of the y position range is used)
@@ -321,17 +322,17 @@ def animate_scatter_plot(tr, xlim=None, ylim=None, zlim=None, n_frames=None, col
 	:return: an animation object with the animation
 	"""
 	fig = plt.figure(figsize=(13, 5))
-	pos = tr['positions']
+	pos = trajectory_data['positions']
 
 	if color_parameter:
-		ap = tr['additional_parameters']
+		ap = trajectory_data['additional_parameters']
 		c_param = ap[:,color_parameter,:]
 
 
 	cmap = plt.cm.get_cmap('viridis')
 
 	if not n_frames:
-		n_frames = len(tr['times'])
+		n_frames = len(trajectory_data['times'])
 
 	plt.subplot(1, 2, 1)
 	if color_parameter:
@@ -385,7 +386,7 @@ def animate_scatter_plot(tr, xlim=None, ylim=None, zlim=None, n_frames=None, col
 	return ani
 
 
-def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, n_frames=None, color_parameter=None,
+def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zlim=None, n_frames=None, color_parameter=None,
                              alpha=0.1, file_type='hdf5'):
 	"""
 	Reads an ion trajectory file, generates a scatter animation of the particles in an ion trajectory and
@@ -425,6 +426,6 @@ def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, n_
 		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
 
 
-	ani = animate_scatter_plot(tr, xlim=xlim, ylim=ylim, n_frames=n_frames,color_parameter=color_parameter,alpha=alpha)
+	ani = animate_scatter_plot(tr, xlim=xlim, ylim=ylim, zlim=zlim, n_frames=n_frames,color_parameter=color_parameter,alpha=alpha)
 
 	ani.save(result_name + "_scatter.mp4", fps=20, extra_args=['-vcodec', 'libx264'])

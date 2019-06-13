@@ -23,8 +23,8 @@ class TestVisualization_images(unittest.TestCase):
 
 	def test_basic_density_plotting(self):
 		t_indd = 1
-		traj_10_11 = tra.read_json_trajectory_file(self.test_json_trajectory)
-		vis.plot_density_z_vs_x(traj_10_11['positions'], t_indd,
+		traj_json = tra.read_json_trajectory_file(self.test_json_trajectory)
+		vis.plot_density_z_vs_x(traj_json['positions'], t_indd,
 			xedges=np.linspace(-1, 5, 500),
 		    zedges=np.linspace(-3, 3, 100) )
 
@@ -33,7 +33,8 @@ class TestVisualization_images(unittest.TestCase):
 		resultName = os.path.join(self.result_path, 'test_density_plotting_01.png')
 		plt.savefig(resultName)
 
-		vis.plot_density_z_vs_x(traj_10_11['positions'], t_indd,
+		traj_hdf5 = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_a)
+		vis.plot_density_z_vs_x(traj_hdf5['positions'], t_indd,
 			xedges=np.linspace(-1, 5, 300),
 		    zedges=np.linspace(-3, 3, 50),
 			figsize=(10,5),
