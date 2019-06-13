@@ -8,6 +8,7 @@ from . import trajectory as tra
 
 ################## Simple Plot Methods ######################
 
+
 def plot_particles_path(trajectories, pl_filename, p_indices, plot_mark='*-',time_range=(0,1)):
 	"""
 	Plots the paths of a selection of particles in a x,z and y,z projection
@@ -87,8 +88,9 @@ def plot_density_z_vs_x(trajectories, time_index,
 ################## High Level Simulation Project Processing Methods ######################
 
 
-
 ####### density plots #############################################################
+
+
 def animate_z_vs_x_density_comparison_plot(dat, selected, n_frames, interval,
                                            select_mode='substance',
                                            output_mode='video',
@@ -100,7 +102,7 @@ def animate_z_vs_x_density_comparison_plot(dat, selected, n_frames, interval,
 	Animate the densities of two ion clouds in a QIT simulation in a z-x projection.
 
 	:param dat: imported trajectories object
-	:type dat: dict returned from readTrajectoryFile
+	:type dat: dict returned from the readTrajectoryFile methods
 	:param selected: two element list with values to select particles to be rendered
 	:type selected: list
 	:param n_frames: number of frames to export
@@ -153,8 +155,6 @@ def animate_z_vs_x_density_comparison_plot(dat, selected, n_frames, interval,
 		datB = dat[1]["positions"]
 	else:
 		datB = tra.filter_parameter(dat[1]["positions"], select_parameter[1], selected[1])
-
-
 
 	if output_mode== 'video':
 		fig = plt.figure(figsize=[10,10])
@@ -248,7 +248,8 @@ def animate_z_vs_x_density_comparison_plot(dat, selected, n_frames, interval,
 def render_XZ_density_comparison_animation(project_names, selected, result_name, select_mode='substance', n_frames=400, interval=1,
                                            s_lim=7, n_bins=50, base_size=12, annotation="", mode="lin", file_type='hdf5'):
 	"""
-	XZ density projection of a
+	Reads two trajectories, renders XZ density projection of two ion colouds in the trajectories and writes
+	a video file with the result.
 
 	:param project_names: simulation projects to compare (given as project basenames)
 	:type project_names: tuple of two strings
@@ -301,6 +302,24 @@ def render_XZ_density_comparison_animation(project_names, selected, result_name,
 
 ####### scatter plots #############################################################
 def animate_scatter_plot(tr, xlim=None, ylim=None, zlim=None, n_frames=None, color_parameter=None, alpha = 0.1):
+	"""
+	Generates a scatter animation of the particles in an ion trajectory
+
+	:param tr: a particle trajectory
+	:type tr: dict returned from the readTrajectoryFile methods
+	:param xlim: limits of the plot in x direction (if None, the maximum of the x position range is used)
+	:type xlim: tuple of two floats
+	:param ylim: limits of the plot in y direction (if None, the maximum of the y position range is used)
+	:type ylim: tuple of two floats
+	:param zlim: limits of the plot in z direction (if None, the maximum of the z position range is used)
+	:type zlim: tuple of two floats
+	:param n_frames: number of rendered frames, (if None the maximum number of frames is rendered)
+	:param color_parameter: index of a parameter in the additional values vector of the trajectory used for coloring
+	:type color_parameter: int
+	:param alpha: an alpha value for the plots
+	:type alpha: float
+	:return: an animation object with the animation
+	"""
 	fig = plt.figure(figsize=(13, 5))
 	pos = tr['positions']
 
@@ -363,12 +382,36 @@ def animate_scatter_plot(tr, xlim=None, ylim=None, zlim=None, n_frames=None, col
 
 	ani = animation.FuncAnimation(fig, update_scatter_plot, frames=range(n_frames),
 	                              fargs=(pos, scat_xy, scat_xz))
-	return(ani)
+	return ani
 
 
 def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, n_frames=None, color_parameter=None,
                              alpha=0.1, file_type='hdf5'):
+	"""
+	Reads an ion trajectory file, generates a scatter animation of the particles in an ion trajectory and
+	writes a video file with the animation
 
+	:param project_name: simulation project to read and animate (given as basename)
+	:type project_name: str
+	:param result_name: name of the result video file
+	:type result_name: str
+	:param xlim: limits of the plot in x direction (if None, the maximum of the x position range is used)
+	:type xlim: tuple of two floats
+	:param ylim: limits of the plot in y direction (if None, the maximum of the y position range is used)
+	:type ylim: tuple of two floats
+	:param zlim: limits of the plot in z direction (if None, the maximum of the z position range is used)
+	:type zlim: tuple of two floats
+	:param n_frames: number of rendered frames, (if None the maximum number of frames is rendered)
+	:param color_parameter: index of a parameter in the additional values vector of the trajectory used for coloring
+	:type color_parameter: int
+	:param alpha: an alpha value for the plots
+	:type alpha: float
+	:param file_type: type of the trajectory file,
+		'json' for uncompressed json,
+		'compressed' for compressed json
+		'hdf5' for compressed hdf5
+	:type file_type: str
+	"""
 	if file_type == 'hdf5':
 		file_ext = "_trajectories.hd5"
 		tr = tra.read_hdf5_trajectory_file(project_name + file_ext)

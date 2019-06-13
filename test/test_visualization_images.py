@@ -12,7 +12,7 @@ class TestVisualization_images(unittest.TestCase):
 		cls.test_json_trajectory = os.path.join('data', 'test_trajectories.json')
 		cls.test_json_projectName = os.path.join('data', 'test')
 		cls.test_reactive_projectName = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
-		                                          'qitSim_2019_04_15_001')
+		                                             'qitSim_2019_04_15_001')
 		cls.test_hdf5_trajectory_a = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
 		                                          'qitSim_2019_04_10_001_trajectories.hd5')
 		cls.test_hdf5_trajectory_b = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
