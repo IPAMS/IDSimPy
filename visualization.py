@@ -47,20 +47,28 @@ def plot_particles_path(trajectories, pl_filename, p_indices, plot_mark='*-',tim
 	plt.savefig(pl_filename + '.pdf', format='pdf')
 
 
-def plot_density_z_vs_x(trajectories,timeIndex,
-        xedges = np.linspace(-10,10,80),
-		zedges = np.linspace(-10,10,80),
-		figsize=(7,7),
-		axis_equal = True
-):
+def plot_density_z_vs_x(trajectories, time_index,
+                        xedges = np.linspace(-10,10,80),
+                        zedges = np.linspace(-10,10,80),
+                        figsize=(7,7),
+                        axis_equal = True
+                        ):
 	"""
 	Renders an density plot in a z-x projection
 	:param trajectories: a trajectories vector from an imported trajectories object
 	:type trajectories: trajectories vector from dict returned from readTrajectoryFile
-	:param timeIndex: index of the time step to render
+	:param time_index: index of the time step to render
+	:type time_index: int
+	:param xedges: the edges of the bins of the density plot (2d histogram bins) in x direction
+	:type xedges: iterable or list / array
+	:param yedges: the edges of the bins of the density plot (2d histogram bins) in y direction
+	:type yedges: iterable or list / array
+	:param figsize: the figure size
+	:type figsize: tuple of two floats
+	:param axis_equal: if true, the axis are rendered with equal scaling
 	"""
-	x = trajectories[:,0,timeIndex]
-	z = trajectories[:,2,timeIndex]
+	x = trajectories[:,0, time_index]
+	z = trajectories[:,2, time_index]
 	H, xedges, yedges = np.histogram2d(x,z, bins=(xedges, zedges))
 	H = H.T
 	fig = plt.figure(figsize=figsize)
@@ -81,7 +89,7 @@ def plot_density_z_vs_x(trajectories,timeIndex,
 
 
 ####### density plots #############################################################
-def animate_z_vs_x_density_comparison_plot(dat, selected, nFrames, interval,
+def animate_z_vs_x_density_comparison_plot(dat, selected, n_frames, interval,
                                            select_mode='substance',
                                            output_mode='video',
                                            mode='lin',
@@ -95,7 +103,7 @@ def animate_z_vs_x_density_comparison_plot(dat, selected, nFrames, interval,
 	:type dat: dict returned from readTrajectoryFile
 	:param selected: two element list with values to select particles to be rendered
 	:type selected: list
-	:param nFrames: number of frames to export
+	:param n_frames: number of frames to export
 	:param interval: interval in terms of time steps in the input data between the animation frames
 	:param select_mode: defines the mode for selection of particles:
 		"mass" for selecting by mass,
@@ -133,8 +141,8 @@ def animate_z_vs_x_density_comparison_plot(dat, selected, nFrames, interval,
 		raise ValueError('Length of trajectories differ')
 	if not (times == times_B).all():
 		raise ValueError('The times of the trajectories differ')
-	if nFrames*interval > len(times):
-		raise ValueError('number of frames * interval ('+str(nFrames*interval)+') is longer than trajectory ('+str(len(times))+')')
+	if n_frames*interval > len(times):
+		raise ValueError('number of frames * interval (' + str(n_frames * interval) + ') is longer than trajectory (' + str(len(times)) + ')')
 
 	if selected[0] == "all":
 		datA = dat[0]["positions"]
@@ -230,10 +238,10 @@ def animate_z_vs_x_density_comparison_plot(dat, selected, nFrames, interval,
 
 	# call the animator.  blit=True means only re-draw the parts that have changed.
 	if output_mode == 'video':
-		anim = animation.FuncAnimation(fig, animate, frames=nFrames, blit=False)
+		anim = animation.FuncAnimation(fig, animate, frames=n_frames, blit=False)
 		return (anim)
 	elif output_mode == 'singleFrame':
-		animate(nFrames)
+		animate(n_frames)
 		return (fig)
 
 
@@ -285,7 +293,7 @@ def render_XZ_density_comparison_animation(project_names, selected, result_name,
 		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
 
 	anim = animate_z_vs_x_density_comparison_plot([tj0, tj1], selected, n_frames, interval,
-	                                              mode=mode, s_lim=s_lim, select_mode=select_mode,
+	                                              mode=mode, s_lim=s_lim, select_mode=select_mode, n_bins = n_bins,
 	                                              basesize=base_size, annotate_string=annotation)
 	anim.save(result_name + "_densitiesComparisonXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 
