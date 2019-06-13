@@ -49,7 +49,9 @@ def plot_particles_path(trajectories, pl_filename, p_indices, plot_mark='*-',tim
 
 def plot_density_z_vs_x(trajectories,timeIndex,
         xedges = np.linspace(-10,10,80),
-		zedges = np.linspace(-10,10,80)
+		zedges = np.linspace(-10,10,80),
+		figsize=(7,7),
+		axis_equal = True
 ):
 	"""
 	Renders an density plot in a z-x projection
@@ -61,10 +63,9 @@ def plot_density_z_vs_x(trajectories,timeIndex,
 	z = trajectories[:,2,timeIndex]
 	H, xedges, yedges = np.histogram2d(x,z, bins=(xedges, zedges))
 	H = H.T
-	fig = plt.figure(figsize=(7, 7))
+	fig = plt.figure(figsize=figsize)
 
 	ax = fig.add_subplot(111)
-	ax.set_title('NonUniformImage: interpolated')
 	im = NonUniformImage(ax, interpolation='nearest')
 	xcenters = xedges[:-1] + 0.5 * (xedges[1:] - xedges[:-1])
 	zcenters = zedges[:-1] + 0.5 * (zedges[1:] - zedges[:-1])
@@ -72,7 +73,8 @@ def plot_density_z_vs_x(trajectories,timeIndex,
 	ax.images.append(im)
 	ax.set_xlim(xedges[0], xedges[-1])
 	ax.set_ylim(zedges[0], zedges[-1])
-	ax.set_aspect('equal')
+	if axis_equal:
+		ax.set_aspect('equal')
 
 ################## High Level Simulation Project Processing Methods ######################
 
@@ -347,7 +349,7 @@ def render_scatter_animation(pname,result_name=None, xlim=None, ylim=None, numfr
 	else:
 		file_ext = "_trajectories.json"
 
-	tr = tra.read_trajectory_file(pname + file_ext)
+	tr = tra.read_json_trajectory_file(pname + file_ext)
 	ani = animate_scatter_plot(tr, xlim=xlim, ylim=ylim, numframes=numframes)
 
 	if not result_name:
