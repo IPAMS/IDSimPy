@@ -51,7 +51,6 @@ class TestTrajectory(unittest.TestCase):
 
 	def test_parameter_filter_with_synthetic_trajectory(self):
 		tra = self.generate_test_trajectory(20,15)
-		#tra_r = ia.read_hdf5_trajectory_file(self.test_hdf5_reactive_fname)
 		id_column = tra['additional_names'].index('chemical id')
 		tra_filtered_vec = ia.filter_parameter(tra['positions'], tra['additional_parameters'][:, id_column, 5], 1)
 		self.assertTrue(isinstance(tra_filtered_vec, np.ndarray))

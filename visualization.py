@@ -78,15 +78,18 @@ def plot_density_z_vs_x(trajectories,timeIndex,
 
 ################## High Level Simulation Project Processing Methods ######################
 
-def animate_z_vs_x_density_plot(dat, selected, nFrames, interval,
-                                select_mode='substance',
-                                output_mode='video',
-                                mode='lin',
-                                s_lim=3, n_bins=100, basesize = 17,
-                                alpha = 1, colormap = plt.cm.coolwarm,
-                                annotate_string=""):
+
+
+####### density plots #############################################################
+def animate_z_vs_x_density_comparison_plot(dat, selected, nFrames, interval,
+                                           select_mode='substance',
+                                           output_mode='video',
+                                           mode='lin',
+                                           s_lim=3, n_bins=100, basesize = 17,
+                                           alpha = 1, colormap = plt.cm.coolwarm,
+                                           annotate_string=""):
 	"""
-	Animate the denisties of two ion clouds in a QIT simulation in a z-x projection.
+	Animate the densities of two ion clouds in a QIT simulation in a z-x projection.
 
 	:param dat: imported trajectories object
 	:type dat: dict returned from readTrajectoryFile
@@ -234,20 +237,20 @@ def animate_z_vs_x_density_plot(dat, selected, nFrames, interval,
 		return (fig)
 
 
-def render_XZ_density_animation(projectNames, selected, resultName, select_mode='substance', nFrames=400, interval=1,
-                                s_lim=7, n_bins=50,base_size=12, annotation="", mode="lin", file_type='hdf5'):
+def render_XZ_density_comparison_animation(project_names, selected, result_name, select_mode='substance', n_frames=400, interval=1,
+                                           s_lim=7, n_bins=50, base_size=12, annotation="", mode="lin", file_type='hdf5'):
 	"""
 	XZ density projection of a
 
-	:param projectNames: simulation projects to compare (given as project basenames)
-	:type projectNames: tuple of two strings
+	:param project_names: simulation projects to compare (given as project basenames)
+	:type project_names: tuple of two strings
 	:param selected: list of masses in the two simulation projects to compare
 	:type selected: tuple of two floats
-	:param resultName: basename for the rendering result
+	:param result_name: basename for the rendering result
 	:param select_mode: defines the mode for selection of particles:
 		"mass" for selecting by mass,
 		"substance" for chemical substance / chemical id
-	:param nFrames: number of frames to render
+	:param n_frames: number of frames to render
 	:param interval: interval in terms of time steps in the input data between the animation frames
 	:type interval: int
 	:param s_lim: spatial limits of the rendered spatial domain
@@ -268,91 +271,109 @@ def render_XZ_density_animation(projectNames, selected, resultName, select_mode=
 
 	if file_type == 'hdf5':
 		file_ext = "_trajectories.hd5"
-		tj0 = tra.read_hdf5_trajectory_file(projectNames[0] + file_ext)
-		tj1 = tra.read_hdf5_trajectory_file(projectNames[1] + file_ext)
+		tj0 = tra.read_hdf5_trajectory_file(project_names[0] + file_ext)
+		tj1 = tra.read_hdf5_trajectory_file(project_names[1] + file_ext)
 	elif file_type == 'compressed':
 		file_ext = "_trajectories.json.gz"
-		tj0 = tra.read_json_trajectory_file(projectNames[0] + file_ext)
-		tj1 = tra.read_json_trajectory_file(projectNames[1] + file_ext)
+		tj0 = tra.read_json_trajectory_file(project_names[0] + file_ext)
+		tj1 = tra.read_json_trajectory_file(project_names[1] + file_ext)
 	elif file_type == 'json':
 		file_ext = "_trajectories.json"
-		tj0 = tra.read_json_trajectory_file(projectNames[0] + file_ext)
-		tj1 = tra.read_json_trajectory_file(projectNames[1] + file_ext)
+		tj0 = tra.read_json_trajectory_file(project_names[0] + file_ext)
+		tj1 = tra.read_json_trajectory_file(project_names[1] + file_ext)
 	else:
 		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
 
-	anim = animate_z_vs_x_density_plot([tj0, tj1], selected, nFrames, interval,
-	                                   mode=mode, s_lim=s_lim, select_mode=select_mode,
-	                                   basesize=base_size, annotate_string=annotation)
-	anim.save(resultName + "_densitiesComparisonXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
+	anim = animate_z_vs_x_density_comparison_plot([tj0, tj1], selected, n_frames, interval,
+	                                              mode=mode, s_lim=s_lim, select_mode=select_mode,
+	                                              basesize=base_size, annotate_string=annotation)
+	anim.save(result_name + "_densitiesComparisonXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 
 
-def animate_scatter_plot(tr, xlim=None, ylim=None, numframes=None):
+
+####### scatter plots #############################################################
+def animate_scatter_plot(tr, xlim=None, ylim=None, zlim=None, n_frames=None, color_parameter=None, alpha = 0.1):
 	fig = plt.figure(figsize=(13, 5))
 	pos = tr['positions']
-	# ap = tr['additional_parameters']
-	masses = tr['masses']
+
+	if color_parameter:
+		ap = tr['additional_parameters']
+		c_param = ap[:,color_parameter,:]
+
 
 	cmap = plt.cm.get_cmap('viridis')
 
-	if not numframes:
-		numframes = len(tr['times'])
+	if not n_frames:
+		n_frames = len(tr['times'])
 
 	plt.subplot(1, 2, 1)
-	scat1 = plt.scatter(pos[:, 0, 0], pos[:, 1, 0], s=10, alpha=0.1, c=masses, cmap=cmap)
+	if color_parameter:
+		scat_xy = plt.scatter(pos[:, 0, 0], pos[:, 1, 0], s=10, alpha=alpha, c=c_param[:,0], cmap=cmap)
+	else:
+		scat_xy = plt.scatter(pos[:, 0, 0], pos[:, 1, 0], s=10, alpha=alpha)
 	plt.xlabel("x position")
 	plt.ylabel("y position")
 
 	if ylim:
-		plt.ylim(ylim[0])
+		plt.ylim(ylim)
 	else:
 		plt.ylim((np.min(pos[:, 1, :]), np.max(pos[:, 1, :])))
 
 	if xlim:
-		plt.xlim(xlim[0])
+		plt.xlim(xlim)
 	else:
 		plt.xlim((np.min(pos[:, 0, :]), np.max(pos[:, 0, :])))
 
 	plt.subplot(1, 2, 2)
-	scat2 = plt.scatter(pos[:, 1, 0], pos[:, 2, 0], s=10, alpha=0.1, c=masses, cmap=cmap)
+	if color_parameter:
+		scat_xz = plt.scatter(pos[:, 1, 0], pos[:, 2, 0], s=10, alpha=alpha , c=c_param[:,0], cmap=cmap)
+	else:
+		scat_xz = plt.scatter(pos[:, 1, 0], pos[:, 2, 0], s=10, alpha=alpha)
 	plt.xlabel("x position")
 	plt.ylabel("z position")
 
-	if ylim:
-		plt.ylim(ylim[1])
+	if zlim:
+		plt.ylim(zlim)
 	else:
 		plt.ylim((np.min(pos[:, 2, :]), np.max(pos[:, 2, :])))
 
 	if xlim:
-		plt.xlim(xlim[1])
+		plt.xlim(xlim)
 	else:
 		plt.xlim((np.min(pos[:, 0, :]), np.max(pos[:, 0, :])))
 
-	def update_scatter_plot(i, pos, scat1, scat2):
 
-		# r_dist = np.sqrt(pos[:,0,i]**2.0 + pos[:,1,i]**2.0)
-		# r_velo = np.sqrt(ap[:,0,i]**2.0 + ap[:,1,i]**2.0)
+	def update_scatter_plot(i, pos, scat1, scat2):
 		scat1.set_offsets(np.transpose(np.vstack([pos[:, 0, i], pos[:, 1, i]])))
 		scat2.set_offsets(np.transpose(np.vstack([pos[:, 0, i], pos[:, 2, i]])))
-		# scat1.set_array(np.abs(sp[:,i]))
-		# scat2.set_array(np.abs(sp[:,i]))
+
+		if color_parameter:
+			scat1.set_array(c_param[:, i])
+			scat2.set_array(c_param[:, i])
+
 		return scat1, scat2
 
-	ani = animation.FuncAnimation(fig, update_scatter_plot, frames=range(numframes),
-	                              fargs=(pos, scat1, scat2))
+	ani = animation.FuncAnimation(fig, update_scatter_plot, frames=range(n_frames),
+	                              fargs=(pos, scat_xy, scat_xz))
 	return(ani)
 
 
-def render_scatter_animation(pname,result_name=None, xlim=None, ylim=None, numframes=None,compressed=True):
-	if compressed:
-		file_ext =  "_trajectories.json.gz"
-	else:
+def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, n_frames=None, color_parameter=None,
+                             alpha=0.1, file_type='hdf5'):
+
+	if file_type == 'hdf5':
+		file_ext = "_trajectories.hd5"
+		tr = tra.read_hdf5_trajectory_file(project_name + file_ext)
+	elif file_type == 'compressed':
+		file_ext = "_trajectories.json.gz"
+		tr = tra.read_json_trajectory_file(project_name + file_ext)
+	elif file_type == 'json':
 		file_ext = "_trajectories.json"
+		tr = tra.read_json_trajectory_file(project_name + file_ext)
+	else:
+		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
 
-	tr = tra.read_json_trajectory_file(pname + file_ext)
-	ani = animate_scatter_plot(tr, xlim=xlim, ylim=ylim, numframes=numframes)
 
-	if not result_name:
-		result_name = pname
+	ani = animate_scatter_plot(tr, xlim=xlim, ylim=ylim, n_frames=n_frames,color_parameter=color_parameter,alpha=alpha)
 
-	ani.save(result_name + "_phaseSpace_spCharge.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
+	ani.save(result_name + "_scatter.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
