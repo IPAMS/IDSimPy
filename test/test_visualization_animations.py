@@ -28,7 +28,13 @@ class TestVisualization_animations(unittest.TestCase):
 
 	def test_scatter_animation_hdf5_trajectory(self):
 		resultName = os.path.join(self.result_path, 'scatter_animation_test_2')
-		vis.render_scatter_animation(self.test_reactive_projectName, resultName,alpha=0.5,color_parameter=2)
+
+		self.assertRaises(
+			ValueError, vis.render_scatter_animation,self.test_reactive_projectName, resultName, n_frames=100,
+			                             interval=5)
+
+		vis.render_scatter_animation(self.test_reactive_projectName, resultName, interval=5, alpha=0.5,
+		                             color_parameter=2)
 
 
 	def test_basic_scatter_animation_low_level(self):
@@ -47,6 +53,7 @@ class TestVisualization_animations(unittest.TestCase):
 
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 
+class buffer():
 	def test_density_animation_low_level(self):
 		traj_hdf5 = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_a)
 		anim = vis.animate_xz_density(traj_hdf5['positions'],

@@ -227,7 +227,7 @@ def animate_xz_density_comparison_plot(trajectory_data, selected, n_frames, inte
 	:param selected: two element list with values to select particles to be rendered
 	:type selected: list
 	:param n_frames: number of frames to export
-	:param interval: interval in terms of time steps in the input data between the animation frames
+	:param interval: interval in terms of data frames in the input data between the animation frames
 	:param select_mode: defines the mode for selection of particles:
 		"mass" for selecting by mass,
 		"substance" for chemical substance / chemical id
@@ -381,7 +381,7 @@ def render_xz_density_comparison_animation(project_names, selected, result_name,
 		"mass" for selecting by mass,
 		"substance" for chemical substance / chemical id
 	:param n_frames: number of frames to render
-	:param interval: interval in terms of time steps in the input data between the animation frames
+	:param interval: interval in terms of data frames in the input data between the animation frames
 	:type interval: int
 	:param s_lim: spatial limits of the rendered spatial domain
 			(given as distance from the origin of the coordinate system or explicit limits: [xlo, xhi, zlo, zhi]
@@ -422,7 +422,8 @@ def render_xz_density_comparison_animation(project_names, selected, result_name,
 
 
 ####### scatter plots #############################################################
-def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_frames=None, color_parameter=None, alpha = 0.1):
+def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
+                         color_parameter=None, alpha=0.1):
 	"""
 	Generates a scatter animation of the particles in an ion trajectory
 
@@ -435,6 +436,8 @@ def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_fra
 	:param zlim: limits of the plot in z direction (if None, the maximum of the z position range is used)
 	:type zlim: tuple of two floats
 	:param n_frames: number of rendered frames, (if None the maximum number of frames is rendered)
+	:param interval: interval in terms of data frames in the input data between the animation frames
+	:type interval: int
 	:param color_parameter: index of a parameter in the additional values vector of the trajectory used for coloring
 	:type color_parameter: int
 	:param alpha: an alpha value for the plots
@@ -451,8 +454,13 @@ def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_fra
 
 	cmap = plt.cm.get_cmap('viridis')
 
+	times = trajectory_data['times']
 	if not n_frames:
-		n_frames = len(trajectory_data['times'])
+		n_frames = int(np.floor(len(times)/interval))
+
+	if n_frames*interval > len(times):
+		raise ValueError('number of frames * interval (' + str(n_frames * interval) + ') is longer than trajectory (' + str(len(times)) + ')')
+
 
 	plt.subplot(1, 2, 1)
 	if color_parameter:
@@ -492,12 +500,13 @@ def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_fra
 
 
 	def update_scatter_plot(i, pos, scat1, scat2):
-		scat1.set_offsets(np.transpose(np.vstack([pos[:, 0, i], pos[:, 1, i]])))
-		scat2.set_offsets(np.transpose(np.vstack([pos[:, 0, i], pos[:, 2, i]])))
+		ts = i * interval
+		scat1.set_offsets(np.transpose(np.vstack([pos[:, 0, ts], pos[:, 1, ts]])))
+		scat2.set_offsets(np.transpose(np.vstack([pos[:, 0, ts], pos[:, 2, ts]])))
 
 		if color_parameter:
-			scat1.set_array(c_param[:, i])
-			scat2.set_array(c_param[:, i])
+			scat1.set_array(c_param[:, ts])
+			scat2.set_array(c_param[:, ts])
 
 		return scat1, scat2
 
@@ -506,8 +515,8 @@ def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_fra
 	return ani
 
 
-def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zlim=None, n_frames=None, color_parameter=None,
-                             alpha=0.1, file_type='hdf5'):
+def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
+                             color_parameter=None,alpha=0.1, file_type='hdf5'):
 	"""
 	Reads an ion trajectory file, generates a scatter animation of the particles in an ion trajectory and
 	writes a video file with the animation
@@ -523,6 +532,8 @@ def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zl
 	:param zlim: limits of the plot in z direction (if None, the maximum of the z position range is used)
 	:type zlim: tuple of two floats
 	:param n_frames: number of rendered frames, (if None the maximum number of frames is rendered)
+	:param interval: interval in terms of data frames in the input data between the animation frames
+	:type interval: int
 	:param color_parameter: index of a parameter in the additional values vector of the trajectory used for coloring
 	:type color_parameter: int
 	:param alpha: an alpha value for the plots
@@ -545,7 +556,7 @@ def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zl
 	else:
 		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
 
-
-	ani = animate_scatter_plot(tr, xlim=xlim, ylim=ylim, zlim=zlim, n_frames=n_frames,color_parameter=color_parameter,alpha=alpha)
+	ani = animate_scatter_plot(tr, xlim=xlim, ylim=ylim, zlim=zlim, n_frames=n_frames, interval=interval,
+	                           color_parameter=color_parameter, alpha=alpha)
 
 	ani.save(result_name + "_scatter.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
