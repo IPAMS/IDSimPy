@@ -22,6 +22,34 @@ class TestVisualization_animations(unittest.TestCase):
 		cls.result_path = "test_results"
 
 
+
+	def test_complex_scatter_animation_low_level(self):
+		tra_b = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_b)
+
+		anim = vis.animate_scatter_plot(tra_b, xlim=(-0.001, 0.001), ylim=(-0.0015, 0.0015), zlim=(-0.005, 0.005),
+		                                color_parameter="chemical id",alpha = 0.4)
+
+		result_name = os.path.join(self.result_path, 'scatter_animation_test_4.mp4')
+		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
+
+		#test with manual coloring:
+		c_id = np.array([0 if i< 200 else 1 for i in range(400)])
+		anim = vis.animate_scatter_plot(tra_b, xlim=(-0.001, 0.001), ylim=(-0.0015, 0.0015), zlim=(-0.005, 0.005),
+		                                color_parameter=c_id,alpha = 0.4)
+
+		result_name = os.path.join(self.result_path, 'scatter_animation_test_5.mp4')
+		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
+
+		#test with manual coloring and an array:
+		c_id = [i for i in range(400)]
+		anim = vis.animate_scatter_plot(tra_b, xlim=(-0.001, 0.001), ylim=(-0.0015, 0.0015), zlim=(-0.005, 0.005),
+		                                color_parameter=c_id,alpha = 0.4)
+
+		result_name = os.path.join(self.result_path, 'scatter_animation_test_6.mp4')
+		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
+
+class buffer():
+
 	def test_scatter_animation_json_trajectory(self):
 		resultName = os.path.join(self.result_path, 'scatter_animation_test_1')
 		vis.render_scatter_animation(self.test_json_projectName, resultName,file_type='json')
@@ -34,7 +62,7 @@ class TestVisualization_animations(unittest.TestCase):
 			                             interval=5)
 
 		vis.render_scatter_animation(self.test_reactive_projectName, resultName, interval=5, alpha=0.5,
-		                             color_parameter=2)
+		                             color_parameter="velocity x")
 
 
 	def test_basic_scatter_animation_low_level(self):
@@ -43,17 +71,10 @@ class TestVisualization_animations(unittest.TestCase):
 		result_name = os.path.join(self.result_path, 'scatter_animation_test_3.mp4')
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 
-	def test_complex_scatter_animation_low_level(self):
-		tra_b = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_b)
 
-		anim = vis.animate_scatter_plot(tra_b, xlim=(-0.001, 0.001), ylim=(-0.0015, 0.0015), zlim=(-0.005, 0.005),
-		                                color_parameter=1,alpha = 0.4)
 
-		result_name = os.path.join(self.result_path, 'scatter_animation_test_4.mp4')
 
-		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 
-class buffer():
 	def test_density_animation_low_level(self):
 		traj_hdf5 = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_a)
 		anim = vis.animate_xz_density(traj_hdf5['positions'],

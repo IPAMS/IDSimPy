@@ -65,15 +65,16 @@ def read_json_trajectory_file(trajectoryFileName):
 			tj = json.load(tf)
 
 	steps = tj["steps"]
+	n_timesteps = len(steps)
 	nIons = len(steps[0]["ions"])
 
 	times = np.zeros(len(steps))
 	positions = np.zeros([nIons,3,len(steps)])
 
 	n_additional_parameters = len(steps[0]["ions"][0])-1
-	additional_parameters = np.zeros([nIons,n_additional_parameters,len(steps)])
+	additional_parameters = np.zeros([nIons,n_additional_parameters,n_timesteps])
 
-	for i in range(len(steps)):
+	for i in range(n_timesteps):
 		for j in range (nIons):
 			positions[j,:,i] = np.array(steps[i]["ions"][j][0])
 			additional_parameters[j,:,i] = np.array(steps[i]["ions"][j][1:])
@@ -95,6 +96,7 @@ def read_json_trajectory_file(trajectoryFileName):
 	       "times":times,
 	       "masses":masses,
 	       "n_particles":nIons,
+	       "n_timesteps":n_timesteps,
 	       "splat_times":splat_times}
 
 
@@ -111,7 +113,8 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 
 	result = {"positions": np.array(positions),
 	          "times": np.array(times),
-	          "n_particles": n_particles}
+	          "n_particles": n_particles,
+	          "n_timesteps": n_timesteps}
 
 	if 'aux_parameters' in tra_group.keys():
 		aux_parameters_names = [name.decode('UTF-8') for name in attribs['auxiliary parameter names']]

@@ -423,7 +423,7 @@ def render_xz_density_comparison_animation(project_names, selected, result_name,
 
 ####### scatter plots #############################################################
 def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
-                         color_parameter=None, alpha=0.1):
+                         color_parameter=None,cmap=plt.cm.get_cmap('viridis'), alpha=0.1):
 	"""
 	Generates a scatter animation of the particles in an ion trajectory
 
@@ -436,37 +436,47 @@ def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_fra
 	:param zlim: limits of the plot in z direction (if None, the maximum of the z position range is used)
 	:type zlim: tuple of two floats
 	:param n_frames: number of rendered frames, (if None the maximum number of frames is rendered)
+	:type n_frames: int
 	:param interval: interval in terms of data frames in the input data between the animation frames
 	:type interval: int
-	:param color_parameter: index of a parameter in the additional values vector of the trajectory used for coloring
-	:type color_parameter: int
+	:param color_parameter: name of an additional parameter of the trajectory used for coloring or a vector of manual
+	values for coloring
+	:type color_parameter: str or iterable (ndarray, list, tuple)
+	:param cmap: a matplotlib colormap for colorization of the scatter plot
+	:type cmap: matplotlib.colors.Colormap
 	:param alpha: an alpha value for the plots
 	:type alpha: float
 	:return: an animation object with the animation
 	"""
 	fig = plt.figure(figsize=(13, 5))
 	pos = trajectory_data['positions']
+	n_timesteps = trajectory_data['n_timesteps']
 
-	if color_parameter:
+	if not (color_parameter is None):
 		ap = trajectory_data['additional_parameters']
-		c_param = ap[:,color_parameter,:]
+		ap_names = trajectory_data['additional_names']
+
+		if type(color_parameter) is str:
+			cp_index = ap_names.index(color_parameter)
+			c_param = ap[:, cp_index, :]
+		elif hasattr(color_parameter, "__iter__"): #is iterable
+			c_param = np.tile(color_parameter,(n_timesteps,1)).T
+			# nd array [n_particles, n_timesteps ]
 
 
-	cmap = plt.cm.get_cmap('viridis')
-
-	times = trajectory_data['times']
 	if not n_frames:
-		n_frames = int(np.floor(len(times)/interval))
+		n_frames = int(np.floor(n_timesteps/interval))
 
-	if n_frames*interval > len(times):
-		raise ValueError('number of frames * interval (' + str(n_frames * interval) + ') is longer than trajectory (' + str(len(times)) + ')')
+	if n_frames*interval > n_timesteps:
+		raise ValueError('number of frames * interval (' + str(n_frames * interval) + ') is longer than trajectory (' + str(n_timesteps) + ')')
 
 
 	plt.subplot(1, 2, 1)
-	if color_parameter:
-		scat_xy = plt.scatter(pos[:, 0, 0], pos[:, 1, 0], s=10, alpha=alpha, c=c_param[:,0], cmap=cmap)
-	else:
+	if color_parameter is None:
 		scat_xy = plt.scatter(pos[:, 0, 0], pos[:, 1, 0], s=10, alpha=alpha)
+	else:
+		scat_xy = plt.scatter(pos[:, 0, 0], pos[:, 1, 0], s=10, alpha=alpha, c=c_param[:,0], cmap=cmap)
+
 	plt.xlabel("x position")
 	plt.ylabel("y position")
 
@@ -481,10 +491,10 @@ def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_fra
 		plt.xlim((np.min(pos[:, 0, :]), np.max(pos[:, 0, :])))
 
 	plt.subplot(1, 2, 2)
-	if color_parameter:
-		scat_xz = plt.scatter(pos[:, 1, 0], pos[:, 2, 0], s=10, alpha=alpha , c=c_param[:,0], cmap=cmap)
-	else:
+	if color_parameter is None:
 		scat_xz = plt.scatter(pos[:, 1, 0], pos[:, 2, 0], s=10, alpha=alpha)
+	else:
+		scat_xz = plt.scatter(pos[:, 1, 0], pos[:, 2, 0], s=10, alpha=alpha , c=c_param[:,0], cmap=cmap)
 	plt.xlabel("x position")
 	plt.ylabel("z position")
 
@@ -504,7 +514,7 @@ def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_fra
 		scat1.set_offsets(np.transpose(np.vstack([pos[:, 0, ts], pos[:, 1, ts]])))
 		scat2.set_offsets(np.transpose(np.vstack([pos[:, 0, ts], pos[:, 2, ts]])))
 
-		if color_parameter:
+		if not (c_param is None):
 			scat1.set_array(c_param[:, ts])
 			scat2.set_array(c_param[:, ts])
 
@@ -516,7 +526,7 @@ def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_fra
 
 
 def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
-                             color_parameter=None,alpha=0.1, file_type='hdf5'):
+                             color_parameter=None,cmap=plt.cm.get_cmap('viridis'),alpha=0.1, file_type='hdf5'):
 	"""
 	Reads an ion trajectory file, generates a scatter animation of the particles in an ion trajectory and
 	writes a video file with the animation
@@ -532,10 +542,14 @@ def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zl
 	:param zlim: limits of the plot in z direction (if None, the maximum of the z position range is used)
 	:type zlim: tuple of two floats
 	:param n_frames: number of rendered frames, (if None the maximum number of frames is rendered)
+	:type n_frames: int
 	:param interval: interval in terms of data frames in the input data between the animation frames
 	:type interval: int
-	:param color_parameter: index of a parameter in the additional values vector of the trajectory used for coloring
-	:type color_parameter: int
+	:param color_parameter: name of an additional parameter of the trajectory used for coloring or a vector of manual
+	values for coloring
+	:type color_parameter: str or iterable (ndarray, list, tuple)
+	:param cmap: a matplotlib colormap for colorization of the scatter plot
+	:type cmap: matplotlib.colors.Colormap
 	:param alpha: an alpha value for the plots
 	:type alpha: float
 	:param file_type: type of the trajectory file,
@@ -557,6 +571,6 @@ def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zl
 		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
 
 	ani = animate_scatter_plot(tr, xlim=xlim, ylim=ylim, zlim=zlim, n_frames=n_frames, interval=interval,
-	                           color_parameter=color_parameter, alpha=alpha)
+	                           color_parameter=color_parameter,cmap=cmap, alpha=alpha)
 
 	ani.save(result_name + "_scatter.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
