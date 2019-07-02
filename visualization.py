@@ -452,6 +452,7 @@ def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_fra
 	pos = trajectory_data['positions']
 	n_timesteps = trajectory_data['n_timesteps']
 
+	c_param = None
 	if not (color_parameter is None):
 		ap = trajectory_data['additional_parameters']
 		ap_names = trajectory_data['additional_names']

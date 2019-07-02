@@ -22,6 +22,32 @@ class TestVisualization_animations(unittest.TestCase):
 		cls.result_path = "test_results"
 
 
+	def test_scatter_animation_json_trajectory(self):
+		resultName = os.path.join(self.result_path, 'scatter_animation_test_1')
+		vis.render_scatter_animation(self.test_json_projectName, resultName,file_type='json')
+
+
+	def test_scatter_animation_json_trajectory(self):
+		resultName = os.path.join(self.result_path, 'scatter_animation_test_1')
+		vis.render_scatter_animation(self.test_json_projectName, resultName,file_type='json')
+
+	def test_scatter_animation_hdf5_trajectory(self):
+		resultName = os.path.join(self.result_path, 'scatter_animation_test_2')
+
+		self.assertRaises(
+			ValueError, vis.render_scatter_animation,self.test_reactive_projectName, resultName, n_frames=100,
+			                             interval=5)
+
+		vis.render_scatter_animation(self.test_reactive_projectName, resultName, interval=5, alpha=0.5,
+		                             color_parameter="velocity x")
+
+
+	def test_basic_scatter_animation_low_level(self):
+		tra_b = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_b)
+		anim = vis.animate_scatter_plot(tra_b)
+		result_name = os.path.join(self.result_path, 'scatter_animation_test_3.mp4')
+		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
+
 
 	def test_complex_scatter_animation_low_level(self):
 		tra_b = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_b)
@@ -47,32 +73,6 @@ class TestVisualization_animations(unittest.TestCase):
 
 		result_name = os.path.join(self.result_path, 'scatter_animation_test_6.mp4')
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
-
-class buffer():
-
-	def test_scatter_animation_json_trajectory(self):
-		resultName = os.path.join(self.result_path, 'scatter_animation_test_1')
-		vis.render_scatter_animation(self.test_json_projectName, resultName,file_type='json')
-
-	def test_scatter_animation_hdf5_trajectory(self):
-		resultName = os.path.join(self.result_path, 'scatter_animation_test_2')
-
-		self.assertRaises(
-			ValueError, vis.render_scatter_animation,self.test_reactive_projectName, resultName, n_frames=100,
-			                             interval=5)
-
-		vis.render_scatter_animation(self.test_reactive_projectName, resultName, interval=5, alpha=0.5,
-		                             color_parameter="velocity x")
-
-
-	def test_basic_scatter_animation_low_level(self):
-		tra_b = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_b)
-		anim = vis.animate_scatter_plot(tra_b)
-		result_name = os.path.join(self.result_path, 'scatter_animation_test_3.mp4')
-		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
-
-
-
 
 
 	def test_density_animation_low_level(self):
