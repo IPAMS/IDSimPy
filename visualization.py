@@ -423,7 +423,7 @@ def render_xz_density_comparison_animation(project_names, selected, result_name,
 
 ####### scatter plots #############################################################
 def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
-                         color_parameter=None,cmap=plt.cm.get_cmap('viridis'), alpha=0.1):
+                         color_parameter=None,cmap=plt.cm.get_cmap('viridis'), alpha=0.1, figsize=(13,5)):
 	"""
 	Generates a scatter animation of the particles in an ion trajectory
 
@@ -447,8 +447,10 @@ def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_fra
 	:param alpha: an alpha value for the plots
 	:type alpha: float
 	:return: an animation object with the animation
+	:param figsize: size of the figure of the plot
+	:type figsize: tuple of two numbers
 	"""
-	fig = plt.figure(figsize=(13, 5))
+	fig = plt.figure(figsize=figsize)
 	pos = trajectory_data['positions']
 	n_timesteps = trajectory_data['n_timesteps']
 
@@ -527,7 +529,8 @@ def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_fra
 
 
 def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
-                             color_parameter=None,cmap=plt.cm.get_cmap('viridis'),alpha=0.1, fps =20, file_type='hdf5'):
+                             color_parameter=None,cmap=plt.cm.get_cmap('viridis'),alpha=0.1, fps =20,
+                             figsize=(13,5), file_type='hdf5'):
 	"""
 	Reads an ion trajectory file, generates a scatter animation of the particles in an ion trajectory and
 	writes a video file with the animation
@@ -555,12 +558,13 @@ def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zl
 	:type alpha: float
 	:param fps: frames per second in the rendered video
 	:type fps: int
+	:param figsize: size of the figure of the plot
+	:type figsize: tuple of two numbers
 	:param file_type: type of the trajectory file,
 		'json' for uncompressed json,
 		'compressed' for compressed json
 		'hdf5' for compressed hdf5
-	:type file_type: str
-	"""
+	:type file_type: str	"""
 	if file_type == 'hdf5':
 		file_ext = "_trajectories.hd5"
 		tr = tra.read_hdf5_trajectory_file(project_name + file_ext)
@@ -574,6 +578,6 @@ def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zl
 		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
 
 	ani = animate_scatter_plot(tr, xlim=xlim, ylim=ylim, zlim=zlim, n_frames=n_frames, interval=interval,
-	                           color_parameter=color_parameter,cmap=cmap, alpha=alpha)
+	                           color_parameter=color_parameter,cmap=cmap, alpha=alpha, figsize=figsize)
 
 	ani.save(result_name + "_scatter.mp4", fps=fps, extra_args=['-vcodec', 'libx264'])
