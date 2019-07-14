@@ -527,7 +527,7 @@ def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_fra
 
 
 def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
-                             color_parameter=None,cmap=plt.cm.get_cmap('viridis'),alpha=0.1, file_type='hdf5'):
+                             color_parameter=None,cmap=plt.cm.get_cmap('viridis'),alpha=0.1, fps =20, file_type='hdf5'):
 	"""
 	Reads an ion trajectory file, generates a scatter animation of the particles in an ion trajectory and
 	writes a video file with the animation
@@ -553,6 +553,8 @@ def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zl
 	:type cmap: matplotlib.colors.Colormap
 	:param alpha: an alpha value for the plots
 	:type alpha: float
+	:param fps: frames per second in the rendered video
+	:type fps: int
 	:param file_type: type of the trajectory file,
 		'json' for uncompressed json,
 		'compressed' for compressed json
@@ -574,4 +576,4 @@ def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zl
 	ani = animate_scatter_plot(tr, xlim=xlim, ylim=ylim, zlim=zlim, n_frames=n_frames, interval=interval,
 	                           color_parameter=color_parameter,cmap=cmap, alpha=alpha)
 
-	ani.save(result_name + "_scatter.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
+	ani.save(result_name + "_scatter.mp4", fps=fps, extra_args=['-vcodec', 'libx264'])
