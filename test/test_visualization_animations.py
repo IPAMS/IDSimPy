@@ -38,8 +38,22 @@ class TestVisualization_animations(unittest.TestCase):
 
 	def test_scatter_animation_static_hdf5_trajectory(self):
 		resultName = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_2')
-		vis.render_scatter_animation(self.new_hdf5_static_projectName, resultName, interval=1, alpha=0.5)
+#		vis.render_scatter_animation(self.new_hdf5_static_projectName, resultName, interval=1, alpha=0.5)
 
+
+		resultName = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_3')
+
+		cl_param = np.zeros(1000)
+		cl_param[500:] = 1
+
+		vis.render_scatter_animation(
+			self.new_hdf5_static_projectName, resultName,
+			interval=1, alpha=0.5, color_parameter=cl_param
+			)
+
+
+
+class Buffer:
 	def test_scatter_animation_json_trajectory(self):
 		resultName = os.path.join(self.result_path, 'scatter_animation_test_1')
 		vis.render_scatter_animation(self.test_json_projectName, resultName,file_type='json')
