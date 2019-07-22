@@ -103,10 +103,26 @@ def read_json_trajectory_file(trajectoryFileName):
 
 
 def read_hdf5_trajectory_file(trajectory_file_name):
+	"""
+	Reads a version 2 hdf5 trajectory file (which allows also exported simulation frames
+	with variable number of particles.
+
+	If the trajectory is static the trajectory is returned in a static format
+	(three dimensional positions and additional_data arrays).
+	If the trajectory is variable (the number of particles differ in the individual exported frames)
+	the position and additional_data is given in lists of individual arrays for the
+	individual time steps.
+
+	:param trajectory_file_name: the name of the file to read
+	:return: a trajectory dictionary
+	"""
 	hdf5File = h5py.File(trajectory_file_name, 'r')
 
 	tra_group = hdf5File['particle_trajectory']
 	attribs = tra_group.attrs
+
+	file_version_id = attribs['file version'][0]
+
 	n_timesteps = attribs['number of timesteps'][0]
 
 	timesteps_group = tra_group['timesteps']
@@ -116,31 +132,65 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 	if 'auxiliary parameter names' in attribs.keys():
 		aux_parameters_names = [name.decode('UTF-8') for name in attribs['auxiliary parameter names']]
 
-	# fixme: check if trajectory is static...
 
 	positions = []
 	aux_parameters = []
+
+	n_ion_per_frame = []
 	for ts_i in range(n_timesteps):
 		ts_group = timesteps_group[str(ts_i)]
-		positions.append(np.array(ts_group['positions']))
+
+		ion_positions = np.array(ts_group['positions'])
+
+		n_ion_per_frame.append(np.shape(ion_positions)[0])
+		positions.append(ion_positions)
+
 
 		if aux_parameters_names:
 			aux_parameters.append(np.array(ts_group['aux_parameters']))
 
 
+	unique_n_ions = len(set(n_ion_per_frame))
+
+
+	# if more than one number of ions are present in the frames, the trajectory is not static
+	# and has variable frames
+	# if the trajectory is static, transform the trajectory to the old format returned by
+	# legacy hdf5 and json files to allow compatibility with the visualization methods
+	if unique_n_ions > 1:
+		static_trajectory = False
+	else:
+		static_trajectory = True
+		positions = np.dstack(positions)
+
+
 	result = {"positions": positions,
 	          "times": np.array(times),
 	          "n_timesteps": n_timesteps,
-	          "static_trajectory": False}
+	          "file_version_id": file_version_id,
+	          "static_trajectory": static_trajectory}
+
+	if static_trajectory:
+		result['n_particles'] = n_ion_per_frame[0]
 
 	if aux_parameters_names:
-		result["additional_parameters"] = np.array(aux_parameters)
+		aux_dat = np.array(aux_parameters)
+		if static_trajectory:
+			aux_dat = np.dstack(aux_dat)
+
+		result["additional_parameters"] = aux_dat
 		result["additional_names"] = aux_parameters_names
 
 	return result
 
 
 def read_legacy_hdf5_trajectory_file(trajectory_file_name):
+	"""
+	Reads a legacy hdf5 trajectory file (with static particles per exported simulation frame)
+
+	:param trajectory_file_name: the name of the file to read
+	:return: a trajectory dictionary
+	"""
 	hdf5File = h5py.File(trajectory_file_name, 'r')
 
 	tra_group = hdf5File['particle_trajectory']
@@ -163,9 +213,6 @@ def read_legacy_hdf5_trajectory_file(trajectory_file_name):
 		result["additional_names"] = aux_parameters_names
 
 	return result
-
-
-
 
 
 

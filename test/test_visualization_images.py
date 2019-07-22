@@ -37,7 +37,7 @@ class TestVisualization_images(unittest.TestCase):
 		plt.savefig(resultName)
 
 
-		traj_hdf5 = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_a)
+		traj_hdf5 = tra.read_legacy_hdf5_trajectory_file(self.test_hdf5_trajectory_a)
 		vis.plot_density_xz(traj_hdf5['positions'], t_indd,
 		                    xedges=np.linspace(-0.01, 0.05, 300),
 		                    zedges=np.linspace(-0.03, 0.03, 50),

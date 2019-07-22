@@ -165,7 +165,7 @@ def render_xz_density_animation(project_name, result_name,
                                 interval=1,
                                 n_frames=None,
                                 output_mode='animation',
-                                axis_equal=True, file_type='legacy_hdf5'):
+                                axis_equal=True, file_type='hdf5'):
 	"""
 	Reads an ion trajectory file, generates a scatter animation of the particles in an ion trajectory and
 	writes a video file with the animation
@@ -189,9 +189,13 @@ def render_xz_density_animation(project_name, result_name,
 		'json' for uncompressed json,
 		'compressed' for compressed json
 		'hdf5' for compressed hdf5
+		'legacy_hdf5' for version 1 hdf5 files
 	:type file_type: str
 	"""
-	if file_type == 'legacy_hdf5':
+	if file_type == 'hdf5':
+		file_ext = "_trajectories.hd5"
+		tr = tra.read_hdf5_trajectory_file(project_name + file_ext)
+	elif file_type == 'legacy_hdf5':
 		file_ext = "_trajectories.hd5"
 		tr = tra.read_legacy_hdf5_trajectory_file(project_name + file_ext)
 	elif file_type == 'compressed':

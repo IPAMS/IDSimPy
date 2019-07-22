@@ -8,12 +8,19 @@ class TestTrajectory(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
-		cls.test_hdf5_bare_fname = os.path.join('data', 'QIT_test_trajectory.hd5')
-		cls.test_hdf5_aux_fname = os.path.join('data', 'QIT_test_trajectory_aux.hd5')
-		cls.test_hdf5_variable_fname = os.path.join('data', 'QIT_test_trajectory_variable.hd5')
-		cls.test_hdf5_reactive_fn_a = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
+		cls.legacy_hdf5_bare_fname = os.path.join('data', 'QIT_test_trajectory.hd5')
+		cls.legacy_hdf5_aux_fname = os.path.join('data', 'QIT_test_trajectory_aux.hd5')
+
+		cls.new_hdf5_variable_fname = os.path.join('data', 'qitSim_2019_07_variableTrajectoryQIT',
+		                                           'qitSim_2019_07_22_001_trajectories.hd5')
+
+		cls.new_hdf5_static_fname = os.path.join('data', 'qitSim_2019_07_variableTrajectoryQIT',
+		                                         'qitSim_2019_07_22_002_trajectories.hd5')
+
+
+		cls.legacy_hdf5_reactive_fn_a = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
 		                                            'qitSim_2019_04_10_002_trajectories.hd5')
-		cls.test_hdf5_reactive_fn_b = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
+		cls.legacy_hdf5_reactive_fn_b = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
 		                                           'qitSim_2019_04_15_001_trajectories.hd5')
 
 		cls.test_json_fname = os.path.join('data', 'test_trajectories.json')
@@ -34,19 +41,30 @@ class TestTrajectory(unittest.TestCase):
 			pos[:, 0, ts] = x_pos
 			pos[:, 1, ts] = ts*0.1
 
-			#for i in range(n_ions):
-
 		result = {'additional_parameters':add_param,'additional_names':add_param_names,'positions':pos}
 		return(result)
 
 	def test_hdf5_trajectory_reading_variable_timesteps(self):
-		tra = ia.read_hdf5_trajectory_file(self.test_hdf5_variable_fname)
+		tra = ia.read_hdf5_trajectory_file(self.new_hdf5_variable_fname)
 
-		self.assertEqual(np.shape(tra['positions'][50]), (35, 3))
-		self.assertEqual(np.shape(tra['additional_parameters'][89]), (62, 9))
+		self.assertEqual(tra['file_version_id'], 2)
+		self.assertEqual(tra['static_trajectory'], False)
+		self.assertEqual(np.shape(tra['positions'][9]), (512, 3))
+		self.assertAlmostEqual(tra['positions'][9][500,2], -0.000135881)
 
-	def test_basic_hdf5_trajectory_reading(self):
-		tra = ia.read_legacy_hdf5_trajectory_file(self.test_hdf5_aux_fname)
+	def test_hdf5_trajectory_reading_static_timesteps(self):
+		tra = ia.read_hdf5_trajectory_file(self.new_hdf5_static_fname)
+
+		self.assertEqual(tra['file_version_id'], 2)
+		self.assertEqual(tra['static_trajectory'], True)
+		self.assertEqual(tra['n_particles'], 1000)
+		self.assertEqual(np.shape(tra['positions']), (1000, 3, 51))
+		self.assertEqual(np.shape(tra['additional_parameters']), (1000, 9, 51))
+		self.assertAlmostEqual(tra['positions'][983, 0, 9], -0.00146076)
+
+	def test_legacy_hdf5_trajectory_reading(self):
+		tra = ia.read_legacy_hdf5_trajectory_file(self.legacy_hdf5_aux_fname)
+		self.assertEqual(tra['n_particles'], 600)
 		self.assertEqual(np.shape(tra['positions']), (600,3,41))
 		self.assertEqual(np.shape(tra['additional_parameters']), (600, 9, 41))
 
@@ -79,7 +97,7 @@ class TestTrajectory(unittest.TestCase):
 			self.assertEqual(np.shape(tra_filtered[i]),(i,3))
 
 	def test_parameter_filter_with_qit_trajectory(self):
-		tra = ia.read_legacy_hdf5_trajectory_file(self.test_hdf5_reactive_fn_b)
+		tra = ia.read_legacy_hdf5_trajectory_file(self.legacy_hdf5_reactive_fn_b)
 
 		id_column = tra['additional_names'].index('chemical id')
 		chem_id = tra['additional_parameters'][:, id_column, :]
