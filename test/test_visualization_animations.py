@@ -11,6 +11,7 @@ class TestVisualization_animations(unittest.TestCase):
 	def setUpClass(cls):
 		cls.test_json_trajectory = os.path.join('data', 'test_trajectories.json')
 		cls.test_json_projectName = os.path.join('data', 'test')
+		cls.test_hdf5_variable_projectName = os.path.join('data', 'QIT_test_variable')
 		cls.test_reactive_projectName = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
 		                                          'qitSim_2019_04_15_001')
 		cls.test_hdf5_trajectory_a = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
@@ -19,13 +20,12 @@ class TestVisualization_animations(unittest.TestCase):
 		                                          'qitSim_2019_04_10_002_trajectories.hd5')
 		cls.test_hdf5_trajectory_c = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
 		                                          'qitSim_2019_04_15_001_trajectories.hd5')
+		cls.test_hdf5_variable_trajectory = os.path.join('data', 'QIT_test_trajectory_variable.hd5')
 		cls.result_path = "test_results"
 
-
-	def test_scatter_animation_json_trajectory(self):
-		resultName = os.path.join(self.result_path, 'scatter_animation_test_1')
-		vis.render_scatter_animation(self.test_json_projectName, resultName,file_type='json')
-
+	def test_scatter_animation_variable_hdf5_trajectory(self):
+		resultName = os.path.join(self.result_path, 'variable_trajectory_animation_test_1')
+		vis.render_scatter_animation(self.test_hdf5_variable_projectName, resultName, interval=1, alpha=0.5)
 
 	def test_scatter_animation_json_trajectory(self):
 		resultName = os.path.join(self.result_path, 'scatter_animation_test_1')
@@ -36,21 +36,21 @@ class TestVisualization_animations(unittest.TestCase):
 
 		self.assertRaises(
 			ValueError, vis.render_scatter_animation,self.test_reactive_projectName, resultName, n_frames=100,
-			                             interval=5)
+			                             interval=5,file_type='legacy_hdf5')
 
 		vis.render_scatter_animation(self.test_reactive_projectName, resultName, interval=5, alpha=0.5,
-		                             color_parameter="velocity x")
+		                             color_parameter="velocity x",file_type='legacy_hdf5')
 
 
 	def test_basic_scatter_animation_low_level(self):
-		tra_b = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_b)
+		tra_b = tra.read_legacy_hdf5_trajectory_file(self.test_hdf5_trajectory_b)
 		anim = vis.animate_scatter_plot(tra_b)
 		result_name = os.path.join(self.result_path, 'scatter_animation_test_3.mp4')
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 
 
 	def test_complex_scatter_animation_low_level(self):
-		tra_b = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_b)
+		tra_b = tra.read_legacy_hdf5_trajectory_file(self.test_hdf5_trajectory_b)
 
 		anim = vis.animate_scatter_plot(tra_b, xlim=(-0.001, 0.001), ylim=(-0.0015, 0.0015), zlim=(-0.005, 0.005),
 		                                color_parameter="chemical id",alpha = 0.4)
@@ -76,7 +76,7 @@ class TestVisualization_animations(unittest.TestCase):
 
 
 	def test_density_animation_low_level(self):
-		traj_hdf5 = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_a)
+		traj_hdf5 = tra.read_legacy_hdf5_trajectory_file(self.test_hdf5_trajectory_a)
 		anim = vis.animate_xz_density(traj_hdf5['positions'],
 		                              xedges=np.linspace(-0.001, 0.001, 50),
 		                              zedges=np.linspace(-0.001, 0.001, 50),
@@ -114,8 +114,8 @@ class TestVisualization_animations(unittest.TestCase):
 		                                           annotation="", mode="log", file_type='json')
 
 	def test_low_level_reactive_density_comparison_animation_with_hdf5(self):
-		tra_b = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_b)
-		tra_c = tra.read_hdf5_trajectory_file(self.test_hdf5_trajectory_c)
+		tra_b = tra.read_legacy_hdf5_trajectory_file(self.test_hdf5_trajectory_b)
+		tra_c = tra.read_legacy_hdf5_trajectory_file(self.test_hdf5_trajectory_c)
 
 		self.assertRaises( #too many frames: n_frames*interval > trajectory length
 			ValueError,
@@ -136,4 +136,4 @@ class TestVisualization_animations(unittest.TestCase):
 		resultName = os.path.join(self.result_path, 'reactive_density_animation_test_2')
 		vis.render_xz_density_comparison_animation(projectNames, substances, resultName, n_frames=51, interval=1,
 		                                           select_mode='substance',
-		                                           s_lim=0.001, annotation="", file_type='hdf5')
+		                                           s_lim=0.001, annotation="", file_type='legacy_hdf5')

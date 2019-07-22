@@ -139,6 +139,37 @@ def define_cylinder_z_dir(n_ions, r, z, charge, mass):
 	result = np.hstack([X, Y, Z, V, C, M, TOB])
 	return result
 
+def define_cylinder_x_dir(n_ions, r, x, charge, mass):
+	"""
+	Defines a cylinder with the cylinder axis parallel to the x-axis and the center of one face of the cylinder on
+	the origin of the coordinate system filled with random ions
+
+	The disk cros section must be filled uniformly with ions, see
+	http://mathworld.wolfram.com/DiskPointPicking.html for details and argument how to do this
+
+	:param int n_ions: The number of ions in the cylinder
+	:param float r: the radius of the cylinder
+	:param x: length ("radius") in x direction
+	:param charge:
+	:param mass:
+	:return:
+	"""
+	R = np.sqrt(np.random.rand(n_ions, 1)) * r
+	phi = np.random.rand(n_ions, 1) * 2 * np.pi
+	X = (np.random.rand(n_ions, 1)-0.5) * 2.0 * x
+
+
+	Z = np.cos(phi) * R
+	Y = np.sin(phi) * R
+
+	V = np.zeros([n_ions, 3])
+	C = np.zeros([n_ions, 1]) + charge
+	M = np.zeros([n_ions, 1]) + mass
+	TOB = np.zeros([n_ions, 1])
+
+	result = np.hstack([X, Y, Z, V, C, M, TOB])
+	return result
+
 
 def write_xy_slice(n_ions, masses, w_x, w_y, filename):
 	"""

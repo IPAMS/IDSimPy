@@ -97,11 +97,50 @@ def read_json_trajectory_file(trajectoryFileName):
 	       "masses":masses,
 	       "n_particles":nIons,
 	       "n_timesteps":n_timesteps,
-	       "splat_times":splat_times}
+	       "splat_times":splat_times,
+	       "static_trajectory":True}
 
 
 
 def read_hdf5_trajectory_file(trajectory_file_name):
+	hdf5File = h5py.File(trajectory_file_name, 'r')
+
+	tra_group = hdf5File['particle_trajectory']
+	attribs = tra_group.attrs
+	n_timesteps = attribs['number of timesteps'][0]
+
+	timesteps_group = tra_group['timesteps']
+	times = tra_group['times']
+
+	aux_parameters_names = None
+	if 'auxiliary parameter names' in attribs.keys():
+		aux_parameters_names = [name.decode('UTF-8') for name in attribs['auxiliary parameter names']]
+
+	# fixme: check if trajectory is static...
+
+	positions = []
+	aux_parameters = []
+	for ts_i in range(n_timesteps):
+		ts_group = timesteps_group[str(ts_i)]
+		positions.append(np.array(ts_group['positions']))
+
+		if aux_parameters_names:
+			aux_parameters.append(np.array(ts_group['aux_parameters']))
+
+
+	result = {"positions": positions,
+	          "times": np.array(times),
+	          "n_timesteps": n_timesteps,
+	          "static_trajectory": False}
+
+	if aux_parameters_names:
+		result["additional_parameters"] = np.array(aux_parameters)
+		result["additional_names"] = aux_parameters_names
+
+	return result
+
+
+def read_legacy_hdf5_trajectory_file(trajectory_file_name):
 	hdf5File = h5py.File(trajectory_file_name, 'r')
 
 	tra_group = hdf5File['particle_trajectory']
@@ -114,7 +153,8 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 	result = {"positions": np.array(positions),
 	          "times": np.array(times),
 	          "n_particles": n_particles,
-	          "n_timesteps": n_timesteps}
+	          "n_timesteps": n_timesteps,
+	          "static_trajectory":True}
 
 	if 'aux_parameters' in tra_group.keys():
 		aux_parameters_names = [name.decode('UTF-8') for name in attribs['auxiliary parameter names']]

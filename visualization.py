@@ -165,7 +165,7 @@ def render_xz_density_animation(project_name, result_name,
                                 interval=1,
                                 n_frames=None,
                                 output_mode='animation',
-                                axis_equal=True, file_type='hdf5'):
+                                axis_equal=True, file_type='legacy_hdf5'):
 	"""
 	Reads an ion trajectory file, generates a scatter animation of the particles in an ion trajectory and
 	writes a video file with the animation
@@ -191,9 +191,9 @@ def render_xz_density_animation(project_name, result_name,
 		'hdf5' for compressed hdf5
 	:type file_type: str
 	"""
-	if file_type == 'hdf5':
+	if file_type == 'legacy_hdf5':
 		file_ext = "_trajectories.hd5"
-		tr = tra.read_hdf5_trajectory_file(project_name + file_ext)
+		tr = tra.read_legacy_hdf5_trajectory_file(project_name + file_ext)
 	elif file_type == 'compressed':
 		file_ext = "_trajectories.json.gz"
 		tr = tra.read_json_trajectory_file(project_name + file_ext)
@@ -367,7 +367,7 @@ def animate_xz_density_comparison_plot(trajectory_data, selected, n_frames, inte
 
 
 def render_xz_density_comparison_animation(project_names, selected, result_name, select_mode='substance', n_frames=400, interval=1,
-                                           s_lim=7, n_bins=50, base_size=12, annotation="", mode="lin", file_type='hdf5'):
+                                           s_lim=7, n_bins=50, base_size=12, annotation="", mode="lin", file_type='legacy_hdf5'):
 	"""
 	Reads two trajectories, renders XZ density projection of two ion colouds in the trajectories and writes
 	a video file with the result.
@@ -399,10 +399,10 @@ def render_xz_density_comparison_animation(project_names, selected, result_name,
 		'hdf5' for compressed hdf5
 	"""
 
-	if file_type == 'hdf5':
+	if file_type == 'legacy_hdf5':
 		file_ext = "_trajectories.hd5"
-		tj0 = tra.read_hdf5_trajectory_file(project_names[0] + file_ext)
-		tj1 = tra.read_hdf5_trajectory_file(project_names[1] + file_ext)
+		tj0 = tra.read_legacy_hdf5_trajectory_file(project_names[0] + file_ext)
+		tj1 = tra.read_legacy_hdf5_trajectory_file(project_names[1] + file_ext)
 	elif file_type == 'compressed':
 		file_ext = "_trajectories.json.gz"
 		tj0 = tra.read_json_trajectory_file(project_names[0] + file_ext)
@@ -421,6 +421,7 @@ def render_xz_density_comparison_animation(project_names, selected, result_name,
 
 
 
+####### scatter plots #############################################################
 ####### scatter plots #############################################################
 def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
                          color_parameter=None,cmap=plt.cm.get_cmap('viridis'), alpha=0.1, figsize=(13,5)):
@@ -528,6 +529,114 @@ def animate_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_fra
 	return ani
 
 
+
+def animate_variable_scatter_plot(trajectory_data, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
+                         color_parameter=None,cmap=plt.cm.get_cmap('viridis'), alpha=0.1, figsize=(13,5)):
+	"""
+	TODO:/ FIXME: color parameter (only color parameter as aux parameter here)
+
+	Generates a scatter animation of the particles in an ion trajectory with varying particle number in the simulation frames
+
+	:param trajectory_data: a particle trajectory
+	:type trajectory_data: dict returned from the readTrajectoryFile methods
+	:param xlim: limits of the plot in x direction (if None, the maximum of the x position range is used)
+	:type xlim: tuple of two floats
+	:param ylim: limits of the plot in y direction (if None, the maximum of the y position range is used)
+	:type ylim: tuple of two floats
+	:param zlim: limits of the plot in z direction (if None, the maximum of the z position range is used)
+	:type zlim: tuple of two floats
+	:param n_frames: number of rendered frames, (if None the maximum number of frames is rendered)
+	:type n_frames: int
+	:param interval: interval in terms of data frames in the input data between the animation frames
+	:type interval: int
+	:param color_parameter: name of an additional parameter of the trajectory used for coloring or a vector of manual
+	values for coloring
+	:type color_parameter: str or iterable (ndarray, list, tuple)
+	:param cmap: a matplotlib colormap for colorization of the scatter plot
+	:type cmap: matplotlib.colors.Colormap
+	:param alpha: an alpha value for the plots
+	:type alpha: float
+	:return: an animation object with the animation
+	:param figsize: size of the figure of the plot
+	:type figsize: tuple of two numbers
+	"""
+	fig = plt.figure(figsize=figsize)
+	n_timesteps = trajectory_data['n_timesteps']
+	pos = trajectory_data['positions']
+
+	if 'additional_parameters' in trajectory_data.keys():
+		ap = trajectory_data['additional_parameters']
+		ap_names = trajectory_data['additional_names']
+
+	c_param = None
+	if not (color_parameter is None):
+
+		if type(color_parameter) is str:
+			cp_index = ap_names.index(color_parameter)
+			c_param = [ts_ap[:, cp_index] for ts_ap in ap]
+		elif hasattr(color_parameter, "__iter__"): #is iterable
+			c_param = np.tile(color_parameter,(n_timesteps,1)).T
+			# nd array [n_particles, n_timesteps ]
+
+
+	if not n_frames:
+		n_frames = int(np.floor(n_timesteps/interval))
+
+	if n_frames*interval > n_timesteps:
+		raise ValueError('number of frames * interval (' + str(n_frames * interval) + ') is longer than trajectory (' + str(n_timesteps) + ')')
+
+
+
+	def render_scatter_plot(i):
+		plt.clf() #clear figure for a fresh plot
+
+		ts_pos = pos[i]
+		ts_ap = ap[i]
+
+		plt.subplot(1, 2, 1)
+		if color_parameter is None:
+			scat_xy = plt.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha)
+		else:
+			#ts_cp = c_param[i]
+			scat_xy = plt.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha)#, c=ts_cp[0], cmap=cmap)
+
+		plt.xlabel("x position")
+		plt.ylabel("y position")
+
+		if ylim:
+			plt.ylim(ylim)
+		else:
+			plt.ylim((np.min(ts_pos[:, 1]), np.max(ts_pos[:, 1])))
+
+		if xlim:
+			plt.xlim(xlim)
+		else:
+			plt.xlim((np.min(ts_pos[:, 0]), np.max(ts_pos[:, 0])))
+
+		plt.subplot(1, 2, 2)
+		if color_parameter is None:
+			plt.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha)
+		else:
+			#ts_cp = c_param[i]
+			plt.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha) # , c=c_param[:,0], cmap=cmap)
+		plt.xlabel("x position")
+		plt.ylabel("z position")
+
+		if zlim:
+			plt.ylim(zlim)
+		else:
+			plt.ylim((np.min(ts_pos[:, 2]), np.max(ts_pos[:, 2])))
+
+		if xlim:
+			plt.xlim(xlim)
+		else:
+			plt.xlim((np.min(ts_pos[:, 0]), np.max(ts_pos[:, 0])))
+
+
+	ani = animation.FuncAnimation(fig, render_scatter_plot, frames=range(n_frames))
+	return ani
+
+
 def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
                              color_parameter=None,cmap=plt.cm.get_cmap('viridis'),alpha=0.1, fps =20,
                              figsize=(13,5), file_type='hdf5'):
@@ -568,6 +677,9 @@ def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zl
 	if file_type == 'hdf5':
 		file_ext = "_trajectories.hd5"
 		tr = tra.read_hdf5_trajectory_file(project_name + file_ext)
+	elif file_type == 'legacy_hdf5':
+		file_ext = "_trajectories.hd5"
+		tr = tra.read_legacy_hdf5_trajectory_file(project_name + file_ext)
 	elif file_type == 'compressed':
 		file_ext = "_trajectories.json.gz"
 		tr = tra.read_json_trajectory_file(project_name + file_ext)
@@ -575,9 +687,16 @@ def render_scatter_animation(project_name, result_name, xlim=None, ylim=None, zl
 		file_ext = "_trajectories.json"
 		tr = tra.read_json_trajectory_file(project_name + file_ext)
 	else:
-		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
+		raise ValueError('illegal file type flag (not legacy_hdf5, hdf5, json or compressed)')
 
-	ani = animate_scatter_plot(tr, xlim=xlim, ylim=ylim, zlim=zlim, n_frames=n_frames, interval=interval,
+
+	if tr['static_trajectory'] == True:
+		plot_fct = animate_scatter_plot
+	else:
+		plot_fct = animate_variable_scatter_plot
+
+
+	ani = plot_fct(tr, xlim=xlim, ylim=ylim, zlim=zlim, n_frames=n_frames, interval=interval,
 	                           color_parameter=color_parameter,cmap=cmap, alpha=alpha, figsize=figsize)
 
 	ani.save(result_name + "_scatter.mp4", fps=fps, extra_args=['-vcodec', 'libx264'])
