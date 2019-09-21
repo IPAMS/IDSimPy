@@ -8,7 +8,7 @@ import numpy as np
 
 ################## Trajectory input ######################
 
-def read_legacy_trajectory_file(trajectoryFileName):
+def read_legacy_trajectory_file(trajectory_filename):
 	"""
 	Reads a legacy trajectory file and returns a legacy trajectory object
 
@@ -18,14 +18,14 @@ def read_legacy_trajectory_file(trajectoryFileName):
 	times: vector of times of the individual time steps
 	masses: the vector of particle masses
 
-	:param trajectoryFileName: the file name of the file to read
+	:param trajectory_filename: the file name of the file to read
 	:return: the trajectory data dictionary
 	"""
-	if (trajectoryFileName[-8:] == ".json.gz"):
-		with gzip.open(trajectoryFileName) as tf:
+	if (trajectory_filename[-8:] == ".json.gz"):
+		with gzip.open(trajectory_filename) as tf:
 			tj = json.load(io.TextIOWrapper(tf))
 	else:
-		with open(trajectoryFileName) as tf:
+		with open(trajectory_filename) as tf:
 			tj = json.load(tf)
 
 	steps = tj["steps"]
@@ -44,7 +44,7 @@ def read_legacy_trajectory_file(trajectoryFileName):
 	return{"trajectories":t,"times":times,"masses":masses}
 
 
-def read_json_trajectory_file(trajectoryFileName):
+def read_json_trajectory_file(trajectory_filename):
 	"""
 	Reads a trajectory file and returns a trajectory object
 
@@ -54,14 +54,14 @@ def read_json_trajectory_file(trajectoryFileName):
 	times: vector of times of the individual time steps
 	masses: the vector of particle masses
 
-	:param trajectoryFileName: the file name of the file to read
+	:param trajectory_filename: the file name of the file to read
 	:return: the trajectory data dictionary
 	"""
-	if trajectoryFileName[-8:] == ".json.gz":
-		with gzip.open(trajectoryFileName) as tf:
+	if trajectory_filename[-8:] == ".json.gz":
+		with gzip.open(trajectory_filename) as tf:
 			tj = json.load(io.TextIOWrapper(tf))
 	else:
-		with open(trajectoryFileName) as tf:
+		with open(trajectory_filename) as tf:
 			tj = json.load(tf)
 
 	steps = tj["steps"]

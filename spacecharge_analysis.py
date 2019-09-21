@@ -135,15 +135,15 @@ def compare_average_electric_force(projectName, mass_1, mass_2, t_steps=None):
 	# plt.tight_layout()
 
 
-def animate_simulation_z_vs_x_spacecharge_density(dat, nFrames, interval,
-												fileMode='video',
-												analysis_mode='space_charge_magnitude',
-												sLim=3, nBins=100,
-												h_min=1e-17,
-												h_max=1e-15,
-												alphaFactor=1, colormap=plt.cm.viridis,
-												annotateString="",
-                                                background_color=(1,1,1)):
+def animate_simulation_z_vs_x_spacecharge_density(dat, n_frames, interval,
+                                                  file_mode='video',
+                                                  analysis_mode='space_charge_magnitude',
+                                                  s_lim=3, n_bins=100,
+                                                  h_min=1e-17,
+                                                  h_max=1e-15,
+                                                  alpha=1, colormap=plt.cm.viridis,
+                                                  annotate_string="",
+                                                  background_color=(1,1,1)):
 	"""
 	Space charge density plot
 	"""
@@ -156,13 +156,13 @@ def animate_simulation_z_vs_x_spacecharge_density(dat, nFrames, interval,
 	sc_force = space_charge_force_magnitude(i_ap)
 	sc_force_z_dir = space_charge_force_z_direction(i_ap)
 
-	if fileMode == 'video':
+	if file_mode == 'video':
 		fig = plt.figure(figsize=[10, 10])
-	elif fileMode == 'singleFrame':
+	elif file_mode == 'singleFrame':
 		fig = plt.figure(figsize=[6, 6])
 
-	xedges = np.linspace(-sLim, sLim, nBins)
-	zedges = np.linspace(-sLim, sLim, nBins)
+	xedges = np.linspace(-s_lim, s_lim, n_bins)
+	zedges = np.linspace(-s_lim, s_lim, n_bins)
 	H = np.random.rand(len(xedges), len(zedges))
 	ax = plt.axes(ylim=(zedges[0], zedges[-1]), xlim=(xedges[0], xedges[-1]))
 	ax.set_facecolor(background_color)
@@ -203,17 +203,17 @@ def animate_simulation_z_vs_x_spacecharge_density(dat, nFrames, interval,
 		#nonzero = np.nonzero(abs_dens > 0)
 		#dens = np.zeros(np.shape(rel_dens))
 		#dens[nonzero] = 1.0
-		img_data_RGB[:, :, 3] = abs_dens * alphaFactor
+		img_data_RGB[:, :, 3] = abs_dens * alpha
 
 		im1.set_array(img_data_RGB)
-		text_time.set_text("t=" + str(times[tsNumber]) + u"µs" + " " + annotateString)
+		text_time.set_text("t=" + str(times[tsNumber]) + u"µs" + " " + annotate_string)
 
 		return im1
 
 	# call the animator.  blit=True means only re-draw the parts that have changed.
-	if fileMode == 'video':
-		anim = animation.FuncAnimation(fig, animate, frames=nFrames, blit=False)
+	if file_mode == 'video':
+		anim = animation.FuncAnimation(fig, animate, frames=n_frames, blit=False)
 		return (anim)
-	elif fileMode == 'singleFrame':
-		animate(nFrames)
+	elif file_mode == 'singleFrame':
+		animate(n_frames)
 		return (fig)

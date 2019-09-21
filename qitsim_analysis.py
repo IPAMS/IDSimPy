@@ -166,32 +166,32 @@ def calculate_FFT_spectrum(t, z):
 
 ################## High Level Simulation Project Processing Methods ######################
 
-def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMode="fft_record",result_path=None):
+def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin", load_mode="fft_record", result_path=None):
 	"""
 	Analyses a transient of a QIT simulation and calculates/plots the spectrum from it
 
-	:param projectPath: base path of a qit simulation
-	:param freqStart: start of the plotted frequency window (normalized)
-	:param freqStop: stop/end of the plotted frequency window (normalized)
-	:param ampMode: fft spectrum plot mode, linear or logarithmic, options: "lin" or "log"
-	:param loadMode: load a recorded fft record file
+	:param project_path: base path of a qit simulation
+	:param freq_start: start of the plotted frequency window (normalized)
+	:param freq_stop: stop/end of the plotted frequency window (normalized)
+	:param amp_mode: fft spectrum plot mode, linear or logarithmic, options: "lin" or "log"
+	:param load_mode: load a recorded fft record file
 	("fft_record") or reconstruct transient from trajectories ("reconstruct_from_trajectories")
 	:return: a dictionary with the frequencies and amplitudes of the spectrum and
 	the time vector and amplitude of the transient
 	"""
-	with open(projectPath + "_conf.json") as jsonFile:
+	with open(project_path + "_conf.json") as jsonFile:
 		confJson = json.load(jsonFile)
 
-	if loadMode == "fft_record":
-		t,z = read_FFT_record(projectPath)
-	elif loadMode == "legacy_fft_record":
-		dat = np.loadtxt(projectPath + "_fft.txt")
+	if load_mode == "fft_record":
+		t,z = read_FFT_record(project_path)
+	elif load_mode == "legacy_fft_record":
+		dat = np.loadtxt(project_path + "_fft.txt")
 		t = dat[:, 0]
 		z = dat[:, 3]
-	elif loadMode == "center_of_charge_record":
-		t,z = read_center_of_charge_record(projectPath)
-	elif loadMode == "reconstruct_from_trajectories":
-		tr = tra.read_trajectory_file(projectPath + "_trajectories.json.gz")
+	elif load_mode == "center_of_charge_record":
+		t,z = read_center_of_charge_record(project_path)
+	elif load_mode == "reconstruct_from_trajectories":
+		tr = tra.read_trajectory_file(project_path + "_trajectories.json.gz")
 		t,z = reconstruct_transient_from_trajectories(tr)
 		t= t*1e-6
 		print(t)
@@ -203,17 +203,17 @@ def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMod
 	ax[0].set_xlabel('Time (s)')
 	ax[0].set_ylabel('Amplitude (arb.)')
 
-	freqsPl= range(int(len(frq)*freqStart),int((len(frq)*freqStop)))
+	freqsPl= range(int(len(frq) * freq_start), int((len(frq) * freq_stop)))
 
 	#ax[1].semilogy(frq[freqsPl],abs(Y[freqsPl]),'r') # plotting the spectrum
-	if ampMode == "lin":
+	if amp_mode == "lin":
 		ax[1].plot(frq[freqsPl]/1000,abs(Y[freqsPl]),'r') # plotting the spectrum
-	elif ampMode == "log":
+	elif amp_mode == "log":
 		ax[1].semilogy(frq[freqsPl]/1000, abs(Y[freqsPl]), 'r')  # plotting the spectrum logarithmic
 	ax[1].set_xlabel('Freq (kHz)')
 	ax[1].set_ylabel('Amplitude (arb.)')
 
-	projectName = projectPath.split("/")[-1]
+	projectName = project_path.split("/")[-1]
 	if "space_charge_factor" in confJson:
 		titlestring = projectName+" p:"+str(confJson["background_pressure_Pa"])+" Pa, c gas mass:"+str(confJson["collision_gas_mass_amu"])+" amu, "
 		titlestring = titlestring + "space charge factor:"+'%6g' % (confJson["space_charge_factor"])
@@ -235,14 +235,14 @@ def analyse_FFT_sim(projectPath,freqStart=0.0,freqStop=1.0,ampMode="lin",loadMod
 	return({"freqs":frq[freqsPl],"amplitude":abs(Y[freqsPl]),"time":t,"transient":z})
 
 
-def analyze_stability_scan(projectPath,window_width=0,t_range=[0,1],result_path=None):
-	with open(projectPath + "_conf.json") as jsonFile:
+def analyze_stability_scan(project_path, window_width=0, t_range=[0, 1], result_path=None):
+	with open(project_path + "_conf.json") as jsonFile:
 		confJson = json.load(jsonFile)
 
 	V_rf_start = confJson["V_rf_start"]
 	V_rf_end = confJson["V_rf_end"]
 
-	projectName = projectPath.split("/")[-1]
+	projectName = project_path.split("/")[-1]
 
 	titlestring = projectName + " p " + str(confJson["background_pressure_Pa"]) + " Pa, c. gas " + str(
 		confJson["collision_gas_mass_amu"]) + " amu, "
@@ -255,8 +255,8 @@ def analyze_stability_scan(projectPath,window_width=0,t_range=[0,1],result_path=
 	titlestring = titlestring + (' (%2g V/s), ' % (dUdt))
 	titlestring = titlestring + str(confJson["excite_potential"]) + " V exci."
 
-	project = [[projectPath, ""]]
-	plot_fn = projectPath
+	project = [[project_path, ""]]
+	plot_fn = project_path
 	if result_path:
 		plot_fn = os.path.join(result_path,projectName)
 
@@ -305,15 +305,15 @@ def analyze_stability_scan_comparison(projects, plot_fn, mode="absolute", window
 	plt.savefig(plot_fn + ".png", format="png", dpi=100)
 
 
-def center_of_charges_from_simulation(dat,speciesMasses,tRange=[]):
+def center_of_charges_from_simulation(dat, species_masses, t_range=[]):
 	"""
 	Calculates the center of charges for two species, defined by their mass, from a simulation
 	:param dat: imported trajectories object
 	:type dat: dict returned from readTrajectoryFile
-	:param speciesMasses: two element list with two particle masses
-	:type speciesMasses: list
-	:param tRange: a list / vector with time step indices to export the center of charges for
-	:type tRange: list
+	:param species_masses: two element list with two particle masses
+	:type species_masses: list
+	:param t_range: a list / vector with time step indices to export the center of charges for
+	:type t_range: list
 	:return: dictionary with the time vector in "t", and the center of species a and b and of the whole
 	ion cloud in dat in "cocA", "cocB" and "cocAll"
 	:rtype dictionary
@@ -321,20 +321,20 @@ def center_of_charges_from_simulation(dat,speciesMasses,tRange=[]):
 	masses = dat["masses"]
 	times = dat["times"]
 
-	if len(tRange)==0:
-		tRange=range(len(times))
+	if len(t_range)==0:
+		t_range=range(len(times))
 	else:
-		times=times[tRange]
+		times=times[t_range]
 
-	tr = dat["positions"][:,:,tRange]
+	tr = dat["positions"][:,:, t_range]
 
-	cocA = tra.center_of_charge(tra.filter_parameter(tr, masses, speciesMasses[0]))
-	cocB = tra.center_of_charge(tra.filter_parameter(tr, masses, speciesMasses[1]))
+	cocA = tra.center_of_charge(tra.filter_parameter(tr, masses, species_masses[0]))
+	cocB = tra.center_of_charge(tra.filter_parameter(tr, masses, species_masses[1]))
 	cocAll = tra.center_of_charge(tr)
 
 	return{"t":times,"cocA":cocA,"cocB":cocB,"cocAll":cocAll}
 
-def plot_average_z_position(sim_projects, masses,compressed=True):
+def plot_average_z_position(sim_projects, masses, compressed=True):
 	"""
 	Plots a comparison plot of averaged z-positions for individual masses in a qit simulation
 
@@ -381,7 +381,7 @@ def plot_average_z_position(sim_projects, masses,compressed=True):
 	plt.xlabel("t (microseconds)")
 	plt.tight_layout()
 
-def animate_simulation_center_of_masses_z_vs_x(dat,masses,nFrames,interval,frameLen,zLim=3,xLim=0.1):
+def animate_simulation_center_of_masses_z_vs_x(dat, masses, n_frames, interval, frame_length, zlim=3, xlim=0.1):
 	"""
 	Animate the center of charges of the ion clouds in a QIT simulation in a z-x projection. The center of charges
 	are rendered as a trace with a given length (in terms of simulation time steps)
@@ -390,15 +390,15 @@ def animate_simulation_center_of_masses_z_vs_x(dat,masses,nFrames,interval,frame
 	:type dat: dict returned from readTrajectoryFile
 	:param masses: two element list with two particle masses to render the center of charges for
 	:type masses: list
-	:param nFrames: number of frames to export
+	:param n_frames: number of frames to export
 	:param interval: interval in terms of time steps in the input data between the animation frames
-	:param frameLen: length of the trace of the center of charges (in terms of simulation time steps)
-	:param zLim: limits of the rendered spatial section in z direction
-	:param xLim: limits of the rendered spatial section in x direction
+	:param frame_length: length of the trace of the center of charges (in terms of simulation time steps)
+	:param zlim: limits of the rendered spatial section in z direction
+	:param xlim: limits of the rendered spatial section in x direction
 	:return: an animation object with the rendered animation
 	"""
 	fig = plt.figure()
-	ax = plt.axes(ylim=(-zLim, zLim), xlim=(-xLim, xLim))
+	ax = plt.axes(ylim=(-zlim, zlim), xlim=(-xlim, xlim))
 	lA, = ax.plot([], [], lw=2)
 	lB, = ax.plot([], [], lw=2)
 	lall, = ax.plot([], [], lw=2)
@@ -407,8 +407,8 @@ def animate_simulation_center_of_masses_z_vs_x(dat,masses,nFrames,interval,frame
 	def animate(i):
 		#x = np.linspace(0, 2, 1000)
 		#y = np.sin(2 * np.pi * (x - 0.01 * i))
-		tRange=np.arange(0+i*interval,frameLen+i*interval)
-		d = center_of_charges_from_simulation(dat,masses,tRange=tRange)
+		tRange=np.arange(0 + i * interval, frame_length + i * interval)
+		d = center_of_charges_from_simulation(dat, masses, t_range=tRange)
 		z = d["cocA"][:,2]
 		x = d["cocA"][:,0]
 		lA.set_data(x,z)
@@ -423,7 +423,7 @@ def animate_simulation_center_of_masses_z_vs_x(dat,masses,nFrames,interval,frame
 
 	# call the animator.  blit=True means only re-draw the parts that have changed.
 	anim = animation.FuncAnimation(fig, animate,
-								   frames=nFrames, blit=True)
+	                               frames=n_frames, blit=True)
 	# call our new function to display the animation
 	return(anim)
 
@@ -449,7 +449,7 @@ def plot_phase_space_trajectory(tr, pdef):
 		plt.scatter(pos[pi, 0, :], ap[pi, 0, :], s=10, alpha=1)
 
 
-def animate_phase_space(tr, resultName, xlim=None, ylim=None, numframes=None,alpha=1.0, mode="radial"):
+def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, alpha=1.0, mode="radial"):
 	fig = plt.figure(figsize=(13, 5))
 	pos = tr['positions']
 	ap = tr['additional_parameters']
@@ -506,7 +506,7 @@ def animate_phase_space(tr, resultName, xlim=None, ylim=None, numframes=None,alp
 
 	ani = animation.FuncAnimation(fig, update_phase_space_plot, frames=range(numframes),
 	                              fargs=(pos, ap, scat1, scat2,mode))
-	ani.save(resultName + "_phaseSpace.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
+	ani.save(result_name + "_phaseSpace.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 
 
 def update_phase_space_plot(i, pos, ap, scat1, scat2, mode):
