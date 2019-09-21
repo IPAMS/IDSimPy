@@ -51,9 +51,6 @@ class TestVisualization_animations(unittest.TestCase):
 			interval=1, alpha=0.5, color_parameter=cl_param
 			)
 
-
-
-class Buffer:
 	def test_scatter_animation_json_trajectory(self):
 		resultName = os.path.join(self.result_path, 'scatter_animation_test_1')
 		vis.render_scatter_animation(self.test_json_projectName, resultName,file_type='json')
