@@ -170,6 +170,9 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 	          "file_version_id": file_version_id,
 	          "static_trajectory": static_trajectory}
 
+	if 'splattimes' in tra_group.keys():
+		result['splattimes'] = np.array(tra_group['splattimes'])
+
 	if static_trajectory:
 		result['n_particles'] = n_ion_per_frame[0]
 
