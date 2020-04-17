@@ -81,7 +81,7 @@ class TestVisualizationAnimations(unittest.TestCase):
 		c_id = np.array([0 if i< 200 else 1 for i in range(400)])
 		anim = vis.animate_scatter_plot(
 			tra_b, xlim=(-0.001, 0.001), ylim=(-0.0015, 0.0015), zlim=(-0.005, 0.005),
-			color_parameter=c_id, alpha=0.4)
+			color_parameter=c_id, crange=(0, 2), alpha=0.4)
 
 		result_name = os.path.join(self.result_path, 'scatter_animation_test_5.mp4')
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
