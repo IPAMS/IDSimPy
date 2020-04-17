@@ -6,8 +6,8 @@ from matplotlib import animation
 from matplotlib.image import NonUniformImage
 from . import trajectory as tra
 
-# Simple Plot Methods ######################
 
+# Simple Plot Methods ######################
 
 def plot_particles_path(trajectory_data, pl_filename, p_indices, plot_mark='*-', time_range=(0, 1)):
 	"""
@@ -48,12 +48,10 @@ def plot_particles_path(trajectory_data, pl_filename, p_indices, plot_mark='*-',
 	plt.savefig(pl_filename + '.pdf', format='pdf')
 
 
-def plot_density_xz(trajectory_data, time_index,
-                    xedges = None,
-                    zedges = None,
-                    figsize=(7,7),
-                    axis_equal = True
-                    ):
+def plot_density_xz(
+		trajectory_data, time_index,
+		xedges=None, zedges=None,
+		figsize=(7, 7), axis_equal=True):
 	"""
 	Renders an density plot in a z-x projection
 	:param trajectory_data: a trajectories vector from an imported trajectories object
@@ -71,23 +69,23 @@ def plot_density_xz(trajectory_data, time_index,
 	:param axis_equal: if true, the axis are rendered with equal scaling
 	"""
 
-	fig = animate_xz_density(trajectory_data, xedges=xedges, zedges=zedges, n_frames=time_index, figsize=figsize,
-	                         axis_equal=axis_equal, output_mode= 'singleFrame')
+	fig = animate_xz_density(
+		trajectory_data, xedges=xedges, zedges=zedges,
+		n_frames=time_index, figsize=figsize,
+		axis_equal=axis_equal, output_mode='singleFrame')
+
 	return fig
 
-################## High Level Simulation Project Processing Methods ######################
+# High Level Simulation Project Processing Methods ######################
 
 
-####### density plots #############################################################
+# density plots #########################################################
 
-def animate_xz_density(trajectory_data,
-                       xedges = None,
-                       zedges = None,
-                       figsize=(7, 7),
-                       interval=1,
-                       n_frames=10,
-                       output_mode='animation',
-                       axis_equal=True):
+def animate_xz_density(
+		trajectory_data,
+		xedges=None, zedges=None,
+		figsize=(7, 7), interval=1, n_frames=10,
+		output_mode='animation', axis_equal=True):
 
 	"""
 	Animates an density plot in a z-x projection, still frames can also be rendered
@@ -102,10 +100,14 @@ def animate_xz_density(trajectory_data,
 	:type zedges: iterable or list / array or int
 	:param figsize: the figure size
 	:type figsize: tuple of two floats
+	:param interval: interval in terms of data frames in the input data between the animation frames
+	:type interval: int
 	:param n_frames: number of frames to render or the frame index to render if single frame mode
 	:type n_frames: int
 	:param output_mode: returns animation object when 'animation', 'singleFrame' returns a single frame figure
+	:type output_mode: str
 	:param axis_equal: if true, the axis are rendered with equal scaling
+	:type axis_equal: bool
 
 	:return: animation or figure
 	"""
@@ -128,17 +130,17 @@ def animate_xz_density(trajectory_data,
 	elif type(zedges) == int:
 		zedges = np.linspace(z_min, z_max, zedges)
 
-	H, xed, zed = np.histogram2d(x[:,0],z[:,0], bins=(xedges, zedges))
-	H = H.T
+	hist_vals, xed, zed = np.histogram2d(x[:, 0], z[:, 0], bins=(xedges, zedges))
+	hist_vals = hist_vals.T
 	fig = plt.figure(figsize=figsize)
 
 	ax = fig.add_subplot(111)
 	im = NonUniformImage(ax, interpolation='nearest')
 	xcenters = xed[:-1] + 0.5 * (xed[1:] - xed[:-1])
 	zcenters = zed[:-1] + 0.5 * (zed[1:] - zed[:-1])
-	im.set_data(xcenters, zcenters, H)
+	im.set_data(xcenters, zcenters, hist_vals)
 	ax.images.append(im)
-	im.set_extent(im.get_extent()) # workaround for minor issue in matplotlib ocurring in jupyter lab
+	im.set_extent(im.get_extent())  # workaround for minor issue in matplotlib ocurring in jupyter lab
 	ax.set_xlim(xed[0], xed[-1])
 	ax.set_ylim(zed[0], zed[-1])
 	if axis_equal:
@@ -146,34 +148,50 @@ def animate_xz_density(trajectory_data,
 
 	def animate(i):
 		ts_number = i*interval
-		H, _, _ = np.histogram2d(x[:, ts_number], z[:,ts_number], bins=(xedges, zedges))
-		H = H.T
-		im.set_data(xcenters, zcenters, H)
+		h_vals, _, _ = np.histogram2d(x[:, ts_number], z[:, ts_number], bins=(xedges, zedges))
+		h_vals = h_vals.T
+		im.set_data(xcenters, zcenters, h_vals)
 
 	if output_mode == 'animation':
 		anim = animation.FuncAnimation(fig, animate, frames=n_frames, blit=False)
-		return (anim)
+		return anim
 	elif output_mode == 'singleFrame':
 		animate(n_frames)
-		return (fig)
+		return fig
 
 
-def render_xz_density_animation(project_name, result_name,
-                                xedges=None,
-                                zedges=None,
-                                figsize=(7, 7),
-                                interval=1,
-                                n_frames=None,
-                                output_mode='animation',
-                                axis_equal=True, file_type='hdf5'):
+def render_xz_density_animation(
+		project_name, result_name,
+		xedges=None, zedges=None,
+		figsize=(7, 7), interval=1, n_frames=None,
+		axis_equal=True, file_type='hdf5'):
 	"""
-	FIXME
+	Renders an animation of particle density
 
+	:param project_name: simulation project to import and render (given as project basename)
+	:type project_name: str
+	:param result_name: basename for the rendering result
+	:type result_name: str
+	:param xedges: the edges of the bins of the density plot (2d histogram bins) in x direction, if None the
+	maximum extend is used with 50 bins, if a number n, the maximum extend is used with n bins
+	:type xedges: iterable or list / array or int
+	:param zedges: the edges of the bins of the density plot (2d histogram bins) in z direction, if None the
+	maxi,um extend is used with 50 bins, if a number n, the maximum extend is used with n bins
+	:type zedges: iterable or list / array or int
+	:param interval: interval in terms of data frames in the input data between the animation frames
+	:type interval: int
+	:param figsize: the figure size
+	:type figsize: tuple of two floats
+	:param interval: interval in terms of data frames in the input data between the animation frames
+	:type interval: int
+	:param n_frames: number of frames to render or the frame index to render if single frame mode
+	:type n_frames: int
+	:param axis_equal: if true, the axis are rendered with equal scaling
+	:type axis_equal: bool
 	:param file_type: type of the trajectory file,
 		'json' for uncompressed json,
 		'compressed' for compressed json
 		'hdf5' for compressed hdf5
-		'legacy_hdf5' for version 1 hdf5 files
 	:type file_type: str
 	"""
 	if file_type == 'hdf5':
@@ -194,21 +212,20 @@ def render_xz_density_animation(project_name, result_name,
 	if not n_frames:
 		n_frames = len(tr['times'])
 
-	ani = animate_xz_density(tr['positions'], xedges=xedges, zedges=zedges, n_frames=n_frames, figsize=figsize,
-	                         axis_equal=axis_equal, interval= interval, output_mode='animation')
+	ani = animate_xz_density(
+		tr['positions'], xedges=xedges, zedges=zedges, n_frames=n_frames, figsize=figsize,
+		axis_equal=axis_equal, interval=interval, output_mode='animation')
 
 	ani.save(result_name + "_densityXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 
 
-def animate_xz_density_comparison_plot(trajectory_data, selected, n_frames, interval,
-                                       select_mode='substance',
-                                       output_mode='video',
-                                       mode='lin',
-                                       s_lim=3, n_bins=100, basesize = 17,
-                                       alpha = 1, colormap = plt.cm.coolwarm,
-                                       annotate_string=""):
+def animate_xz_density_comparison_plot(
+		trajectory_data, selected, n_frames, interval,
+		select_mode='substance', output_mode='video', mode='lin',
+		s_lim=3, n_bins=100, basesize=17, alpha=1, colormap=plt.cm.coolwarm,
+		annotate_string=""):
 	"""
-	Animate the densities of two ion clouds in a QIT simulation in a z-x projection.
+	Animate the densities of two mostly symmetric ion clouds (probably from a QIT simulation) in a z-x projection.
 
 	:param trajectory_data: imported trajectories object
 	:type trajectory_data: dict returned from the readTrajectoryFile methods
@@ -233,131 +250,135 @@ def animate_xz_density_comparison_plot(trajectory_data, selected, n_frames, inte
 	:return: animation object or figure (depends on the file mode)
 	"""
 
-
 	if select_mode == 'mass':
 		select_parameter = [trajectory_data[0]['masses'], trajectory_data[1]['masses']]
 
 	elif select_mode == 'substance':
 		id_column = trajectory_data[0]['additional_names'].index('chemical id')
-		select_parameter = [trajectory_data[0]['additional_parameters'][:, id_column, :],
-		                    trajectory_data[1]['additional_parameters'][:, id_column, :]]
+		select_parameter = [
+			trajectory_data[0]['additional_parameters'][:, id_column, :],
+			trajectory_data[1]['additional_parameters'][:, id_column, :]]
 	else:
 		raise ValueError('Invalid select_mode')
 
+	times_a = trajectory_data[0]["times"]
+	times_b = trajectory_data[1]["times"]
 
-	times = trajectory_data[0]["times"]
-	times_B = trajectory_data[1]["times"]
-
-	if len(times) != len(times_B):
+	if len(times_a) != len(times_b):
 		raise ValueError('Length of trajectories differ')
-	if not (times == times_B).all():
+	if not (times_a == times_b).all():
 		raise ValueError('The times of the trajectories differ')
-	if n_frames*interval > len(times):
-		raise ValueError('number of frames * interval (' + str(n_frames * interval) + ') is longer than trajectory (' + str(len(times)) + ')')
+	if n_frames*interval > len(times_a):
+		raise ValueError(
+			'number of frames * interval (' + str(n_frames * interval) +
+			') is longer than trajectory (' + str(len(times_a)) + ')')
 
 	if selected[0] == "all":
-		datA = trajectory_data[0]["positions"]
+		dat_a = trajectory_data[0]["positions"]
 	else:
-		datA = tra.filter_parameter(trajectory_data[0]["positions"], select_parameter[0], selected[0])
+		dat_a = tra.filter_parameter(trajectory_data[0]["positions"], select_parameter[0], selected[0])
 
 	if selected[1] == "all":
-		datB = trajectory_data[1]["positions"]
+		dat_b = trajectory_data[1]["positions"]
 	else:
-		datB = tra.filter_parameter(trajectory_data[1]["positions"], select_parameter[1], selected[1])
+		dat_b = tra.filter_parameter(trajectory_data[1]["positions"], select_parameter[1], selected[1])
 
-	if output_mode== 'video':
-		fig = plt.figure(figsize=[10,10])
-	elif output_mode== 'singleFrame':
-		fig = plt.figure(figsize=[ 6, 6])
+	if output_mode == 'video':
+		plt.figure(figsize=[10, 10])
+	elif output_mode == 'singleFrame':
+		plt.figure(figsize=[6, 6])
 
-	if not hasattr(s_lim, "__iter__"): #is not iterable
-		limits = [-s_lim,s_lim,-s_lim,s_lim]
+	if not hasattr(s_lim, "__iter__"):  # is not iterable
+		limits = [-s_lim, s_lim, -s_lim, s_lim]
 	else:
 		limits = s_lim
 
-	if not hasattr(n_bins, "__iter__"): #is not iterable
-		bins = [n_bins,n_bins]
+	if not hasattr(n_bins, "__iter__"):  # is not iterable
+		bins = [n_bins, n_bins]
 	else:
 		bins = n_bins
 
-	xedges = np.linspace(limits[0],limits[1],bins[0])
-	zedges = np.linspace(limits[2],limits[3],bins[1])
-	H = np.random.rand(len(xedges),len(zedges))
+	xedges = np.linspace(limits[0], limits[1], bins[0])
+	zedges = np.linspace(limits[2], limits[3], bins[1])
+	h_vals = np.random.rand(len(xedges), len(zedges))
 	fig_ratio = (limits[3]-limits[2]) / (limits[1]-limits[0])
-	fig = plt.figure(figsize=(basesize,basesize*fig_ratio+basesize/10.0))
+	fig = plt.figure(figsize=(basesize, basesize*fig_ratio+basesize/10.0))
 	ax = fig.add_subplot(1, 1, 1, ylim=(zedges[0], zedges[-1]), xlim=(xedges[0], xedges[-1]))
 
-	im1 = ax.imshow(H, interpolation='nearest', origin='low', alpha=1, vmin=0, vmax=10, cmap="Reds",
-				extent=[xedges[0], xedges[-1], zedges[0], zedges[-1]])
+	im1 = ax.imshow(
+		h_vals, interpolation='nearest', origin='low', alpha=1, vmin=0, vmax=10, cmap="Reds",
+		extent=[xedges[0], xedges[-1], zedges[0], zedges[-1]])
 
-	text_time = ax.annotate("TestText",xy=(0.02,0.96),xycoords="figure fraction",
-	                        horizontalalignment="left",
-	                        verticalalignment="top",
-	                        fontsize=20);
+	text_time = ax.annotate(
+		"TestText", xy=(0.02, 0.96), xycoords="figure fraction",
+		horizontalalignment="left", verticalalignment="top",
+		fontsize=20);
 
 	plt.xlabel("x (mm)")
 	plt.ylabel("z (mm)")
-	fillChannel = np.ones([len(xedges)-1,len(zedges)-1])
 
 	def animate(i):
-		tsNumber = i*interval
-		#if the dat objects are lists: we have filtered the particles in a way that the number of selected
-		#particles change between the timesteps and we got a list of individual particle vectors
-		if isinstance(datA, list):
-			x = datA[tsNumber][:, 0]
-			z = datA[tsNumber][:, 2]
+		ts_number = i*interval
+		# if the dat objects are lists: we have filtered the particles in a way that the number of selected
+		# particles change between the timesteps and we got a list of individual particle vectors
+		if isinstance(dat_a, list):
+			x = dat_a[ts_number][:, 0]
+			z = dat_a[ts_number][:, 2]
 		else:
-			x = datA[:,0,tsNumber]
-			z = datA[:,2,tsNumber]
-		h_A, zedges2, xedges2 = np.histogram2d(z,x, bins=(zedges, xedges))
+			x = dat_a[:, 0, ts_number]
+			z = dat_a[:, 2, ts_number]
+		h_a, zedges2, xedges2 = np.histogram2d(z, x, bins=(zedges, xedges))
 
-		if isinstance(datB, list):
-			x = datB[tsNumber][:, 0]
-			z = datB[tsNumber][:, 2]
+		if isinstance(dat_b, list):
+			x = dat_b[ts_number][:, 0]
+			z = dat_b[ts_number][:, 2]
 		else:
-			x = datB[:,0,tsNumber]
-			z = datB[:,2,tsNumber]
+			x = dat_b[:, 0, ts_number]
+			z = dat_b[:, 2, ts_number]
 
-		h_B, zedges2, xedges2 = np.histogram2d(z,x, bins=(zedges, xedges))
+		h_b, zedges2, xedges2 = np.histogram2d(z, x, bins=(zedges, xedges))
 
-		nf_A = np.max(h_A)
-		nf_B = np.max(h_B)
+		nf_a = np.max(h_a)
+		nf_b = np.max(h_b)
 
-		rel_conc = h_A / (h_A + h_B + 0.00001)
-		img_data_RGB = colormap(rel_conc)
-		h_A_log = np.log10(h_A + 1)
-		h_B_log = np.log10(h_B + 1)
-		nf_A_log = np.max(h_A_log)
-		nf_B_log = np.max(h_B_log)
-		abs_dens = (h_A + h_B) / (nf_A + nf_B)
-		abs_dens_log_raw = (h_A_log + h_B_log) / (nf_A_log + nf_B_log)
+		rel_conc = h_a / (h_a + h_b + 0.00001)
+		img_data_rgb = colormap(rel_conc)
+		h_a_log = np.log10(h_a + 1)
+		h_b_log = np.log10(h_b + 1)
+		nf_a_log = np.max(h_a_log)
+		nf_b_log = np.max(h_b_log)
+		abs_dens = (h_a + h_b) / (nf_a + nf_b)
+		abs_dens_log_raw = (h_a_log + h_b_log) / (nf_a_log + nf_b_log)
 		abs_dens_log = abs_dens_log_raw * 0.8
 		nonzero = np.nonzero(abs_dens_log > 0)
 		abs_dens_log[nonzero] = abs_dens_log[nonzero] + 0.2
 
 		if mode == "lin":
-			img_data_RGB[:, :, 3] = abs_dens * alpha
-		elif mode== "log":
-			img_data_RGB[:, :, 3] = abs_dens_log * alpha
+			img_data_rgb[:, :, 3] = abs_dens * alpha
+		elif mode == "log":
+			img_data_rgb[:, :, 3] = abs_dens_log * alpha
 
-		im1.set_array(img_data_RGB)
-		text_time.set_text("t=" + str(times[tsNumber]) +u"µs" +" " + annotate_string)
+		im1.set_array(img_data_rgb)
+		text_time.set_text("t=" + str(times_a[ts_number]) + u"µs" + " " + annotate_string)
 
 		return im1
 
 	# call the animator.  blit=True means only re-draw the parts that have changed.
 	if output_mode == 'video':
 		anim = animation.FuncAnimation(fig, animate, frames=n_frames, blit=False)
-		return (anim)
+		return anim
 	elif output_mode == 'singleFrame':
 		animate(n_frames)
-		return (fig)
+		return fig
 
 
-def render_xz_density_comparison_animation(project_names, selected, result_name, select_mode='substance', n_frames=400, interval=1,
-                                           s_lim=7, n_bins=50, base_size=12, annotation="", mode="lin", file_type='legacy_hdf5'):
+def render_xz_density_comparison_animation(
+		project_names, selected, result_name,
+		select_mode='substance', n_frames=400, interval=1,
+		s_lim=7, n_bins=50, base_size=12,
+		annotation="", mode="lin", file_type='legacy_hdf5'):
 	"""
-	Reads two trajectories, renders XZ density projection of two ion colouds in the trajectories and writes
+	Reads two trajectories, renders XZ density projection of two ion clouds in the trajectories and writes
 	a video file with the result.
 
 	:param project_names: simulation projects to compare (given as project basenames)
@@ -402,16 +423,19 @@ def render_xz_density_comparison_animation(project_names, selected, result_name,
 	else:
 		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
 
-	anim = animate_xz_density_comparison_plot([tj0, tj1], selected, n_frames, interval,
-	                                          mode=mode, s_lim=s_lim, select_mode=select_mode, n_bins = n_bins,
-	                                          basesize=base_size, annotate_string=annotation)
+	anim = animate_xz_density_comparison_plot(
+		[tj0, tj1], selected, n_frames, interval,
+		mode=mode, s_lim=s_lim, select_mode=select_mode, n_bins=n_bins,
+		basesize=base_size, annotate_string=annotation)
 	anim.save(result_name + "_densitiesComparisonXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 
 
 # scatter plots #############################################################
 def animate_scatter_plot(
-		trajectory_data, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
-		color_parameter=None, crange=None, cmap=plt.cm.get_cmap('viridis'), alpha=0.1, figsize=(13, 5)):
+		trajectory_data, xlim=None, ylim=None, zlim=None,
+		n_frames=None, interval=1,
+		color_parameter=None, crange=None, cmap=plt.cm.get_cmap('viridis'),
+		alpha=0.1, figsize=(13, 5)):
 	"""
 	Generates a scatter animation of the particles in an ion trajectory
 
@@ -441,7 +465,7 @@ def animate_scatter_plot(
 	:type figsize: tuple of two numbers
 	"""
 	fig = plt.figure(figsize=figsize)
-	pos = trajectory_data['positions']
+	positions = trajectory_data['positions']
 	n_timesteps = trajectory_data['n_timesteps']
 
 	c_param = None
@@ -452,35 +476,39 @@ def animate_scatter_plot(
 		if type(color_parameter) is str:
 			cp_index = ap_names.index(color_parameter)
 			c_param = ap[:, cp_index, :]
-		elif hasattr(color_parameter, "__iter__"): # is iterable
+		elif hasattr(color_parameter, "__iter__"):  # is iterable
 			c_param = np.tile(color_parameter, (n_timesteps, 1)).T
 
 	if not n_frames:
 		n_frames = int(np.floor(n_timesteps/interval))
 
 	if n_frames*interval > n_timesteps:
-		raise ValueError('number of frames * interval (' + str(n_frames * interval) + ') is longer than trajectory (' + str(n_timesteps) + ')')
+		raise ValueError(
+			'number of frames * interval (' + str(n_frames * interval) +
+			') is longer than trajectory (' + str(n_timesteps) + ')')
 
 	def create_plot(xindex, yindex, x_li, y_li):
 		if color_parameter is None:
-			scatterplot = plt.scatter(pos[:, xindex, 0], pos[:, yindex, 0], s=10, alpha=alpha)
+			scatterplot = plt.scatter(positions[:, xindex, 0], positions[:, yindex, 0], s=10, alpha=alpha)
 		else:
 			if crange is None:
-				scatterplot = plt.scatter(pos[:, xindex, 0], pos[:, yindex, 0], s=10, alpha=alpha, c=c_param[:, 0], cmap=cmap)
+				scatterplot = plt.scatter(
+					positions[:, xindex, 0], positions[:, yindex, 0], s=10,
+					alpha=alpha, c=c_param[:, 0], cmap=cmap)
 			else:
 				scatterplot = plt.scatter(
-					pos[:, xindex, 0], pos[:, yindex, 0], s=10, alpha=alpha, c=c_param[:, 0],
-					vmin=crange[0], vmax=crange[1], cmap=cmap)
+					positions[:, xindex, 0], positions[:, yindex, 0], s=10,
+					alpha=alpha, c=c_param[:, 0], vmin=crange[0], vmax=crange[1], cmap=cmap)
 
 		if y_li:
 			plt.ylim(y_li)
 		else:
-			plt.ylim((np.min(pos[:, yindex, :]), np.max(pos[:, yindex, :])))
+			plt.ylim((np.min(positions[:, yindex, :]), np.max(positions[:, yindex, :])))
 
 		if x_li:
 			plt.xlim(x_li)
 		else:
-			plt.xlim((np.min(pos[:, xindex, :]), np.max(pos[:, xindex, :])))
+			plt.xlim((np.min(positions[:, xindex, :]), np.max(positions[:, xindex, :])))
 
 		return scatterplot
 
@@ -507,7 +535,7 @@ def animate_scatter_plot(
 
 	ani = animation.FuncAnimation(
 		fig, update_scatter_plot, frames=range(n_frames),
-		fargs=(pos, scat_xy, scat_xz))
+		fargs=(positions, scat_xy, scat_xz))
 	return ani
 
 
@@ -515,9 +543,11 @@ def animate_variable_scatter_plot(
 		trajectory_data, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
 		color_parameter=None, cmap=plt.cm.get_cmap('viridis'), alpha=0.1, figsize=(13, 5)):
 	"""
-	TODO:/ FIXME: color parameter (only color parameter as aux parameter here)
+	TODO:/ FIXME: Usage of color parameter is not yet implemented
+	(only color parameter as aux parameter here)
 
-	Generates a scatter animation of the particles in an ion trajectory with varying particle number in the simulation frames
+	Generates a scatter animation of the particles in an ion trajectory
+	with varying particle number in the simulation frames
 
 	:param trajectory_data: a particle trajectory
 	:type trajectory_data: dict returned from the readTrajectoryFile methods
@@ -556,31 +586,29 @@ def animate_variable_scatter_plot(
 		if type(color_parameter) is str:
 			cp_index = ap_names.index(color_parameter)
 			c_param = [ts_ap[:, cp_index] for ts_ap in ap]
-		elif hasattr(color_parameter, "__iter__"): #is iterable
+		elif hasattr(color_parameter, "__iter__"):  # is iterable
 			c_param = np.tile(color_parameter,(n_timesteps,1)).T
-			# nd array [n_particles, n_timesteps ]
-
 
 	if not n_frames:
 		n_frames = int(np.floor(n_timesteps/interval))
 
 	if n_frames*interval > n_timesteps:
-		raise ValueError('number of frames * interval (' + str(n_frames * interval) + ') is longer than trajectory (' + str(n_timesteps) + ')')
-
-
+		raise ValueError(
+			'number of frames * interval (' + str(n_frames * interval) +
+			') is longer than trajectory (' + str(n_timesteps) + ')')
 
 	def render_scatter_plot(i):
-		plt.clf() #clear figure for a fresh plot
+		plt.clf()  # clear figure for a fresh plot
 
 		ts_pos = pos[i]
-		ts_ap = ap[i]
+		# ts_ap = ap[i]
 
 		plt.subplot(1, 2, 1)
 		if color_parameter is None:
-			scat_xy = plt.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha)
+			plt.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha)
 		else:
-			#ts_cp = c_param[i]
-			scat_xy = plt.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha)#, c=ts_cp[0], cmap=cmap)
+			# ts_cp = c_param[i]
+			plt.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha)  # c=ts_cp[0], cmap=cmap)
 
 		plt.xlabel("x position")
 		plt.ylabel("y position")
@@ -599,8 +627,7 @@ def animate_variable_scatter_plot(
 		if color_parameter is None:
 			plt.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha)
 		else:
-			#ts_cp = c_param[i]
-			plt.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha) # , c=c_param[:,0], cmap=cmap)
+			plt.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha)  # , c=c_param[:,0], cmap=cmap)
 		plt.xlabel("x position")
 		plt.ylabel("z position")
 
@@ -613,7 +640,6 @@ def animate_variable_scatter_plot(
 			plt.xlim(xlim)
 		else:
 			plt.xlim((np.min(ts_pos[:, 0]), np.max(ts_pos[:, 0])))
-
 
 	ani = animation.FuncAnimation(fig, render_scatter_plot, frames=range(n_frames))
 	return ani
