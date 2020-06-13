@@ -1,2 +1,4 @@
 __pycache__
+.ipynb_checkpoints
 test/test_results
+#demo/results/*
