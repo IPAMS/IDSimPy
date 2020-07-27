@@ -2,8 +2,8 @@ import unittest
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import IDSimF_analysis as ia
-import IDSimF_analysis.visualization as vis
+import IDSimPy as ia
+import IDSimPy.visualization as vis
 
 
 class TestChemistry(unittest.TestCase):
