@@ -6,6 +6,16 @@ from matplotlib import animation
 from matplotlib.image import NonUniformImage
 from . import trajectory as tra
 
+__all__ = (
+        'plot_particles_path',
+        'plot_density_xz',
+        'animate_xz_density',
+        'render_xz_density_animation',
+		'animate_xz_density_comparison_plot',
+		'render_xz_density_comparison_animation',
+		'animate_scatter_plot',
+		'animate_variable_scatter_plot',
+		'render_scatter_animation')
 
 # Simple Plot Methods ######################
 

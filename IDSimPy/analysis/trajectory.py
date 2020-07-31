@@ -6,6 +6,15 @@ import io
 import h5py
 import numpy as np
 
+__all__ = (
+        'read_legacy_trajectory_file',
+        'read_json_trajectory_file',
+        'read_hdf5_trajectory_file',
+        'read_legacy_hdf5_trajectory_file',
+		'translate_json_trajectories_to_vtk',
+		'filter_parameter',
+		'center_of_charge')
+
 ################## Trajectory input ######################
 
 def read_legacy_trajectory_file(trajectory_filename):
