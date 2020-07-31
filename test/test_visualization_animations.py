@@ -1,9 +1,8 @@
 import unittest
 import os
 import numpy as np
-import IDSimPy.trajectory as tra
-import IDSimPy.visualization as vis
-
+import IDSimPy.analysis.trajectory as tra
+import IDSimPy.analysis.visualization as vis
 
 class TestVisualizationAnimations(unittest.TestCase):
 

@@ -1,8 +1,7 @@
 import unittest
 import os
 import numpy as np
-import matplotlib.pylab as plt
-import IDSimPy.qitsim_analysis as qa
+import IDSimPy.analysis.qitsim_analysis as qa
 
 
 class TestQitSimAnalysis(unittest.TestCase):
