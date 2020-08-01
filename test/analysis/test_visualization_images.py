@@ -9,15 +9,16 @@ class TestVisualization_images(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
-		cls.test_json_trajectory = os.path.join('data', 'test_trajectories.json')
-		cls.test_json_projectName = os.path.join('data', 'test')
-		cls.test_reactive_projectName = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
+		data_base_path = os.path.join('analysis', 'data')
+		cls.test_json_trajectory = os.path.join(data_base_path, 'test_trajectories.json')
+		cls.test_json_projectName = os.path.join(data_base_path, 'test')
+		cls.test_reactive_projectName = os.path.join(data_base_path, 'qitSim_2019_04_scanningTrapTest',
 		                                             'qitSim_2019_04_15_001')
-		cls.test_hdf5_trajectory_a = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
+		cls.test_hdf5_trajectory_a = os.path.join(data_base_path, 'qitSim_2019_04_scanningTrapTest',
 		                                          'qitSim_2019_04_10_001_trajectories.hd5')
-		cls.test_hdf5_trajectory_b = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
+		cls.test_hdf5_trajectory_b = os.path.join(data_base_path, 'qitSim_2019_04_scanningTrapTest',
 		                                          'qitSim_2019_04_10_002_trajectories.hd5')
-		cls.test_hdf5_trajectory_c = os.path.join('data', 'qitSim_2019_04_scanningTrapTest',
+		cls.test_hdf5_trajectory_c = os.path.join(data_base_path, 'qitSim_2019_04_scanningTrapTest',
 		                                          'qitSim_2019_04_15_001_trajectories.hd5')
 		cls.result_path = "test_results"
 

@@ -89,5 +89,5 @@ ENV/
 .spyderproject
 
 # Test result files
-test/analysis/test_results
+test/test_results
 #demo/results/*
