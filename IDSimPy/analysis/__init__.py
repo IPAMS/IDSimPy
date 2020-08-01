@@ -14,6 +14,7 @@ Modules:
 from .trajectory import *
 from .visualization import *
 
+from . import visualization
 from . import chemistry
 from . import qitsim_analysis
 from . import spacecharge_analysis
