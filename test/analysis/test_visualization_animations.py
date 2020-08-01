@@ -8,28 +8,26 @@ class TestVisualizationAnimations(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
-		data_file_base_path = os.path.join('analysis', 'data')
-
-		cls.test_json_trajectory = os.path.join(data_file_base_path, 'test_trajectories.json')
-		cls.test_json_projectName = os.path.join(data_file_base_path, 'test')
+		cls.test_json_trajectory = os.path.join('data', 'test_trajectories.json')
+		cls.test_json_projectName = os.path.join('data', 'test')
 
 		cls.test_reactive_projectName = os.path.join(
-			data_file_base_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_15_001')
+			'data', 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_15_001')
 
 		cls.legacy_hdf5_trajectory_a = os.path.join(
-			data_file_base_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_001_trajectories.hd5')
+			'data', 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_001_trajectories.hd5')
 
 		cls.legacy_hdf5_trajectory_b = os.path.join(
-			data_file_base_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_002_trajectories.hd5')
+			'data', 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_002_trajectories.hd5')
 
 		cls.legacy_hdf5_trajectory_c = os.path.join(
-			data_file_base_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_15_001_trajectories.hd5')
+			'data', 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_15_001_trajectories.hd5')
 
 		cls.new_hdf5_variable_projectName = os.path.join(
-			data_file_base_path, 'qitSim_2019_07_variableTrajectoryQIT', 'qitSim_2019_07_22_001')
+			'data', 'qitSim_2019_07_variableTrajectoryQIT', 'qitSim_2019_07_22_001')
 
 		cls.new_hdf5_static_projectName = os.path.join(
-			data_file_base_path, 'qitSim_2019_07_variableTrajectoryQIT',  'qitSim_2019_07_22_002')
+			'data', 'qitSim_2019_07_variableTrajectoryQIT',  'qitSim_2019_07_22_002')
 
 		cls.result_path = "test_results"
 
