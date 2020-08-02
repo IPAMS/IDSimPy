@@ -60,8 +60,6 @@ def transform_2d_axial_to_3d(R, Z, V, radial_component=False):
 					else:
 						result[j, i, k] = 0
 
-				#print(d_f, d_c)
-
 	#flip LR:
 	X_f = np.concatenate([X[:, :, ::-1], X], axis=2)
 	Y_f = np.concatenate([Y[:, :, ::-1], Y], axis=2)
@@ -92,7 +90,7 @@ def transform_2d_axial_to_3d(R, Z, V, radial_component=False):
 
 def write_3d_vector_fields_as_vtk_point_data(dat,result_filename,scale_factor=1.0):
 	vtk_p = vtk.vtkPoints()
-	x_vec,y_vec,z_vec = [np.array(x)*scale_factor for x in dat["grid_points"]]
+	x_vec, y_vec, z_vec = [np.array(x)*scale_factor for x in dat["grid_points"]]
 	fields_dat = dat["fields"]
 
 	xlen = len(x_vec)
@@ -101,7 +99,7 @@ def write_3d_vector_fields_as_vtk_point_data(dat,result_filename,scale_factor=1.
 
 	vtk_fields = []
 	for fi in fields_dat:
-		vfi =  vtk.vtkDoubleArray()
+		vfi = vtk.vtkDoubleArray()
 		vfi.SetNumberOfComponents(3)
 		vfi.SetName(fi['name'])
 		vtk_fields.append(vfi)
@@ -115,12 +113,12 @@ def write_3d_vector_fields_as_vtk_point_data(dat,result_filename,scale_factor=1.
 	for zi in range(zlen):
 		for yi in range(ylen):
 			for xi in range(xlen):
-				vtk_p.InsertNextPoint([x_vec[xi],y_vec[yi],z_vec[zi]])
+				vtk_p.InsertNextPoint([x_vec[xi], y_vec[yi], z_vec[zi]])
 				for i in range(n_fields):
 					vtk_fields[i].InsertNextTuple([
-						fields_dat[i]['data'][0]['data'][yi, xi, zi],
-						fields_dat[i]['data'][1]['data'][yi, xi, zi],
-						fields_dat[i]['data'][2]['data'][yi, xi, zi]
+						fields_dat[i]['data'][0][yi, xi, zi],
+						fields_dat[i]['data'][1][yi, xi, zi],
+						fields_dat[i]['data'][2][yi, xi, zi]
 					])
 
 	vtk_grid = vtk.vtkStructuredGrid()
@@ -153,7 +151,6 @@ def write_3d_scalar_fields_as_vtk_point_data(dat, result_filename, scale_factor=
 	n_fields = len(vtk_fields)
 
 	for zi in range(zlen):
-		print(z_vec[zi])
 		for yi in range(ylen):
 			for xi in range(xlen):
 				vtk_p.InsertNextPoint([x_vec[xi],y_vec[yi],z_vec[zi]])
