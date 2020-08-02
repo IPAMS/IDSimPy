@@ -20,6 +20,9 @@ class TestFieldGeneration(unittest.TestCase):
 		fg.write_3d_scalar_fields_as_vtk_point_data(dat, os.path.join(self.result_path,
 		                                                              'test_linear_scalar_field_01.vts'))
 
+		fg.write_3d_scalar_fields_to_hdf5(dat, os.path.join(self.result_path,
+		                                                    'test_linear_scalar_field_01.hdf5'))
+
 		# define simple linear vector field:
 		grid_points = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20], [-10, 0, 10], [0, 10]]
 		X, Y, Z = np.meshgrid(grid_points[0], grid_points[1], grid_points[2])
@@ -38,6 +41,8 @@ class TestFieldGeneration(unittest.TestCase):
 		fg.write_3d_vector_fields_as_vtk_point_data(dat, os.path.join(self.result_path,
 		                                                              'test_linear_vector_field_01.vts'))
 
+
+class Buffer():
 	def test_quadrupole_vector_field_generation(self):
 		# define 2d axial symmetric pressure field and translate it to 3d cartesian:
 		grid_r = [np.linspace(0, 0.01, 30)]
