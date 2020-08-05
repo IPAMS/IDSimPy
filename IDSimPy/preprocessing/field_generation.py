@@ -6,15 +6,18 @@ import vtk
 import h5py
 
 
-def transform_2d_axial_to_3d(R, Z, V, radial_component=False):
+def transform_2d_axial_to_3d(R_axi, Z_axi, V_axi, radial_component=False):
 	"""
 	Transforms 2d axial symmetric data into 3d cartesian data
+	The symmetry axis which is used for the rotation is the y axis in cartesian coordinates
+	Note: The data is expected to be given as meshgrid in ij indexing
 	"""
-	grid_r = R[0, :]
-	len_r = len(grid_r)
-	grid_z = Z[:, 0]
 
-	X, Y, Z = np.meshgrid(grid_z, grid_r, grid_r)
+	grid_r = R_axi[:, 0]
+	len_r = len(grid_r)
+	grid_z = Z_axi[0, :]
+
+	X, Y, Z = np.meshgrid(grid_r, grid_z, grid_r, indexing='ij')
 
 	if not radial_component:
 		result = np.zeros(np.shape(X))
@@ -22,17 +25,16 @@ def transform_2d_axial_to_3d(R, Z, V, radial_component=False):
 		# prepare result for 2 component radial vector values:
 		result = np.zeros(np.shape(X)+(2,))
 
-	#iterate through entire 3d cartesian space domain:
-	for i in range(len(grid_z)):
-		for j in range(len(grid_r)):
+	# iterate through entire 3d cartesian space domain:
+	for i in range(len(grid_r)):
+		for j in range(len(grid_z)):
 			for k in range(len(grid_r)):
-				x = X[j, i, k]
-				y = Y[j, i, k]
-				z = Z[j, i, k]
+				x = X[i, j, k]
+				z = Z[i, j, k]
 
-				r = np.sqrt(y*y + z*z) #radial distance
-				r_ic = np.searchsorted(grid_r,r) #upper cell index in r direction were the current distance fits
-				r_if = r_ic -1 #lower cell index
+				r = np.sqrt(x*x + z*z)  # radial distance
+				r_ic = np.searchsorted(grid_r, r)  # upper cell index in r direction were the current distance fits
+				r_if = r_ic - 1  # lower cell index
 
 				# simple linear interpolation:
 				if r_ic < len_r:
@@ -41,25 +43,25 @@ def transform_2d_axial_to_3d(R, Z, V, radial_component=False):
 					d_f = r - grid_r[r_if]
 
 					# normalize distances:
-					dn_f = d_f / (grid_r[r_ic]-grid_r[r_if])
+					dn_f = d_f / (grid_r[r_ic] - grid_r[r_if])
 					dn_c = 1 - dn_f
 
 					# calculate interpolated value (distances are switched because low distance mean high weight of the value):
-					res = dn_c * V[i, r_if] + dn_f * V[i, r_ic]
+					res = dn_c * V_axi[r_if, j] + dn_f * V_axi[r_ic, j]
 
 					if radial_component == True:
 						# rotate radial component:
-						phi = np.arctan2(y,z)
-						result[j, i, k, 0] = np.sin(phi)*res
-						result[j, i, k, 1] = np.cos(phi)*res
+						phi = np.arctan2(x, z)
+						result[i, j, k, 0] = np.sin(phi)*res
+						result[i, j, k, 1] = np.cos(phi)*res
 					else:
-						result[j, i, k] = res
+						result[i, j, k] = res
 
 				else:
 					if radial_component == True:
-						result[j, i, k, :] = [0,0]
+						result[i, j, k, :] = [0,0]
 					else:
-						result[j, i, k] = 0
+						result[i, j, k] = 0
 
 	#flip LR:
 	X_f = np.concatenate([X[:, :, ::-1], X], axis=2)
@@ -74,8 +76,8 @@ def transform_2d_axial_to_3d(R, Z, V, radial_component=False):
 		result_f = np.concatenate([result[:, :, ::-1], result], axis=2)
 
 	# flip UD:
-	X_c = np.concatenate([X_f[::-1,: , :], X_f], axis=0)
-	Y_c = np.concatenate([Y_f[::-1,: , :]* -1.0, Y_f], axis=0)
+	X_c = np.concatenate([X_f[::-1,: , :]* -1.0, X_f], axis=0)
+	Y_c = np.concatenate([Y_f[::-1,: , :], Y_f], axis=0)
 	Z_c = np.concatenate([Z_f[::-1,: , :], Z_f], axis=0)
 
 	if radial_component == True:
@@ -85,9 +87,7 @@ def transform_2d_axial_to_3d(R, Z, V, radial_component=False):
 	else:
 		result_c = np.concatenate([result_f[::-1, :, :], result_f], axis=0)
 
-	return (X_c,Y_c,Z_c,result_c)
-
-
+	return (X_c, Y_c, Z_c, result_c)
 
 def write_3d_vector_fields_as_vtk_point_data(dat,result_filename,scale_factor=1.0):
 	vtk_p = vtk.vtkPoints()
@@ -146,7 +146,7 @@ def write_3d_scalar_fields_to_hdf5(dat, result_filename, scale_factor=1.0):
 
 	with h5py.File(result_filename, "w") as fh:
 		# write grid points / grid coordinates:
-		points_group = fh.create_group('grid points')
+		points_group = fh.create_group('grid_points')
 		points_group.create_dataset('x', (xlen,), 'f', x_vec)
 		points_group.create_dataset('y', (ylen,), 'f', y_vec)
 		points_group.create_dataset('z', (zlen,), 'f', z_vec)
@@ -183,7 +183,7 @@ def write_3d_scalar_fields_as_vtk_point_data(dat, result_filename, scale_factor=
 			for xi in range(xlen):
 				vtk_p.InsertNextPoint([x_vec[xi],y_vec[yi],z_vec[zi]])
 				for i in range(n_fields):
-					vtk_fields[i].InsertNextValue(fields_dat[i]["data"][yi,xi,zi])
+					vtk_fields[i].InsertNextValue(fields_dat[i]["data"][xi, yi, zi])
 
 	vtk_grid = vtk.vtkStructuredGrid()
 	vtk_grid.SetDimensions(xlen,ylen,zlen)

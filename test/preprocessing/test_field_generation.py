@@ -1,6 +1,7 @@
 import unittest
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 import IDSimPy.preprocessing.field_generation as fg
 
 
@@ -10,10 +11,11 @@ class TestFieldGeneration(unittest.TestCase):
 	def setUpClass(cls):
 		cls.result_path = "test_results"
 
+
 	def test_simple_field_generation(self):
 		# define simple linear scalar field:
 		grid_points = [[0, 2, 5, 15], [0, 2, 10], [0, 2, 5, 7, 10]]
-		X, Y, Z = np.meshgrid(grid_points[0], grid_points[1], grid_points[2])
+		X, Y, Z = np.meshgrid(grid_points[0], grid_points[1], grid_points[2], indexing='ij')
 		S = X + Y + Z
 		fields = [{'name': 'test_field', 'data': S}]
 		dat = {"grid_points": grid_points, "meshgrid": [X, Y, Z], "fields": fields}
@@ -21,7 +23,7 @@ class TestFieldGeneration(unittest.TestCase):
 		                                                              'test_linear_scalar_field_01.vts'))
 
 		fg.write_3d_scalar_fields_to_hdf5(dat, os.path.join(self.result_path,
-		                                                    'test_linear_scalar_field_01.hdf5'))
+		                                                    'test_linear_scalar_field_01.h5'))
 
 		# define simple linear vector field:
 		grid_points = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20], [-10, 0, 10], [0, 10]]
@@ -42,7 +44,38 @@ class TestFieldGeneration(unittest.TestCase):
 		                                                              'test_linear_vector_field_01.vts'))
 
 
+	def test_2d_3d_conversion(self):
+
+		grid_r = [np.linspace(0, 0.01, 30)]
+		grid_z = [np.linspace(0, 0.1, 200)]
+
+		r_axi, z_ca = np.meshgrid(grid_r, grid_z, indexing='ij')
+
+		v_axi = r_axi * z_ca * 1e2
+		v_axi[1:10, :] = 0
+		v_axi[1:3, :] = 0.1
+
+		x_ca, y_ca, z_ca, v_ca = fg.transform_2d_axial_to_3d(r_axi, z_ca, v_axi)
+
+		self.assertEqual(x_ca.shape, (60, 200, 60))
+
+		# Check values on radial positions:
+		self.assertAlmostEqual(v_ca[5,100,0], v_ca[24,100,0])
+		self.assertAlmostEqual(v_ca[5, 100, 0], v_ca[0, 100, 5])
+
+		#plt.contourf(np.transpose(V_ca[:,:,30]))
+		#plt.colorbar()
+		#plt.show()
+
+		#plt.contourf(np.transpose(V_ca[:,100,:]))
+		#plt.colorbar()
+		#plt.show()
+
+
 class Buffer():
+
+
+
 	def test_quadrupole_vector_field_generation(self):
 		# define 2d axial symmetric pressure field and translate it to 3d cartesian:
 		grid_r = [np.linspace(0, 0.01, 30)]
