@@ -89,6 +89,34 @@ def transform_2d_axial_to_3d(R_axi, Z_axi, V_axi, radial_component=False):
 
 	return (X_c, Y_c, Z_c, result_c)
 
+
+def write_3d_vector_fields_to_hdf5(dat, result_filename, scale_factor=1.0):
+
+	x_vec, y_vec, z_vec = [np.array(x) * scale_factor for x in dat["grid_points"]]
+	fields_dat = dat["fields"]
+
+	xlen = len(x_vec)
+	ylen = len(y_vec)
+	zlen = len(z_vec)
+
+	with h5py.File(result_filename, "w") as fh:
+		# write grid points / grid coordinates:
+		points_group = fh.create_group('grid_points')
+		points_group.create_dataset('x', (xlen,), 'f', x_vec)
+		points_group.create_dataset('y', (ylen,), 'f', y_vec)
+		points_group.create_dataset('z', (zlen,), 'f', z_vec)
+
+		fields_group = fh.create_group('fields')
+		for fi in fields_dat:
+			# f_group = fields_group.create_group(fi["name"])
+			# write scalar field to group:
+			clen = len(fi['data'])  # vector components length
+			field_shape = (xlen, ylen, zlen, clen)
+			data_combined = np.stack(fi['data'], axis=3)
+
+			fields_group.create_dataset(fi['name'], field_shape, 'f', fi['data'])
+
+
 def write_3d_vector_fields_as_vtk_point_data(dat,result_filename,scale_factor=1.0):
 	vtk_p = vtk.vtkPoints()
 	x_vec, y_vec, z_vec = [np.array(x)*scale_factor for x in dat["grid_points"]]
@@ -117,9 +145,9 @@ def write_3d_vector_fields_as_vtk_point_data(dat,result_filename,scale_factor=1.
 				vtk_p.InsertNextPoint([x_vec[xi], y_vec[yi], z_vec[zi]])
 				for i in range(n_fields):
 					vtk_fields[i].InsertNextTuple([
-						fields_dat[i]['data'][0][yi, xi, zi],
-						fields_dat[i]['data'][1][yi, xi, zi],
-						fields_dat[i]['data'][2][yi, xi, zi]
+						fields_dat[i]['data'][0][xi, yi, zi],
+						fields_dat[i]['data'][1][xi, yi, zi],
+						fields_dat[i]['data'][2][xi, yi, zi]
 					])
 
 	vtk_grid = vtk.vtkStructuredGrid()
@@ -133,6 +161,7 @@ def write_3d_vector_fields_as_vtk_point_data(dat,result_filename,scale_factor=1.
 	writer.SetFileName(result_filename)
 	writer.SetInputData(vtk_grid)
 	writer.Write()
+
 
 def write_3d_scalar_fields_to_hdf5(dat, result_filename, scale_factor=1.0):
 
@@ -156,9 +185,6 @@ def write_3d_scalar_fields_to_hdf5(dat, result_filename, scale_factor=1.0):
 			#f_group = fields_group.create_group(fi["name"])
 			# write scalar field to group:
 			fields_group.create_dataset(fi['name'], field_shape, 'f', fi['data'])
-
-
-
 
 
 def write_3d_scalar_fields_as_vtk_point_data(dat, result_filename, scale_factor=1.0):
