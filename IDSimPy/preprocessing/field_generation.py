@@ -114,7 +114,7 @@ def write_3d_vector_fields_to_hdf5(dat, result_filename, scale_factor=1.0):
 			field_shape = (xlen, ylen, zlen, clen)
 			data_combined = np.stack(fi['data'], axis=3)
 
-			fields_group.create_dataset(fi['name'], field_shape, 'f', fi['data'])
+			fields_group.create_dataset(fi['name'], field_shape, 'f', data_combined)
 
 
 def write_3d_vector_fields_as_vtk_point_data(dat,result_filename,scale_factor=1.0):
