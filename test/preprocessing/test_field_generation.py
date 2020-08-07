@@ -1,7 +1,6 @@
 import unittest
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 import IDSimPy.preprocessing.field_generation as fg
 
 
@@ -65,7 +64,7 @@ class TestFieldGeneration(unittest.TestCase):
 		self.assertEqual(x_ca.shape, (60, 200, 60))
 
 		# Check values on radial positions:
-		self.assertAlmostEqual(v_ca[5,100,0], v_ca[24,100,0])
+		self.assertAlmostEqual(v_ca[5, 100, 0], v_ca[24, 100, 0])
 		self.assertAlmostEqual(v_ca[5, 100, 0], v_ca[0, 100, 5])
 
 		#plt.contourf(np.transpose(V_ca[:,:,30]))
