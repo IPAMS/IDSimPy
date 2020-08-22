@@ -85,8 +85,9 @@ target/
 venv/
 ENV/
 
-# Spyder project settings
+# Editors and IDEs
 .spyderproject
+.vscode
 
 # Test result files
 test/test_results
