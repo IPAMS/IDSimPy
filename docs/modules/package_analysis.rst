@@ -12,6 +12,14 @@ Trajectory Module
     :undoc-members:
 
 
+Chemistry Module
+================
+
+.. automodule:: IDSimPy.analysis.chemistry
+    :members:
+    :undoc-members:
+
+
 Visualization Module
 ====================
 
