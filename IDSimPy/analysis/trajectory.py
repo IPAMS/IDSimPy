@@ -7,15 +7,16 @@ import h5py
 import numpy as np
 
 __all__ = (
-        'read_legacy_trajectory_file',
-        'read_json_trajectory_file',
-        'read_hdf5_trajectory_file',
-        'read_legacy_hdf5_trajectory_file',
-		'translate_json_trajectories_to_vtk',
-		'filter_parameter',
-		'center_of_charge')
+	'read_legacy_trajectory_file',
+	'read_json_trajectory_file',
+	'read_hdf5_trajectory_file',
+	'read_legacy_hdf5_trajectory_file',
+	'translate_json_trajectories_to_vtk',
+	'filter_parameter',
+	'center_of_charge')
 
-################## Trajectory input ######################
+# -------------- Trajectory input -------------- #
+
 
 def read_legacy_trajectory_file(trajectory_filename):
 	"""
@@ -27,8 +28,10 @@ def read_legacy_trajectory_file(trajectory_filename):
 	times: vector of times of the individual time steps
 	masses: the vector of particle masses
 
-	:param trajectory_filename: the file name of the file to read
-	:return: the trajectory data dictionary
+	:param trajectory_filename: File name of the file to read
+	:type trajectory_filename: str
+	:return: Dictionary with trajectory data
+	:rtype: dict
 	"""
 	if (trajectory_filename[-8:] == ".json.gz"):
 		with gzip.open(trajectory_filename) as tf:
@@ -40,17 +43,17 @@ def read_legacy_trajectory_file(trajectory_filename):
 	steps = tj["steps"]
 	nIons = len(steps[0]["positions"])
 
-	t = np.zeros([nIons,3,len(steps)])
+	t = np.zeros([nIons, 3, len(steps)])
 	times = np.zeros(len(steps))
 	for i in range(len(steps)):
-		t[:,:,i] = np.array(steps[i]["positions"])
+		t[:, :, i] = np.array(steps[i]["positions"])
 		times[i] = float(steps[i]["time"])
 
 	masses = np.zeros([nIons])
 	massesJson = tj["ionMasses"]
 	for i in range(len(massesJson)):
 		masses[i] = float(massesJson[i])
-	return{"trajectories":t,"times":times,"masses":masses}
+	return {"trajectories": t, "times": times, "masses": masses}
 
 
 def read_json_trajectory_file(trajectory_filename):
@@ -63,8 +66,10 @@ def read_json_trajectory_file(trajectory_filename):
 	times: vector of times of the individual time steps
 	masses: the vector of particle masses
 
-	:param trajectory_filename: the file name of the file to read
-	:return: the trajectory data dictionary
+	:param trajectory_filename: File name of the file to read
+	:type trajectory_filename: str
+	:return: Dictionary with trajectory data
+	:rtype: dict
 	"""
 	if trajectory_filename[-8:] == ".json.gz":
 		with gzip.open(trajectory_filename) as tf:
@@ -78,15 +83,15 @@ def read_json_trajectory_file(trajectory_filename):
 	nIons = len(steps[0]["ions"])
 
 	times = np.zeros(len(steps))
-	positions = np.zeros([nIons,3,len(steps)])
+	positions = np.zeros([nIons, 3, len(steps)])
 
-	n_additional_parameters = len(steps[0]["ions"][0])-1
-	additional_parameters = np.zeros([nIons,n_additional_parameters,n_timesteps])
+	n_additional_parameters = len(steps[0]["ions"][0]) - 1
+	additional_parameters = np.zeros([nIons, n_additional_parameters, n_timesteps])
 
 	for i in range(n_timesteps):
-		for j in range (nIons):
-			positions[j,:,i] = np.array(steps[i]["ions"][j][0])
-			additional_parameters[j,:,i] = np.array(steps[i]["ions"][j][1:])
+		for j in range(nIons):
+			positions[j, :, i] = np.array(steps[i]["ions"][j][0])
+			additional_parameters[j, :, i] = np.array(steps[i]["ions"][j][1:])
 
 		times[i] = float(steps[i]["time"])
 
@@ -100,15 +105,14 @@ def read_json_trajectory_file(trajectory_filename):
 	for i in range(len(splat_times_json)):
 		splat_times[i] = float(splat_times_json[i])
 
-	return{"positions":positions,
-	       "additional_parameters":additional_parameters,
-	       "times":times,
-	       "masses":masses,
-	       "n_particles":nIons,
-	       "n_timesteps":n_timesteps,
-	       "splat_times":splat_times,
-	       "static_trajectory":True}
-
+	return {"positions": positions,
+	        "additional_parameters": additional_parameters,
+	        "times": times,
+	        "masses": masses,
+	        "n_particles": nIons,
+	        "n_timesteps": n_timesteps,
+	        "splat_times": splat_times,
+	        "static_trajectory": True}
 
 
 def read_hdf5_trajectory_file(trajectory_file_name):
@@ -122,8 +126,10 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 	the position and additional_data is given in lists of individual arrays for the
 	individual time steps.
 
-	:param trajectory_file_name: the name of the file to read
-	:return: a trajectory dictionary
+	:param trajectory_file_name: Name of the file to read
+	:type trajectory_file_name: str
+	:return: Dictionary with trajectory data
+	:rtype: dict
 	"""
 	hdf5File = h5py.File(trajectory_file_name, 'r')
 
@@ -141,7 +147,6 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 	if 'auxiliary parameter names' in attribs.keys():
 		aux_parameters_names = [name.decode('UTF-8') for name in attribs['auxiliary parameter names']]
 
-
 	positions = []
 	aux_parameters = []
 
@@ -154,13 +159,10 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 		n_ion_per_frame.append(np.shape(ion_positions)[0])
 		positions.append(ion_positions)
 
-
 		if aux_parameters_names:
 			aux_parameters.append(np.array(ts_group['aux_parameters']))
 
-
 	unique_n_ions = len(set(n_ion_per_frame))
-
 
 	# if more than one number of ions are present in the frames, the trajectory is not static
 	# and has variable frames
@@ -171,7 +173,6 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 	else:
 		static_trajectory = True
 		positions = np.dstack(positions)
-
 
 	result = {"positions": positions,
 	          "times": np.array(times),
@@ -200,8 +201,10 @@ def read_legacy_hdf5_trajectory_file(trajectory_file_name):
 	"""
 	Reads a legacy hdf5 trajectory file (with static particles per exported simulation frame)
 
-	:param trajectory_file_name: the name of the file to read
-	:return: a trajectory dictionary
+	:param trajectory_file_name: The name of the file to read
+	:type trajectory_file_name: str
+	:return: Dictionary with trajectory data
+	:rtype: dict
 	"""
 	hdf5File = h5py.File(trajectory_file_name, 'r')
 
@@ -216,7 +219,7 @@ def read_legacy_hdf5_trajectory_file(trajectory_file_name):
 	          "times": np.array(times),
 	          "n_particles": n_particles,
 	          "n_timesteps": n_timesteps,
-	          "static_trajectory":True}
+	          "static_trajectory": True}
 
 	if 'aux_parameters' in tra_group.keys():
 		aux_parameters_names = [name.decode('UTF-8') for name in attribs['auxiliary parameter names']]
@@ -227,20 +230,22 @@ def read_legacy_hdf5_trajectory_file(trajectory_file_name):
 	return result
 
 
-
-################## Trajectory output / translation ######################
+# -------------- Trajectory output / translation -------------- #
 
 
 def translate_json_trajectories_to_vtk(json_file_name, vtk_file_base_name):
 	"""
 	Translates a ion trajectory file to set of legacy VTK ascii files
+
 	:param json_file_name: the trajectory file to translate
+	:type json_file_name: str
 	:param vtk_file_base_name: the base name of the vtk files to generate
+	:type vtk_file_base_name: str
 	"""
 
-	tr = qa.read_trajectory_file(json_file_name)
+	tr = read_json_trajectory_file(json_file_name)
 
-	header="""# vtk DataFile Version 2.0
+	header = """# vtk DataFile Version 2.0
 BTree Test
 ASCII
 DATASET POLYDATA
@@ -249,45 +254,51 @@ POINTS """
 	n_steps = len(tr["times"])
 
 	for i in range(n_steps):
-		vtk_file_name = vtk_file_base_name+"%05d"%i+".vtk"
+		vtk_file_name = vtk_file_base_name + "%05d" % i + ".vtk"
 		print(vtk_file_name)
 		with open(vtk_file_name, 'w') as vtk_file:
-			vtk_file.write(header+ str(tr["n_ions"])+" float\n")
+			vtk_file.write(header + str(tr["n_ions"]) + " float\n")
 
 			ion_positions = tr["positions"]
-			for i_pos in ion_positions[:,:,i]:
-				vtk_file.write(str(i_pos[0])+" "+str(i_pos[1])+" "+str(i_pos[2])+" \n")
+			for i_pos in ion_positions[:, :, i]:
+				vtk_file.write(str(i_pos[0]) + " " + str(i_pos[1]) + " " + str(i_pos[2]) + " \n")
 
-################## Data Processing Methods ######################
+
+# -------------- Data Processing Methods -------------- #
 
 
 def filter_parameter(positions, filter_param, value):
 	"""
-	Filters out trajectories of ions according to a given parameter vector
+	Filters out trajectories of ions according to a value in a given particle parameter.
+	The method takes the positions of particles, data representing a parameter of the particles and a value which
+	is selected for.
 
-	:param positions: a positions vector from an imported trajectories object
-	:type trajectory positions: positions vector from dict returned from readTrajectoryFile
-	:param filter_param: a parameter from an imported trajectories object to filter for
-		if a vector is provided it is assumed, that the filtering is stable across all timesteps
-		if a two dimensional array is provided, the filtering is performed with individual filter param vectors
-		for the timesteps
-	:param value: the value to filter for
-	:return: filtered particle positions
-		if a filter vector is provided: Numpy array is returned with the particles, spatial dimensions and timesteps
-		as dimensions
-		if a filter matrix (individual filter param vectors for the individual timesteps) is provided:
-		list of individual filterd position vectors for the individual timesteps
+	:param positions: Positions vector from an imported trajectories object
+	:type positions: Positions vector from dict returned from a trajectory read method
+	:param filter_param: Particle parameter data from an imported trajectories dict to filter for
+
+		* if a vector is provided it is assumed, that the particle parameter which is  filtered for
+		  is stable across all time steps
+		* if a two dimensional array is provided, the filtering is performed with an variable particle parameter
+		  which is filtered for. Every time step has an vector of parameter values for the individual particles
+
+	:param value: Value to filter for: This value is selected for retainment from the particle parameter data
+	:return: Filtered particle positions
+
+		* if a filter vector is provided: Numpy array is returned with the particles, spatial dimensions and time steps
+		  as dimensions
+		* if a filter matrix (individual filter param vectors for the individual time steps) is provided:
+		  list of individual filterd position vectors for the individual time steps
 	"""
-
-	# if filter_param is a vector: Same filtering for all timesteps
+	# if filter_param is a vector: Same filtering for all time steps
 	if filter_param.ndim == 1:
 		filtered_indexes = np.nonzero(filter_param == value)
-		return positions[filtered_indexes,:,:][0]
+		return positions[filtered_indexes, :, :][0]
 	if filter_param.ndim == 2:
-		# we have a different filter parameter vector per timestep
-		# filtered particles per timestep could variate: generate a vector per timestep
+		# we have a different filter parameter vector per time step
+		# filtered particles per time step could variate: generate a vector per time step
 		n_ts = np.shape(filter_param)[1]
-		filtered_indexes = [np.nonzero(filter_param[:,i] == value) for i in range(n_ts)]
+		filtered_indexes = [np.nonzero(filter_param[:, i] == value) for i in range(n_ts)]
 		result = [positions[filtered_indexes[i], :, i][0] for i in range(len(filtered_indexes))]
 		return result
 	else:
@@ -301,12 +312,13 @@ def center_of_charge(tr):
 	:param tr: a trajectories vector from an imported trajectories object
 	:type tr: trajectories vector from dict returned from readTrajectoryFile
 	:return: vector of the spatial position of the center of mass
+	:rtype: numpy.array
 	"""
 	nSteps = np.shape(tr)[2]
-	coc = np.zeros([nSteps,3])
+	coc = np.zeros([nSteps, 3])
 	for i in range(nSteps):
-		xMean = np.mean(tr[:,0,i])
-		yMean = np.mean(tr[:,1,i])
-		zMean = np.mean(tr[:,2,i])
-		coc[i,:] = np.array([xMean,yMean,zMean])
-	return(coc)
+		xMean = np.mean(tr[:, 0, i])
+		yMean = np.mean(tr[:, 1, i])
+		zMean = np.mean(tr[:, 2, i])
+		coc[i, :] = np.array([xMean, yMean, zMean])
+	return coc

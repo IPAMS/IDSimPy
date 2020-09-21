@@ -22,6 +22,7 @@ __all__ = (
 def plot_particles_path(trajectory_data, pl_filename, p_indices, plot_mark='*-', time_range=(0, 1)):
 	"""
 	Plots the paths of a selection of particles in a x,z and y,z projection
+
 	:param trajectory_data: trajectory input data
 	:type trajectory_data: list of lists of trajectory dictionaries from read_trajectory_file and an according label
 	:param pl_filename: the basename of the plot image files to create
@@ -64,15 +65,16 @@ def plot_density_xz(
 		figsize=(7, 7), axis_equal=True):
 	"""
 	Renders an density plot in a z-x projection
+
 	:param trajectory_data: a trajectories vector from an imported trajectories object
 	:type trajectory_data: trajectories vector from dict returned from readTrajectoryFile
 	:param time_index: index of the time step to render
 	:type time_index: int
 	:param xedges: the edges of the bins of the density plot (2d histogram bins) in x direction, if None the
-	maxium extend is used with 50 bins, if a number n, the maximum extend is used with n bins
+		maximum extend is used with 50 bins, if a number n, the maximum extend is used with n bins
 	:type xedges: iterable or list / array or int
 	:param zedges: the edges of the bins of the density plot (2d histogram bins) in z direction, if None the
-	maxium extend is used with 50 bins, if a number n, the maximum extend is used with n bins
+		maximum extend is used with 50 bins, if a number n, the maximum extend is used with n bins
 	:type zedges: iterable or list / array or int
 	:param figsize: the figure size
 	:type figsize: tuple of two floats
@@ -102,11 +104,11 @@ def animate_xz_density(
 
 	:param trajectory_data: a trajectories vector from an imported trajectories object
 	:type trajectory_data: trajectories vector from dict returned from readTrajectoryFile
-	:param xedges: the edges of the bins of the density plot (2d histogram bins) in x direction, if None the
-	maximum extend is used with 50 bins, if a number n, the maximum extend is used with n bins
+	:param xedges: the edges of the bins of the density plot (2d histogram bins) in x direction, 
+		if None the maximum extend is used with 50 bins, if a number n, the maximum extend is used with n bins
 	:type xedges: iterable or list / array or int
-	:param zedges: the edges of the bins of the density plot (2d histogram bins) in z direction, if None the
-	maxi,um extend is used with 50 bins, if a number n, the maximum extend is used with n bins
+	:param zedges: the edges of the bins of the density plot (2d histogram bins) in z direction, 
+		if None the maximum extend is used with 50 bins, if a number n, the maximum extend is used with n bins
 	:type zedges: iterable or list / array or int
 	:param figsize: the figure size
 	:type figsize: tuple of two floats
@@ -183,10 +185,10 @@ def render_xz_density_animation(
 	:param result_name: basename for the rendering result
 	:type result_name: str
 	:param xedges: the edges of the bins of the density plot (2d histogram bins) in x direction, if None the
-	maximum extend is used with 50 bins, if a number n, the maximum extend is used with n bins
+		maximum extend is used with 50 bins, if a number n, the maximum extend is used with n bins
 	:type xedges: iterable or list / array or int
 	:param zedges: the edges of the bins of the density plot (2d histogram bins) in z direction, if None the
-	maxi,um extend is used with 50 bins, if a number n, the maximum extend is used with n bins
+		maximum extend is used with 50 bins, if a number n, the maximum extend is used with n bins
 	:type zedges: iterable or list / array or int
 	:param interval: interval in terms of data frames in the input data between the animation frames
 	:type interval: int
@@ -462,7 +464,7 @@ def animate_scatter_plot(
 	:param interval: interval in terms of data frames in the input data between the animation frames
 	:type interval: int
 	:param color_parameter: name of an additional parameter of the trajectory used for coloring or a vector of manual
-	values for coloring
+		values for coloring
 	:type color_parameter: str or iterable (ndarray, list, tuple)
 	:param crange: manual color range, given as tuple. Colormap spans from c_range[0] to c_range[1]
 	:type crange: two element tuple of numeric
@@ -572,7 +574,7 @@ def animate_variable_scatter_plot(
 	:param interval: interval in terms of data frames in the input data between the animation frames
 	:type interval: int
 	:param color_parameter: name of an additional parameter of the trajectory used for coloring or a vector of manual
-	values for coloring
+		values for coloring
 	:type color_parameter: str or iterable (ndarray, list, tuple)
 	:param cmap: a matplotlib colormap for colorization of the scatter plot
 	:type cmap: matplotlib.colors.Colormap
@@ -678,7 +680,7 @@ def render_scatter_animation(
 	:param interval: interval in terms of data frames in the input data between the animation frames
 	:type interval: int
 	:param color_parameter: name of an additional parameter of the trajectory used for coloring or a vector of manual
-	values for coloring
+		values for coloring
 	:type color_parameter: str or iterable (ndarray, list, tuple)
 	:param cmap: a matplotlib colormap for colorization of the scatter plot
 	:type cmap: matplotlib.colors.Colormap

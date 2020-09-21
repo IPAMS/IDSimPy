@@ -9,10 +9,11 @@ def read_concentration_file(filename):
 	"""
 	Reads a IDSimF RS concentration log / result file (tabular file with concentrations over
 	time)
+
 	:param filename: name of the file to read
 	:type filename: str
 	:return: Pandas DataFrame with the imported data
-	:rtype: Pandas DataFrame
+	:rtype: pandas.DataFrame
 	"""
 	df = pd.read_csv(filename, skiprows=1, delimiter=';').iloc[:, :-1].rename(columns=lambda x: x.strip())
 	return df
@@ -21,9 +22,9 @@ def read_concentration_file(filename):
 def plot_concentration_file(filename, time_range=(0, 1)):
 	"""
 	Simple plot method: Reads and plots a IDSimF RS concentration log / result file
+	
 	:param filename: name of the file to plot
 	:type filename: str
-	:return: None
 	"""
 	df = read_concentration_file(filename)
 	time = df['Time']
