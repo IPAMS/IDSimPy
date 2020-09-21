@@ -32,9 +32,10 @@ The current main features are:
 
 .. toctree::
     :maxdepth: 1
-    :caption: Module Documentation:
+    :caption: Package / Module Documentation:
 
-    modules/modules_documentation
+    modules/package_analysis
+    modules/package_preprocessing
 
 
 ==================
