@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 ion_cloud_generation: Generation of ion cloud initialization files
 """
@@ -9,9 +10,12 @@ import numpy as np
 def write_cloud_file(ion_cloud, filename):
 	"""
 	Writes an ion cloud to an ion cloud file
+
 	:param ion_cloud: an np.array with the columns:
 		[x pos, y pos, z pos, x velo, y velo, z velo, charge (in elem. charges), mass (in amu)]
+	:type ion_cloud: numpy.Array
 	:param filename: name of the file in which the tabular ion cloud data is written to
+	:type filename: str
 	"""
 	with open(filename, 'w') as file:
 		for i_ion in range(np.shape(ion_cloud)[0]):
@@ -59,6 +63,7 @@ def define_xy_grid(n_x, n_y, w_x, w_y, o_x, o_y, mass):
 	"""
 	Defines a grid in the x-y direction (z=0)
 	(grid is from -width to width)
+
 	:param int n_x: ions in x direction
 	:param int n_y: ions in y direction
 	:param float w_x: width in x direction
@@ -85,6 +90,7 @@ def define_xy_grid(n_x, n_y, w_x, w_y, o_x, o_y, mass):
 def define_origin_centered_block(n_ions, w_x, w_y, w_z, mass):
 	"""
 	Defines a block of random ions around the coordinate system origin
+
 	:param int n_ions: the number of ions in the block
 	:param float w_x: the width in x direction
 	:param float w_y: the width in y direction
@@ -109,17 +115,18 @@ def define_origin_centered_block(n_ions, w_x, w_y, w_z, mass):
 def define_cylinder_z_dir(n_ions, r, z, charge, mass):
 	"""
 	Defines a cylinder with the cylinder axis parallel to the z-axis and the center of one face of the cylinder on
-	the origin of the coordinate system filled with random ions
+	the origin of the coordinate system filled with random ions.
 
-	The disk cros section must be filled uniformly with ions, see
-	http://mathworld.wolfram.com/DiskPointPicking.html for details and argument how to do this
+	The cylinder cross section, a disk, must be filled uniformly with ions, see
+	http://mathworld.wolfram.com/DiskPointPicking.html for details and argument how to do this.
 
 	:param int n_ions: The number of ions in the cylinder
-	:param float r: the radius of the cylinder
-	:param z:
-	:param charge:
-	:param mass:
-	:return:
+	:param float r: Radius of the cylinder
+	:param float z: Height of the cylinder
+	:param float charge: Charge of the ions in the generated cylinder
+	:param float mass: Mass of the ions in the generated cylinder
+	:return: Array with parameters of the particles in the defined cylinder. Columns are:
+		[x,y,z, vx, vy, vz, charge, mass, time of birth]
 	"""
 	R = np.sqrt(np.random.rand(n_ions, 1)) * r
 	phi = np.random.rand(n_ions, 1) * 2 * np.pi
@@ -142,15 +149,16 @@ def define_cylinder_x_dir(n_ions, r, x, charge, mass):
 	Defines a cylinder with the cylinder axis parallel to the x-axis and the center of one face of the cylinder on
 	the origin of the coordinate system filled with random ions
 
-	The disk cros section must be filled uniformly with ions, see
-	http://mathworld.wolfram.com/DiskPointPicking.html for details and argument how to do this
+	The cylinder cross section, a disk, must be filled uniformly with ions, see
+	http://mathworld.wolfram.com/DiskPointPicking.html for details and argument how to do this.
 
 	:param int n_ions: The number of ions in the cylinder
 	:param float r: the radius of the cylinder
-	:param x: length ("radius") in x direction
-	:param charge:
-	:param mass:
-	:return:
+	:param float x: length ("radius") in x direction
+	:param float charge: Charge of the ions in the generated cylinder
+	:param float mass: Mass of the ions in the generated cylinder
+	:return: Array with parameters of the particles in the defined cylinder. Columns are:
+		[x,y,z, vx, vy, vz, charge, mass, time of birth]
 	"""
 	R = np.sqrt(np.random.rand(n_ions, 1)) * r
 	phi = np.random.rand(n_ions, 1) * 2 * np.pi
@@ -171,7 +179,8 @@ def define_cylinder_x_dir(n_ions, r, x, charge, mass):
 
 def write_xy_slice(n_ions, masses, w_x, w_y, filename):
 	"""
-	Writes a random slice of ions in xy-Direction to a file
+	Writes a random slice of ions in xy-Direction to a file,
+
 	:param list[int] n_ions: a list of numbers of ions with ions in the slice
 	:param list[float] masses: list of masses (in amu)
 	:param float w_x: the width in x direction (in m)

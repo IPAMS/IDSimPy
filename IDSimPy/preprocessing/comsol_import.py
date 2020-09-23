@@ -7,14 +7,15 @@ import io
 
 def import_comsol_3d_csv_grid(filename):
 	"""
-	Imports a csv file with multiple 3d scalar fields exported from comsol
+	Imports a csv file with multiple 3d scalar fields exported from comsol.
 
 	  Result dictionary contains:
-	  + grid_points: Array of vectors with the positions of the grid points in the x,y,z directions
-	  + meshgrid: Array of meshgrid matrices as defined by numpy meshgrid
-	  + fields: Array of scalar fields, which are dictionaries with a name and the scalar data in 'data'
 
-	:param filename: the file name to import
+	    * grid_points: Array of vectors with the positions of the grid points in the x,y,z directions
+	    * meshgrid: Array of meshgrid matrices as defined by numpy meshgrid
+	    * fields: Array of scalar fields, which are dictionaries with a name and the scalar data in 'data'
+
+	:param str filename: the file name to import
 	:return: Result dictionary as defined above
 	"""
 
@@ -44,10 +45,10 @@ def import_comsol_3d_csv_grid(filename):
 
 def parse_grid_vector(vec_str, delimiter=','):
 	"""
-	Parses a vector with spatial grid positions from a grid vector line from a comsol
-	csv header
-	:param vec_str: A string containing the header line
-	:param delimiter: the delimiter in the vector line
+	Parses a vector with spatial grid positions from a grid vector line from a comsol csv header.
+
+	:param str vec_str: A string containing the header line
+	:param str delimiter: the delimiter in the vector line
 	:return: numpy array with the vector values
 	"""
 	vec_str_spl = vec_str.split(delimiter)
@@ -61,10 +62,12 @@ def parse_grid_vector(vec_str, delimiter=','):
 
 def parse_comsol_csv_data_chunk(raw_chunk, dims):
 	"""
-	Parses a raw data chunk (given as string) and returns a numpy array with the data values
-	:param raw_chunk: the string containing the data chunk
+	Parses a raw data chunk (given as string) and returns a numpy array with the data values.
+
+	:param str raw_chunk: The string containing the data chunk
 	:param dims: 3 dim array with the number of points in the spatial (x,y,z) dimensions
-	:return: dictionary with the field_name and the data of the field
+	:type dims: tuple or numpy.Array
+	:return: Dictionary with the field_name and the data of the field
 	"""
 	(field_name, raw_field) = raw_chunk.split('\n', 1)
 	field_raw_dat = np.genfromtxt(io.BytesIO(raw_field.encode()), delimiter=',')
@@ -82,9 +85,10 @@ def parse_comsol_csv_data_chunk(raw_chunk, dims):
 def parse_spatial_dimensions(header):
 	"""
 	Parses and returns the spatial dimensions of a comsol csv field file from the header of the
-	comsol csv file
-	:param header: the header (given as string)
-	:return: tuple of three vectors with the spatial point grid positions in x,y,z direction
+	comsol csv file.
+
+	:param str header: The header (given as string)
+	:return: Tuple of three vectors with the spatial point grid positions in x,y,z direction
 	"""
 	header_lines = header.split("\n")
 	x_grid_str = header_lines[-4]

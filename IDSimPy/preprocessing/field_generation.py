@@ -8,9 +8,10 @@ import h5py
 
 def transform_2d_axial_to_3d(R_axi, Z_axi, V_axi, radial_component=False):
 	"""
-	Transforms 2d axial symmetric data into 3d cartesian data
-	The symmetry axis which is used for the rotation is the y axis in cartesian coordinates
-	Note: The data is expected to be given as meshgrid in ij indexing
+	Transforms 2d axial symmetric data into 3d cartesian data.
+	The symmetry axis which is used for the rotation is the y axis in cartesian coordinates.
+
+	*Note:* The data is expected to be given as meshgrid in ij indexing.
 	"""
 
 	grid_r = R_axi[:, 0]
@@ -223,12 +224,13 @@ def write_3d_scalar_fields_as_vtk_point_data(dat, result_filename, scale_factor=
 	writer.SetInputData(vtk_grid)
 	writer.Write()
 
-def plot_3d_grid(meshgrid,field_dat,Xi):
+def plot_3d_grid(meshgrid, field_dat, Xi):
 	'''
-	Plots a field imported from a comsol 3d csv file
-	:param meshgrid: the meshgrid (as defined by numpy meshgrid) for the 3d field
-	:param field_dat: the scalar field to plot
-	:param Xi: the index of the slice in x direction to plot
+	Plots a field imported from a comsol 3d csv file.
+
+	:param numpy.Array meshgrid: the meshgrid (as defined by numpy meshgrid) for the 3d field
+	:param numpy.Array field_dat: the scalar field to plot
+	:param int Xi: the index of the slice in x direction to plot
 	'''
 	X,Y,Z = meshgrid
 	P = field_dat
