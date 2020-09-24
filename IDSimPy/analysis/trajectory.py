@@ -7,6 +7,7 @@ import h5py
 import numpy as np
 
 __all__ = (
+	'Trajectory',
 	'read_legacy_trajectory_file',
 	'read_json_trajectory_file',
 	'read_hdf5_trajectory_file',
@@ -14,6 +15,109 @@ __all__ = (
 	'translate_json_trajectories_to_vtk',
 	'filter_parameter',
 	'center_of_charge')
+
+
+class Trajectory:
+	"""
+	An IDSimF particle simulation trajectory. The simulation trajectory combines the result of an IDSimF particle
+	simulation in one object. The trajectory consists of the positions of simulated particles at the time steps of
+	the simulation, the times of the time steps and optional parameters of the simulated particles.
+
+	The trajectory can be "static" which means that the number of particles is not
+	changing between the time steps.
+
+	:ivar positions: Particle positions. The particles are stored in a different scheme, depending if the trajectory
+		is static:
+
+		* If the trajectory is static: **positions** is a ``numpy.ndarray`` with the shape ``[n ions, spatial dimensions,
+		  n time steps]``. With 5 particles and 15 time steps the shape would be ``[5, 3, 15]``.
+		* If the trajectory is not static: **positions** is a ``list`` of ``numpy.ndarray`` with the shape ``[spatial
+		  dimensions, n ions``]
+
+	:ivar times: Vector of simulated times for the individual time frames.
+	:type times: numpy.ndarray
+	:ivar n_timesteps: Number of time steps in the trajectory
+	:type n_timesteps: int
+	:var additional_attributes: Additional simulation result attributes for the simulated particles. Basically,
+		additional attributes are a vector of numeric additional particle attributes, attached to every particle
+		in every time step. Similarly to ``positions`` the shape depends if the trajectory is static or not:
+
+		* If the trajectory is static: **additional_attributes** is a ``numpy.ndarray`` with the shape ``[n ions,
+		  particle attribute, n time steps]``. With 5 particles, 4 additional numerical attributes (e.g. x,y,z velocity
+		  and chemical id) and 15 time steps the shape would be ``[5, 4, 15]``.
+		* If the trajectory is not static: **additional_attributes** is a ``list`` of ``numpy.ndarray`` with the shape
+		  ``[particle attribute, n ions``]
+
+	:ivar additional_attribute_names: Names of the additional particle attributes
+	:type additional_attribute_names: list[str]
+	:ivar is_static_trajectory: Flag if the trajectory is static.
+	:type is_static_trajectory: bool
+	"""
+
+	def __init__(self, positions=None, times=None, additional_attributes=None, additional_attribute_names=None,
+	             file_version_id=0):
+		"""
+		Constructor: (for details about the shape of the parameters see the class docsting)
+
+		:param positions: Particle positions
+		:type positions: numpy.ndarray or list[numpy.ndarray]
+		:param times: Times of the simulation time steps
+		:type times: numpy.ndarray with shape ``[n timesteps, 1]``
+		:param additional_attributes: Additional attributes for every particle for every time step
+		:type additional_attributes: numpy.ndarray or list[numpy.ndarray]
+		:param additional_attribute_names: Names of additional attributes
+		:type additional_attribute_names: tuple[str]
+		:param file_version_id: File version id
+		:type file_version_id: int
+		"""
+
+		if type(positions) == np.ndarray:
+			self.is_static_trajectory = True
+			if len(positions.shape) != 3 or positions.shape[1] != 3:
+				raise ValueError('Static positions have wrong shape')
+			self.n_timesteps = positions.shape[2]
+		elif type(positions) == list:
+			self.is_static_trajectory = False
+			self.n_timesteps = len(positions)
+		else:
+			raise TypeError('Wrong type for positions, has to be an numpy.ndarray or a list of numpy.ndarrays')
+
+		if type(times) != np.ndarray:
+			raise TypeError('Wrong type for times, a numpy vector')
+
+		if times.shape[0] != self.n_timesteps:
+			raise ValueError('Times vector has wrong length')
+
+		if additional_attributes is not None:
+			if self.is_static_trajectory:
+				if type(additional_attributes) != np.ndarray:
+					raise ValueError('Additional parameter has wrong type for static trajectory')
+				n_additional_parameters = additional_attributes.shape[1]
+				self.additional_attributes = additional_attributes
+			else:
+				if type(additional_attributes) != list:
+					raise ValueError('Additional parameter has wrong type for variable trajectory')
+				n_additional_parameters = additional_attributes[0].shape[0]
+				self.additional_attributes = additional_attributes
+
+			if len(additional_attribute_names) != n_additional_parameters:
+				raise ValueError('Additional parameter name vector has wrong length')
+
+		self.positions = positions
+		self.times: np.ndarray = times
+		self.additional_attributes = additional_attributes
+		self.additional_attribute_names: list = additional_attribute_names
+		self.file_version_id: int = file_version_id
+
+	def __len__(self):
+		return self.n_timesteps
+
+	def __getitem__(self, timestep_index):
+		if self.is_static_trajectory:
+			return self.positions[timestep_index, :, :]
+		else:
+			return self.positions[timestep_index]
+
 
 # -------------- Trajectory input -------------- #
 
@@ -106,7 +210,7 @@ def read_json_trajectory_file(trajectory_filename):
 		splat_times[i] = float(splat_times_json[i])
 
 	return {"positions": positions,
-	        "additional_parameters": additional_parameters,
+	        "additional_attributes": additional_parameters,
 	        "times": times,
 	        "masses": masses,
 	        "n_particles": nIons,
@@ -191,7 +295,7 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 		if static_trajectory:
 			aux_dat = np.dstack(aux_dat)
 
-		result["additional_parameters"] = aux_dat
+		result["additional_attributes"] = aux_dat
 		result["additional_names"] = aux_parameters_names
 
 	return result
@@ -224,7 +328,7 @@ def read_legacy_hdf5_trajectory_file(trajectory_file_name):
 	if 'aux_parameters' in tra_group.keys():
 		aux_parameters_names = [name.decode('UTF-8') for name in attribs['auxiliary parameter names']]
 		aux_parameters = tra_group['aux_parameters']
-		result["additional_parameters"] = np.array(aux_parameters)
+		result["additional_attributes"] = np.array(aux_parameters)
 		result["additional_names"] = aux_parameters_names
 
 	return result

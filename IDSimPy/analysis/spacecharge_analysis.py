@@ -72,7 +72,7 @@ def average_electric_force_time_series(projectName, mass):
 
 	i_pos = tj["positions"]
 	i_masses = tj["masses"]
-	i_ap = tj["additional_parameters"]
+	i_ap = tj["additional_attributes"]
 
 	i_pos_mfiltered = lq.filter_mass(i_pos, i_masses, mass)
 	i_ap_mfiltered = lq.filter_mass(i_ap, i_masses, mass)
@@ -150,7 +150,7 @@ def animate_simulation_z_vs_x_spacecharge_density(dat, n_frames, interval,
 
 	times = dat["times"]
 	i_pos = dat["positions"]
-	i_ap = dat["additional_parameters"]
+	i_ap = dat["additional_attributes"]
 
 	rf_force = RF_force_magnitude(i_ap)
 	sc_force = space_charge_force_magnitude(i_ap)
