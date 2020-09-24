@@ -47,6 +47,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 
 # -- Options for HTML output -------------------------------------------------
+# -- Autodoc configuration ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -72,3 +73,7 @@ html_theme_options = {
 #html_css_files = [
 #    'css/custom.css',
 #]
+
+# -- Autodoc configuration ---------------------------------------------------
+
+autoclass_content = 'both'
