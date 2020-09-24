@@ -24,6 +24,12 @@ The current main features are:
 
 .. toctree::
     :maxdepth: 1
+    :caption: Installation:
+
+    installation/installation
+
+.. toctree::
+    :maxdepth: 1
     :caption: User Guide:
 
     usersguide/trajectory
