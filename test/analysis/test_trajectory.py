@@ -87,6 +87,10 @@ class TestTrajectory(unittest.TestCase):
 		self.assertEqual(len(tra_static), n_timesteps)
 		self.assertEqual(len(tra_variable), n_timesteps)
 
+		self.assertEqual(tra_static.n_particles, 4)
+		with self.assertRaises(AttributeError):
+			tra_variable.n_particles
+
 		np.testing.assert_almost_equal(tra_static[1][0, :], (1.0, 0.0, 0.0))
 		np.testing.assert_almost_equal(tra_static.get_positions(1)[0, :], (1.0, 0.0, 0.0))
 		np.testing.assert_almost_equal(tra_variable[3][:, 1], (2.0, 2.0, 2.0, 2.0))
@@ -103,20 +107,20 @@ class TestTrajectory(unittest.TestCase):
 	def test_hdf5_trajectory_reading_variable_timesteps(self):
 		tra = ia.read_hdf5_trajectory_file(self.new_hdf5_variable_fname)
 
-		self.assertEqual(tra['file_version_id'], 2)
-		self.assertEqual(tra['static_trajectory'], False)
-		self.assertEqual(np.shape(tra['positions'][9]), (512, 3))
-		self.assertAlmostEqual(tra['positions'][9][500, 2], -0.000135881)
+		self.assertEqual(tra.file_version_id, 2)
+		self.assertEqual(tra.is_static_trajectory, False)
+		self.assertEqual(np.shape(tra[9]), (512, 3))
+		self.assertAlmostEqual(tra[9][500, 2], -0.000135881)
 
 	def test_hdf5_trajectory_reading_static_timesteps(self):
 		tra = ia.read_hdf5_trajectory_file(self.new_hdf5_static_fname)
 
-		self.assertEqual(tra['file_version_id'], 2)
-		self.assertEqual(tra['static_trajectory'], True)
-		self.assertEqual(tra['n_particles'], 1000)
-		self.assertEqual(np.shape(tra['positions']), (1000, 3, 51))
-		self.assertEqual(np.shape(tra['additional_attributes']), (1000, 9, 51))
-		self.assertAlmostEqual(tra['positions'][983, 0, 9], -0.00146076)
+		self.assertEqual(tra.file_version_id, 2)
+		self.assertEqual(tra.is_static_trajectory, True)
+		self.assertEqual(tra.n_particles, 1000)
+		self.assertEqual(np.shape(tra.positions), (1000, 3, 51))
+		self.assertEqual(np.shape(tra.additional_attributes), (1000, 9, 51))
+		self.assertAlmostEqual(tra.positions[983, 0, 9], -0.00146076)
 
 	def test_legacy_hdf5_trajectory_reading(self):
 		tra = ia.read_legacy_hdf5_trajectory_file(self.legacy_hdf5_aux_fname)

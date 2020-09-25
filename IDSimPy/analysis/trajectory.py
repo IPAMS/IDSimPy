@@ -50,12 +50,14 @@ class Trajectory:
 
 	:ivar additional_attribute_names: Names of the additional particle attributes
 	:type additional_attribute_names: list[str]
+	:ivar splat_times: Vector of particle termination / splat times
+	:type splat_times: numpy.ndarray
 	:ivar is_static_trajectory: Flag if the trajectory is static.
 	:type is_static_trajectory: bool
 	"""
 
 	def __init__(self, positions=None, times=None, additional_attributes=None, additional_attribute_names=None,
-	             file_version_id=0):
+	             splat_times=None, file_version_id=0):
 		"""
 		Constructor: (for details about the shape of the parameters see the class docsting)
 
@@ -67,6 +69,8 @@ class Trajectory:
 		:type additional_attributes: numpy.ndarray or list[numpy.ndarray]
 		:param additional_attribute_names: Names of additional attributes
 		:type additional_attribute_names: tuple[str]
+		:param splat_times: Particle termination / "splat" times
+		:type splat_times: numpy.ndarray
 		:param file_version_id: File version id
 		:type file_version_id: int
 		"""
@@ -83,7 +87,7 @@ class Trajectory:
 			raise TypeError('Wrong type for positions, has to be an numpy.ndarray or a list of numpy.ndarrays')
 
 		if type(times) != np.ndarray:
-			raise TypeError('Wrong type for times, a numpy vector')
+			raise TypeError('Wrong type for times, a numpy vector is expected')
 
 		if times.shape[0] != self.n_timesteps:
 			raise ValueError('Times vector has wrong length')
@@ -103,10 +107,18 @@ class Trajectory:
 			if len(additional_attribute_names) != n_additional_attributes:
 				raise ValueError('Additional parameter name vector has wrong length')
 
+		if splat_times is not None:
+			if self.is_static_trajectory:
+				if type(splat_times) != np.ndarray:
+					raise ValueError('Splat times vector has wrong type')
+			else:
+				raise ValueError('Currently, splat times are only supported for static trajectories')
+
 		self.positions = positions
 		self.times: np.ndarray = times
 		self.additional_attributes = additional_attributes
 		self.additional_attribute_names: list = additional_attribute_names
+		self.splat_times = splat_times
 		self.file_version_id: int = file_version_id
 
 	def __len__(self):
@@ -117,6 +129,13 @@ class Trajectory:
 			return self.positions[:, :, timestep_index]
 		else:
 			return self.positions[timestep_index]
+
+	@property
+	def n_particles(self):
+		if self.is_static_trajectory:
+			return self.positions.shape[0]
+		else:
+			raise AttributeError("Time step independent number of ions is only defined for static trajectories")
 
 	def get_positions(self, timestep_index):
 		"""
@@ -211,16 +230,10 @@ def read_json_trajectory_file(trajectory_filename):
 	"""
 	Reads a trajectory file and returns a trajectory object
 
-	Trajectory objects are dictionaries which contain three elements:
-	trajectories: a vector which contains the x,y,z positions of all particles for all time steps
-	(a vector of lists one vector entry per time step)
-	times: vector of times of the individual time steps
-	masses: the vector of particle masses
-
 	:param trajectory_filename: File name of the file to read
 	:type trajectory_filename: str
-	:return: Dictionary with trajectory data
-	:rtype: dict
+	:return: Trajectory object with trajectory data
+	:rtype: Trajectory
 	"""
 	if trajectory_filename[-8:] == ".json.gz":
 		with gzip.open(trajectory_filename) as tf:
@@ -271,16 +284,10 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 	Reads a version 2 hdf5 trajectory file (which allows also exported simulation frames
 	with variable number of particles.
 
-	If the trajectory is static the trajectory is returned in a static format
-	(three dimensional positions and additional_data arrays).
-	If the trajectory is variable (the number of particles differ in the individual exported frames)
-	the position and additional_data is given in lists of individual arrays for the
-	individual time steps.
-
 	:param trajectory_file_name: Name of the file to read
 	:type trajectory_file_name: str
-	:return: Dictionary with trajectory data
-	:rtype: dict
+	:return: Trajectory object with trajectory data
+	:rtype: Trajectory
 	"""
 	hdf5File = h5py.File(trajectory_file_name, 'r')
 
@@ -294,12 +301,12 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 	timesteps_group = tra_group['timesteps']
 	times = tra_group['times']
 
-	aux_parameters_names = None
+	aux_attributes_names = None
 	if 'auxiliary parameter names' in attribs.keys():
-		aux_parameters_names = [name.decode('UTF-8') for name in attribs['auxiliary parameter names']]
+		aux_attributes_names = [name.decode('UTF-8') for name in attribs['auxiliary parameter names']]
 
 	positions = []
-	aux_parameters = []
+	aux_attributes = []
 
 	n_ion_per_frame = []
 	for ts_i in range(n_timesteps):
@@ -310,8 +317,8 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 		n_ion_per_frame.append(np.shape(ion_positions)[0])
 		positions.append(ion_positions)
 
-		if aux_parameters_names:
-			aux_parameters.append(np.array(ts_group['aux_parameters']))
+		if aux_attributes_names:
+			aux_attributes.append(np.array(ts_group['aux_parameters']))
 
 	unique_n_ions = len(set(n_ion_per_frame))
 
@@ -325,25 +332,23 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 		static_trajectory = True
 		positions = np.dstack(positions)
 
-	result = {"positions": positions,
-	          "times": np.array(times),
-	          "n_timesteps": n_timesteps,
-	          "file_version_id": file_version_id,
-	          "static_trajectory": static_trajectory}
-
+	splat_times = None
 	if 'splattimes' in tra_group.keys():
-		result['splattimes'] = np.array(tra_group['splattimes'])
+		splat_times = np.array(tra_group['splattimes'])
 
-	if static_trajectory:
-		result['n_particles'] = n_ion_per_frame[0]
-
-	if aux_parameters_names:
-		aux_dat = np.array(aux_parameters)
+	aux_dat = None
+	if aux_attributes_names:
+		aux_dat = aux_attributes
 		if static_trajectory:
-			aux_dat = np.dstack(aux_dat)
+			aux_dat = np.dstack(np.array(aux_dat))
 
-		result["additional_attributes"] = aux_dat
-		result["additional_names"] = aux_parameters_names
+	result = Trajectory(
+		positions=positions,
+		times=np.array(times),
+		additional_attributes= aux_dat,
+		additional_attribute_names= aux_attributes_names,
+		splat_times= splat_times,
+		file_version_id=file_version_id)
 
 	return result
 
