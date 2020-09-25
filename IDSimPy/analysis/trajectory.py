@@ -8,7 +8,6 @@ import numpy as np
 
 __all__ = (
 	'Trajectory',
-	'read_legacy_trajectory_file',
 	'read_json_trajectory_file',
 	'read_hdf5_trajectory_file',
 	'read_legacy_hdf5_trajectory_file',
@@ -191,44 +190,6 @@ class Trajectory:
 
 
 # -------------- Trajectory input -------------- #
-
-
-def read_legacy_trajectory_file(trajectory_filename):
-	"""
-	Reads a legacy trajectory file and returns a legacy trajectory object
-
-	Trajectory objects are dictionaries which contain three elements:
-	trajectories: a vector which contains the x,y,z positions of all particles for all time steps
-	(a vector of lists one vector entry per time step)
-	times: vector of times of the individual time steps
-	masses: the vector of particle masses
-
-	:param trajectory_filename: File name of the file to read
-	:type trajectory_filename: str
-	:return: Dictionary with trajectory data
-	:rtype: dict
-	"""
-	if (trajectory_filename[-8:] == ".json.gz"):
-		with gzip.open(trajectory_filename) as tf:
-			tj = json.load(io.TextIOWrapper(tf))
-	else:
-		with open(trajectory_filename) as tf:
-			tj = json.load(tf)
-
-	steps = tj["steps"]
-	nIons = len(steps[0]["positions"])
-
-	t = np.zeros([nIons, 3, len(steps)])
-	times = np.zeros(len(steps))
-	for i in range(len(steps)):
-		t[:, :, i] = np.array(steps[i]["positions"])
-		times[i] = float(steps[i]["time"])
-
-	masses = np.zeros([nIons])
-	massesJson = tj["ionMasses"]
-	for i in range(len(massesJson)):
-		masses[i] = float(massesJson[i])
-	return {"trajectories": t, "times": times, "masses": masses}
 
 
 def read_json_trajectory_file(trajectory_filename):
