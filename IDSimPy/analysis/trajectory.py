@@ -125,6 +125,7 @@ class Trajectory:
 		:param timestep_index: The index of the time step to get the positions for
 		:type timestep_index: int
 		:return: Array of particle positions for a time step. Dimensions are ``[n particles, spatial dimensions]``
+		:rtype: numpy.ndarray
 		"""
 		return self[timestep_index]
 
@@ -152,7 +153,7 @@ class Trajectory:
 		:type timestep_index: int
 		:return: Tuple with the position and the additional attribute vector for the particle at the selected
 			time step
-		:rtype: tuple of numpy.ndarray
+		:rtype: tuple of two numpy.ndarray
 		"""
 		if self.is_static_trajectory:
 			pos = self.positions[particle_index, :, timestep_index]
