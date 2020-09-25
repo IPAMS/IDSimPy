@@ -268,8 +268,8 @@ def animate_xz_density_comparison_plot(
 	elif select_mode == 'substance':
 		id_column = trajectory_data[0]['additional_names'].index('chemical id')
 		select_parameter = [
-			trajectory_data[0]['additional_attributes'][:, id_column, :],
-			trajectory_data[1]['additional_attributes'][:, id_column, :]]
+			trajectory_data[0]['particle_attributes'][:, id_column, :],
+			trajectory_data[1]['particle_attributes'][:, id_column, :]]
 	else:
 		raise ValueError('Invalid select_mode')
 
@@ -482,7 +482,7 @@ def animate_scatter_plot(
 
 	c_param = None
 	if not (color_parameter is None):
-		ap = trajectory_data['additional_attributes']
+		ap = trajectory_data['particle_attributes']
 		ap_names = trajectory_data['additional_names']
 
 		if type(color_parameter) is str:
@@ -588,8 +588,8 @@ def animate_variable_scatter_plot(
 	n_timesteps = trajectory_data['n_timesteps']
 	pos = trajectory_data['positions']
 
-	if 'additional_attributes' in trajectory_data.keys():
-		ap = trajectory_data['additional_attributes']
+	if 'particle_attributes' in trajectory_data.keys():
+		ap = trajectory_data['particle_attributes']
 		ap_names = trajectory_data['additional_names']
 
 	c_param = None

@@ -44,8 +44,8 @@ class TestTrajectory(unittest.TestCase):
 
 		result = ia.Trajectory(
 			positions= pos,
-			additional_attributes=additional_attributes,
-			additional_attribute_names=additional_attribute_names,
+			particle_attributes=additional_attributes,
+			particle_attribute_names=additional_attribute_names,
 			times=times
 		)
 
@@ -66,8 +66,8 @@ class TestTrajectory(unittest.TestCase):
 		attributes_static[3, :, 2] = (10, 300)
 
 		tra_static = ia.Trajectory(positions=pos_static, times=times,
-		                           additional_attributes=attributes_static,
-		                           additional_attribute_names=attribute_names)
+		                           particle_attributes=attributes_static,
+		                           particle_attribute_names=attribute_names)
 		self.assertEqual(tra_static.is_static_trajectory, True)
 		with self.assertRaises(ValueError):
 			ia.Trajectory(positions=pos_static, times=times_wrong)
@@ -78,8 +78,8 @@ class TestTrajectory(unittest.TestCase):
 		attributes_variable[1][1, :] = (20, 350)
 
 		tra_variable = ia.Trajectory(positions=pos_variable, times=times,
-		                             additional_attributes=attributes_variable,
-		                             additional_attribute_names=attribute_names)
+		                             particle_attributes=attributes_variable,
+		                             particle_attribute_names=attribute_names)
 		self.assertEqual(tra_variable.is_static_trajectory, False)
 		with self.assertRaises(ValueError):
 			ia.Trajectory(positions=pos_variable, times=times_wrong)
@@ -97,8 +97,8 @@ class TestTrajectory(unittest.TestCase):
 		np.testing.assert_almost_equal(tra_variable.get_positions(3)[:, 1], (2.0, 2.0, 2.0, 2.0))
 		np.testing.assert_almost_equal(tra_variable[3][1, :], (0.0, 2.0, 0.0))
 
-		np.testing.assert_almost_equal(tra_static.get_additional_attributes(2)[3, :], (10, 300))
-		np.testing.assert_almost_equal(tra_variable.get_additional_attributes(1)[1, :], (20, 350))
+		np.testing.assert_almost_equal(tra_static.get_particle_attributes(2)[3, :], (10, 300))
+		np.testing.assert_almost_equal(tra_variable.get_particle_attributes(1)[1, :], (20, 350))
 
 		particle = tra_static.get_particle(3, 2)
 		np.testing.assert_almost_equal(particle[0], (5.0, 6.0, 7.0))
@@ -119,29 +119,29 @@ class TestTrajectory(unittest.TestCase):
 		self.assertEqual(tra.is_static_trajectory, True)
 		self.assertEqual(tra.n_particles, 1000)
 		self.assertEqual(np.shape(tra.positions), (1000, 3, 51))
-		self.assertEqual(np.shape(tra.additional_attributes), (1000, 9, 51))
+		self.assertEqual(np.shape(tra.particle_attributes), (1000, 9, 51))
 		self.assertAlmostEqual(tra.positions[983, 0, 9], -0.00146076)
 
 	def test_legacy_hdf5_trajectory_reading(self):
 		tra = ia.read_legacy_hdf5_trajectory_file(self.legacy_hdf5_aux_fname)
 		self.assertEqual(tra.n_particles, 600)
 		self.assertEqual(np.shape(tra.positions), (600, 3, 41))
-		self.assertEqual(np.shape(tra.additional_attributes), (600, 9, 41))
+		self.assertEqual(np.shape(tra.particle_attributes), (600, 9, 41))
 
 	def test_basic_json_trajectory_reading(self):
 		tra = ia.read_json_trajectory_file(self.test_json_fname)
-		print(np.shape(tra['positions']))
-		print(np.shape(tra['additional_attributes']))
-		print(np.shape(tra['masses']))
+		print(np.shape(tra.positions))
+		print(np.shape(tra.particle_attributes))
+		print(np.shape(tra.masses))
 
 	def test_parameter_filter_with_synthetic_trajectory(self):
 		tra = self.generate_test_trajectory(20, 15)
-		id_column = tra.additional_attribute_names.index('chemical id')
-		tra_filtered_vec = ia.filter_parameter(tra.positions, tra.additional_attributes[:, id_column, 5], 1)
+		id_column = tra.particle_attribute_names.index('chemical id')
+		tra_filtered_vec = ia.filter_parameter(tra.positions, tra.particle_attributes[:, id_column, 5], 1)
 		self.assertTrue(isinstance(tra_filtered_vec, np.ndarray))
 		self.assertEqual(np.shape(tra_filtered_vec), (5, 3, 15))
 
-		chem_id = tra.additional_attributes[:, id_column, :]
+		chem_id = tra.particle_attributes[:, id_column, :]
 		tra_filtered = ia.filter_parameter(tra.positions, chem_id, 1)
 		self.assertTrue(isinstance(tra_filtered, list))
 
@@ -159,8 +159,8 @@ class TestTrajectory(unittest.TestCase):
 	def test_parameter_filter_with_qit_trajectory(self):
 		tra = ia.read_legacy_hdf5_trajectory_file(self.legacy_hdf5_reactive_fn_b)
 
-		id_column = tra.additional_attribute_names.index('chemical id')
-		chem_id = tra.additional_attributes[:, id_column, :]
+		id_column = tra.particle_attribute_names.index('chemical id')
+		chem_id = tra.particle_attributes[:, id_column, :]
 		tra_filtered = [ia.filter_parameter(tra.positions, chem_id, i) for i in (0, 1, 2)]
 		for tra_f in tra_filtered:
 			self.assertTrue(isinstance(tra_f, list))

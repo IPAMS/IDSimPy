@@ -359,7 +359,7 @@ def plot_average_z_position(sim_projects, masses, compressed=True):
 
 		i_pos = tj["positions"]
 		i_masses = tj["masses"]
-		# i_ap = tj["additional_attributes"]
+		# i_ap = tj["particle_attributes"]
 		times = tj["times"]
 
 		plt.subplot(n_projects, 1, si + 1)
@@ -432,7 +432,7 @@ def animate_simulation_center_of_masses_z_vs_x(dat, masses, n_frames, interval, 
 def plot_phase_space_frame(tr, timestep):
 	print(len(tr['times']))
 	pos = tr['positions']
-	ap = tr['additional_attributes']
+	ap = tr['particle_attributes']
 	print(np.shape(pos))
 	plt.subplot(1, 2, 1)
 	plt.scatter(pos[:, 0, timestep], ap[:, 0, timestep], s=0.5, alpha=0.5)
@@ -443,7 +443,7 @@ def plot_phase_space_frame(tr, timestep):
 def plot_phase_space_trajectory(tr, pdef):
 	print(len(tr['times']))
 	pos = tr['positions']
-	ap = tr['additional_attributes']
+	ap = tr['particle_attributes']
 	print(np.shape(pos))
 	for pi in pdef:
 		plt.scatter(pos[pi, 0, :], ap[pi, 0, :], s=10, alpha=1)
@@ -452,7 +452,7 @@ def plot_phase_space_trajectory(tr, pdef):
 def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, alpha=1.0, mode="radial"):
 	fig = plt.figure(figsize=(13, 5))
 	pos = tr['positions']
-	ap = tr['additional_attributes']
+	ap = tr['particle_attributes']
 	masses = tr['masses']
 
 	if not numframes:
