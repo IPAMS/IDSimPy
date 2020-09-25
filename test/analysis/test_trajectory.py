@@ -53,28 +53,52 @@ class TestTrajectory(unittest.TestCase):
 
 	def test_trajectory_class_basic_instantiation_and_methods(self):
 		n_timesteps = 5
+		n_particles_static = 4
 		times = np.linspace(0, 2, n_timesteps)
 		times_wrong = np.linspace(0, 2, n_timesteps+1)
 
-		pos_static = np.zeros((10, 3, 5))
-		tra_static = ia.Trajectory(positions=pos_static, times=times)
+		attribute_names = ('chem_id', 'temp')
+
+		pos_static = np.zeros((n_particles_static, 3, n_timesteps))
+		pos_static[:, 0, 1] = 1.0
+		pos_static[3, :, 2] = (5.0, 6.0, 7.0)
+		attributes_static = np.zeros((n_particles_static, 2, n_timesteps))
+		attributes_static[3, :, 2] = (10, 300)
+
+		tra_static = ia.Trajectory(positions=pos_static, times=times,
+		                           additional_attributes=attributes_static,
+		                           additional_attribute_names=attribute_names)
 		self.assertEqual(tra_static.is_static_trajectory, True)
 		with self.assertRaises(ValueError):
 			ia.Trajectory(positions=pos_static, times=times_wrong)
 
-		pos_variable = [np.zeros((3, 10)) for i in range(5)]
-		tra_variable = ia.Trajectory(positions=pos_variable, times=times)
+		pos_variable = [np.zeros((i+1, 3)) for i in range(n_timesteps)]
+		pos_variable[3][:, 1] = 2.0
+		attributes_variable = [np.zeros((i + 1, 2)) for i in range(n_timesteps)]
+		attributes_variable[1][1, :] = (20, 350)
+
+		tra_variable = ia.Trajectory(positions=pos_variable, times=times,
+		                             additional_attributes=attributes_variable,
+		                             additional_attribute_names=attribute_names)
 		self.assertEqual(tra_variable.is_static_trajectory, False)
 		with self.assertRaises(ValueError):
 			ia.Trajectory(positions=pos_variable, times=times_wrong)
 
 		self.assertEqual(len(tra_static), n_timesteps)
+		self.assertEqual(len(tra_variable), n_timesteps)
 
-	def test_trajectory_class_with_additional_parameters(self):
-		tra = self.generate_test_trajectory(20, 15)
+		np.testing.assert_almost_equal(tra_static[1][0, :], (1.0, 0.0, 0.0))
+		np.testing.assert_almost_equal(tra_static.get_positions(1)[0, :], (1.0, 0.0, 0.0))
+		np.testing.assert_almost_equal(tra_variable[3][:, 1], (2.0, 2.0, 2.0, 2.0))
+		np.testing.assert_almost_equal(tra_variable.get_positions(3)[:, 1], (2.0, 2.0, 2.0, 2.0))
+		np.testing.assert_almost_equal(tra_variable[3][1, :], (0.0, 2.0, 0.0))
 
-		self.assertEqual(tra.additional_attribute_names, ('param1', 'param2', 'param3', 'chemical id'))
+		np.testing.assert_almost_equal(tra_static.get_additional_attributes(2)[3, :], (10, 300))
+		np.testing.assert_almost_equal(tra_variable.get_additional_attributes(1)[1, :], (20, 350))
 
+		particle = tra_static.get_particle(3, 2)
+		np.testing.assert_almost_equal(particle[0], (5.0, 6.0, 7.0))
+		np.testing.assert_almost_equal(particle[1], (10, 300))
 
 	def test_hdf5_trajectory_reading_variable_timesteps(self):
 		tra = ia.read_hdf5_trajectory_file(self.new_hdf5_variable_fname)

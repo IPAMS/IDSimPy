@@ -92,15 +92,15 @@ class Trajectory:
 			if self.is_static_trajectory:
 				if type(additional_attributes) != np.ndarray:
 					raise ValueError('Additional parameter has wrong type for static trajectory')
-				n_additional_parameters = additional_attributes.shape[1]
+				n_additional_attributes = additional_attributes.shape[1]
 				self.additional_attributes = additional_attributes
 			else:
 				if type(additional_attributes) != list:
 					raise ValueError('Additional parameter has wrong type for variable trajectory')
-				n_additional_parameters = additional_attributes[0].shape[0]
+				n_additional_attributes = additional_attributes[0].shape[1]
 				self.additional_attributes = additional_attributes
 
-			if len(additional_attribute_names) != n_additional_parameters:
+			if len(additional_attribute_names) != n_additional_attributes:
 				raise ValueError('Additional parameter name vector has wrong length')
 
 		self.positions = positions
@@ -114,9 +114,55 @@ class Trajectory:
 
 	def __getitem__(self, timestep_index):
 		if self.is_static_trajectory:
-			return self.positions[timestep_index, :, :]
+			return self.positions[:, :, timestep_index]
 		else:
 			return self.positions[timestep_index]
+
+	def get_positions(self, timestep_index):
+		"""
+		Get particle positions for a time step
+
+		:param timestep_index: The index of the time step to get the positions for
+		:type timestep_index: int
+		:return: Array of particle positions for a time step. Dimensions are ``[n particles, spatial dimensions]``
+		"""
+		return self[timestep_index]
+
+	def get_additional_attributes(self, timestep_index):
+		"""
+		Get additional attributes for a time step
+
+		:param timestep_index: The index of the time step to get the attributes for
+		:type timestep_index: int
+		:return: Array of additional attributes for a time step. Dimensions are ``[n particles, attributes]``
+		:rtype: numpy.ndarray
+		"""
+		if self.is_static_trajectory:
+			return self.additional_attributes[:, :, timestep_index]
+		else:
+			return self.additional_attributes[timestep_index]
+
+	def get_particle(self, particle_index, timestep_index):
+		"""
+		Get particle values (positions and additional attributes) for a particle at a specified time step
+
+		:param particle_index: The index of the particle
+		:type particle_index: int
+		:param timestep_index: The index of the time step
+		:type timestep_index: int
+		:return: Tuple with the position and the additional attribute vector for the particle at the selected
+			time step
+		:rtype: tuple of numpy.ndarray
+		"""
+		if self.is_static_trajectory:
+			pos = self.positions[particle_index, :, timestep_index]
+			attributes = self.additional_attributes[particle_index, :, timestep_index]
+		else:
+			pos = self.positions[timestep_index][particle_index, :]
+			attributes = self.additional_attributes[timestep_index][particle_index, :]
+
+		return (pos, attributes)
+
 
 
 # -------------- Trajectory input -------------- #
