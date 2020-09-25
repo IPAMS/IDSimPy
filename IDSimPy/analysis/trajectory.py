@@ -184,7 +184,6 @@ class Trajectory:
 		return (pos, attributes)
 
 
-
 # -------------- Trajectory input -------------- #
 
 
@@ -289,9 +288,9 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 	:return: Trajectory object with trajectory data
 	:rtype: Trajectory
 	"""
-	hdf5File = h5py.File(trajectory_file_name, 'r')
+	hdf5file = h5py.File(trajectory_file_name, 'r')
 
-	tra_group = hdf5File['particle_trajectory']
+	tra_group = hdf5file['particle_trajectory']
 	attribs = tra_group.attrs
 
 	file_version_id = attribs['file version'][0]
@@ -345,9 +344,9 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 	result = Trajectory(
 		positions=positions,
 		times=np.array(times),
-		additional_attributes= aux_dat,
-		additional_attribute_names= aux_attributes_names,
-		splat_times= splat_times,
+		additional_attributes=aux_dat,
+		additional_attribute_names=aux_attributes_names,
+		splat_times=splat_times,
 		file_version_id=file_version_id)
 
 	return result
@@ -362,9 +361,9 @@ def read_legacy_hdf5_trajectory_file(trajectory_file_name):
 	:return: Dictionary with trajectory data
 	:rtype: dict
 	"""
-	hdf5File = h5py.File(trajectory_file_name, 'r')
+	hdf5file = h5py.File(trajectory_file_name, 'r')
 
-	tra_group = hdf5File['particle_trajectory']
+	tra_group = hdf5file['particle_trajectory']
 	attribs = tra_group.attrs
 	n_particles = attribs['number of particles'][0]
 	n_timesteps = attribs['number of timesteps'][0]
