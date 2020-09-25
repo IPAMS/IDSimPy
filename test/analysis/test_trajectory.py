@@ -124,9 +124,9 @@ class TestTrajectory(unittest.TestCase):
 
 	def test_legacy_hdf5_trajectory_reading(self):
 		tra = ia.read_legacy_hdf5_trajectory_file(self.legacy_hdf5_aux_fname)
-		self.assertEqual(tra['n_particles'], 600)
-		self.assertEqual(np.shape(tra['positions']), (600, 3, 41))
-		self.assertEqual(np.shape(tra['additional_attributes']), (600, 9, 41))
+		self.assertEqual(tra.n_particles, 600)
+		self.assertEqual(np.shape(tra.positions), (600, 3, 41))
+		self.assertEqual(np.shape(tra.additional_attributes), (600, 9, 41))
 
 	def test_basic_json_trajectory_reading(self):
 		tra = ia.read_json_trajectory_file(self.test_json_fname)
@@ -159,9 +159,9 @@ class TestTrajectory(unittest.TestCase):
 	def test_parameter_filter_with_qit_trajectory(self):
 		tra = ia.read_legacy_hdf5_trajectory_file(self.legacy_hdf5_reactive_fn_b)
 
-		id_column = tra['additional_names'].index('chemical id')
-		chem_id = tra['additional_attributes'][:, id_column, :]
-		tra_filtered = [ia.filter_parameter(tra['positions'], chem_id, i) for i in (0, 1, 2)]
+		id_column = tra.additional_attribute_names.index('chemical id')
+		chem_id = tra.additional_attributes[:, id_column, :]
+		tra_filtered = [ia.filter_parameter(tra.positions, chem_id, i) for i in (0, 1, 2)]
 		for tra_f in tra_filtered:
 			self.assertTrue(isinstance(tra_f, list))
 			self.assertEqual(len(tra_f), 51)

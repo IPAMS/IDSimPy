@@ -358,29 +358,28 @@ def read_legacy_hdf5_trajectory_file(trajectory_file_name):
 
 	:param trajectory_file_name: The name of the file to read
 	:type trajectory_file_name: str
-	:return: Dictionary with trajectory data
-	:rtype: dict
+	:return: Trajectory object with trajectory data
+	:rtype: Trajectory
 	"""
 	hdf5file = h5py.File(trajectory_file_name, 'r')
 
 	tra_group = hdf5file['particle_trajectory']
 	attribs = tra_group.attrs
-	n_particles = attribs['number of particles'][0]
-	n_timesteps = attribs['number of timesteps'][0]
 	positions = tra_group['positions']
 	times = tra_group['times']
 
-	result = {"positions": np.array(positions),
-	          "times": np.array(times),
-	          "n_particles": n_particles,
-	          "n_timesteps": n_timesteps,
-	          "static_trajectory": True}
-
+	aux_parameters_names = None
+	aux_parameters = None
 	if 'aux_parameters' in tra_group.keys():
 		aux_parameters_names = [name.decode('UTF-8') for name in attribs['auxiliary parameter names']]
-		aux_parameters = tra_group['aux_parameters']
-		result["additional_attributes"] = np.array(aux_parameters)
-		result["additional_names"] = aux_parameters_names
+		aux_parameters = np.array(tra_group['aux_parameters'])
+
+	result = Trajectory(
+		positions=np.array(positions),
+		times=np.array(times),
+		additional_attributes=aux_parameters,
+		additional_attribute_names=aux_parameters_names,
+		file_version_id=1)
 
 	return result
 
