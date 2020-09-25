@@ -26,7 +26,8 @@ class TestTrajectory(unittest.TestCase):
 		cls.test_json_fname = os.path.join(data_base_path, 'test_trajectories.json')
 		cls.result_path = "test_results"
 
-	def generate_test_trajectory(self, n_ions, n_steps):
+	@classmethod
+	def generate_test_trajectory(cls, n_ions, n_steps):
 		times = np.linspace(0, 5, n_steps)
 		pos = np.zeros((n_ions, 3, n_steps))
 		additional_attributes = np.zeros((n_ions, 4, n_steps))
@@ -50,6 +51,8 @@ class TestTrajectory(unittest.TestCase):
 		)
 
 		return result
+
+	#  --------------- test Trajectory basics ---------------
 
 	def test_trajectory_class_basic_instantiation_and_methods(self):
 		n_timesteps = 5
@@ -104,6 +107,8 @@ class TestTrajectory(unittest.TestCase):
 		np.testing.assert_almost_equal(particle[0], (5.0, 6.0, 7.0))
 		np.testing.assert_almost_equal(particle[1], (10, 300))
 
+	#  --------------- test Trajectory reading from files ---------------
+
 	def test_hdf5_trajectory_reading_variable_timesteps(self):
 		tra = ia.read_hdf5_trajectory_file(self.new_hdf5_variable_fname)
 
@@ -130,9 +135,11 @@ class TestTrajectory(unittest.TestCase):
 
 	def test_basic_json_trajectory_reading(self):
 		tra = ia.read_json_trajectory_file(self.test_json_fname)
-		self.assertEqual(tra.positions.shape,(2000, 3, 101))
+		self.assertEqual(tra.positions.shape, (2000, 3, 101))
 		self.assertEqual(tra.particle_attributes.shape, (2000, 1, 101))
 		self.assertEqual(len(tra.optional_attributes['masses']), 2000)
+
+	#  --------------- test Trajectory filtering ---------------
 
 	def test_parameter_filter_with_synthetic_trajectory(self):
 		tra = self.generate_test_trajectory(20, 15)
@@ -165,3 +172,5 @@ class TestTrajectory(unittest.TestCase):
 		for tra_f in tra_filtered:
 			self.assertTrue(isinstance(tra_f, list))
 			self.assertEqual(len(tra_f), 51)
+
+#  --------------- test Trajectory export ---------------

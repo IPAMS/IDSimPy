@@ -125,7 +125,6 @@ class Trajectory:
 		self.optional_attributes = optional_attributes
 		self.file_version_id: int = file_version_id
 
-
 	def __len__(self):
 		return self.n_timesteps
 
@@ -137,6 +136,12 @@ class Trajectory:
 
 	@property
 	def n_particles(self):
+		"""
+		Returns the static number of particles in a static trajectory
+
+		:return: Number of particles in the static trajectory
+		:rtype: int
+		"""
 		if self.is_static_trajectory:
 			return self.positions.shape[0]
 		else:
@@ -186,7 +191,7 @@ class Trajectory:
 			pos = self.positions[timestep_index][particle_index, :]
 			attributes = self.particle_attributes[timestep_index][particle_index, :]
 
-		return (pos, attributes)
+		return pos, attributes
 
 
 # -------------- Trajectory input -------------- #
