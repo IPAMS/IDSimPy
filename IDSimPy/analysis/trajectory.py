@@ -52,12 +52,14 @@ class Trajectory:
 	:type particle_attribute_names: list[str]
 	:ivar splat_times: Vector of particle termination / splat times
 	:type splat_times: numpy.ndarray
+	:ivar optional_attributes: dictionary of optional / free form additional attributes for the trajectory
+	:type optional_attributes: dict
 	:ivar is_static_trajectory: Flag if the trajectory is static.
 	:type is_static_trajectory: bool
 	"""
 
 	def __init__(self, positions=None, times=None, particle_attributes=None, particle_attribute_names=None,
-	             splat_times=None, file_version_id=0):
+	             splat_times=None, optional_attributes=None, file_version_id=0):
 		"""
 		Constructor: (for details about the shape of the parameters see the class docsting)
 
@@ -71,6 +73,8 @@ class Trajectory:
 		:type particle_attribute_names: tuple[str]
 		:param splat_times: Particle termination / "splat" times
 		:type splat_times: numpy.ndarray
+		:param optional_attributes: Optional attributes dictionary
+		:type optional_attributes: dict
 		:param file_version_id: File version id
 		:type file_version_id: int
 		"""
@@ -119,7 +123,9 @@ class Trajectory:
 		self.particle_attributes = particle_attributes
 		self.particle_attribute_names: list = particle_attribute_names
 		self.splat_times = splat_times
+		self.optional_attributes = optional_attributes
 		self.file_version_id: int = file_version_id
+
 
 	def __len__(self):
 		return self.n_timesteps
@@ -269,14 +275,15 @@ def read_json_trajectory_file(trajectory_filename):
 	for i in range(len(splat_times_json)):
 		splat_times[i] = float(splat_times_json[i])
 
+	optional_attributes = {'masses': masses}
 
 	result = Trajectory(
 		positions=positions,
 		times=times,
 		particle_attributes=additional_parameters,
 		particle_attribute_names=additional_parameters_names,
-		splat_times= splat_times)
-	result.masses = masses
+		optional_attributes=optional_attributes,
+		splat_times=splat_times)
 
 	return result
 

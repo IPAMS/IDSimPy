@@ -130,9 +130,9 @@ class TestTrajectory(unittest.TestCase):
 
 	def test_basic_json_trajectory_reading(self):
 		tra = ia.read_json_trajectory_file(self.test_json_fname)
-		print(np.shape(tra.positions))
-		print(np.shape(tra.particle_attributes))
-		print(np.shape(tra.masses))
+		self.assertEqual(tra.positions.shape,(2000, 3, 101))
+		self.assertEqual(tra.particle_attributes.shape, (2000, 1, 101))
+		self.assertEqual(len(tra.optional_attributes['masses']), 2000)
 
 	def test_parameter_filter_with_synthetic_trajectory(self):
 		tra = self.generate_test_trajectory(20, 15)
