@@ -483,15 +483,15 @@ def render_xz_density_comparison_animation(
 
 # scatter plots #############################################################
 def animate_scatter_plot(
-		trajectory_data, xlim=None, ylim=None, zlim=None,
+		trajectory, xlim=None, ylim=None, zlim=None,
 		n_frames=None, interval=1,
 		color_parameter=None, crange=None, cmap=plt.cm.get_cmap('viridis'),
 		alpha=0.1, figsize=(13, 5)):
 	"""
-	Generates a scatter animation of the particles in an ion trajectory
+	Generates a scatter animation of the particles in a static ion trajectory.
 
-	:param trajectory_data: a particle trajectory
-	:type trajectory_data: dict returned from the readTrajectoryFile methods
+	:param trajectory: Static particle trajectory with data to animate
+	:type trajectory: Trajectory
 	:param xlim: limits of the plot in x direction (if None, the maximum of the x position range is used)
 	:type xlim: tuple of two floats
 	:param ylim: limits of the plot in y direction (if None, the maximum of the y position range is used)
@@ -516,17 +516,17 @@ def animate_scatter_plot(
 	:type figsize: tuple of two numbers
 	"""
 	fig = plt.figure(figsize=figsize)
-	positions = trajectory_data['positions']
-	n_timesteps = trajectory_data['n_timesteps']
+	positions = trajectory.positions
+	n_timesteps = trajectory.n_timesteps
 
 	c_param = None
 	if not (color_parameter is None):
-		ap = trajectory_data['particle_attributes']
-		ap_names = trajectory_data['additional_names']
+		p_attrib = trajectory.particle_attributes
+		p_attrib_names = trajectory.particle_attribute_names
 
 		if type(color_parameter) is str:
-			cp_index = ap_names.index(color_parameter)
-			c_param = ap[:, cp_index, :]
+			cp_index = p_attrib_names.index(color_parameter)
+			c_param = p_attrib[:, cp_index, :]
 		elif hasattr(color_parameter, "__iter__"):  # is iterable
 			c_param = np.tile(color_parameter, (n_timesteps, 1)).T
 
@@ -638,7 +638,8 @@ def animate_variable_scatter_plot(
 			cp_index = ap_names.index(color_parameter)
 			c_param = [ts_ap[:, cp_index] for ts_ap in ap]
 		elif hasattr(color_parameter, "__iter__"):  # is iterable
-			c_param = np.tile(color_parameter, (n_timesteps, 1)).T
+			raise NotImplementedError('Usage of a custom color parameter array is not yet implemented')
+			#  c_param = np.tile(color_parameter, (n_timesteps, 1)).T
 
 	if not n_frames:
 		n_frames = int(np.floor(n_timesteps / interval))
