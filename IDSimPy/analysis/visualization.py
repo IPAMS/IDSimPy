@@ -60,14 +60,14 @@ def plot_particles_path(trajectory_data, pl_filename, p_indices, plot_mark='*-',
 
 
 def plot_density_xz(
-		trajectory_data, time_index,
+		trajectory, time_index,
 		xedges=None, zedges=None,
 		figsize=(7, 7), axis_equal=True):
 	"""
 	Renders an density plot in a z-x projection
 
-	:param trajectory_data: a trajectories vector from an imported trajectories object
-	:type trajectory_data: trajectories vector from dict returned from readTrajectoryFile
+	:param trajectory: Simulation trajectory with the data to plot
+	:type trajectory: Trajectory
 	:param time_index: index of the time step to render
 	:type time_index: int
 	:param xedges: the edges of the bins of the density plot (2d histogram bins) in x direction, if None the
@@ -82,7 +82,7 @@ def plot_density_xz(
 	"""
 
 	fig = animate_xz_density(
-		trajectory_data, xedges=xedges, zedges=zedges,
+		trajectory, xedges=xedges, zedges=zedges,
 		n_frames=time_index, figsize=figsize,
 		axis_equal=axis_equal, output_mode='singleFrame')
 
@@ -94,16 +94,16 @@ def plot_density_xz(
 # density plots #########################################################
 
 def animate_xz_density(
-		trajectory_data,
+		trajectory,
 		xedges=None, zedges=None,
 		figsize=(7, 7), interval=1, n_frames=10,
 		output_mode='animation', axis_equal=True):
 
 	"""
-	Animates an density plot in a z-x projection, still frames can also be rendered
+	Animates an density plot of a static simulation trajectory in a z-x projection. Still frames can also be rendered.
 
-	:param trajectory_data: a trajectories vector from an imported trajectories object
-	:type trajectory_data: trajectories vector from dict returned from readTrajectoryFile
+	:param trajectory: Trajectory object with the particle trajectory data to be animated
+	:type trajectory: Trajectory
 	:param xedges: the edges of the bins of the density plot (2d histogram bins) in x direction, 
 		if None the maximum extend is used with 50 bins, if a number n, the maximum extend is used with n bins
 	:type xedges: iterable or list / array or int
@@ -124,13 +124,16 @@ def animate_xz_density(
 	:return: animation or figure
 	"""
 
-	x = trajectory_data[:, 0, :]
-	z = trajectory_data[:, 2, :]
+	if not trajectory.is_static_trajectory:
+		raise TypeError('XZ density animation is currently only implemented for static trajectories')
 
-	x_min = np.min(x)
-	x_max = np.max(x)
-	z_min = np.min(z)
-	z_max = np.max(z)
+	x_pos = trajectory.positions[:, 0, :]
+	z_pos = trajectory.positions[:, 2, :]
+
+	x_min = np.min(x_pos)
+	x_max = np.max(x_pos)
+	z_min = np.min(z_pos)
+	z_max = np.max(z_pos)
 
 	if xedges is None:
 		xedges = np.linspace(x_min, x_max, 50)
@@ -142,7 +145,7 @@ def animate_xz_density(
 	elif type(zedges) == int:
 		zedges = np.linspace(z_min, z_max, zedges)
 
-	hist_vals, xed, zed = np.histogram2d(x[:, 0], z[:, 0], bins=(xedges, zedges))
+	hist_vals, xed, zed = np.histogram2d(x_pos[:, 0], z_pos[:, 0], bins=(xedges, zedges))
 	hist_vals = hist_vals.T
 	fig = plt.figure(figsize=figsize)
 
@@ -160,7 +163,7 @@ def animate_xz_density(
 
 	def animate(i):
 		ts_number = i*interval
-		h_vals, _, _ = np.histogram2d(x[:, ts_number], z[:, ts_number], bins=(xedges, zedges))
+		h_vals, _, _ = np.histogram2d(x_pos[:, ts_number], z_pos[:, ts_number], bins=(xedges, zedges))
 		h_vals = h_vals.T
 		im.set_data(xcenters, zcenters, h_vals)
 

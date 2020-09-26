@@ -23,23 +23,22 @@ class TestVisualization_images(unittest.TestCase):
 		cls.result_path = "test_results"
 
 	def test_basic_density_plotting(self):
-		t_indd = 1
+		time_step_index = 1
 		traj_json = tra.read_json_trajectory_file(self.test_json_trajectory)
-		vis.plot_density_xz(traj_json['positions'], t_indd)
+		vis.plot_density_xz(traj_json, time_step_index)
 		plt.title("test title")
 		plt.xlabel("x label test")
-		resultName = os.path.join(self.result_path, 'test_density_plotting_01.png')
-		plt.savefig(resultName)
+		result_name = os.path.join(self.result_path, 'test_density_plotting_01.png')
+		plt.savefig(result_name)
 
-		vis.plot_density_xz(traj_json['positions'], t_indd, xedges = 200, zedges = 150)
+		vis.plot_density_xz(traj_json, time_step_index, xedges=200, zedges=150)
 		plt.title("test title")
 		plt.xlabel("x label test")
-		resultName = os.path.join(self.result_path, 'test_density_plotting_02.png')
-		plt.savefig(resultName)
-
+		result_name = os.path.join(self.result_path, 'test_density_plotting_02.png')
+		plt.savefig(result_name)
 
 		traj_hdf5 = tra.read_legacy_hdf5_trajectory_file(self.test_hdf5_trajectory_a)
-		vis.plot_density_xz(traj_hdf5['positions'], t_indd,
+		vis.plot_density_xz(traj_hdf5, time_step_index,
 		                    xedges=np.linspace(-0.01, 0.05, 300),
 		                    zedges=np.linspace(-0.03, 0.03, 50),
 		                    figsize=(10,5),
@@ -47,12 +46,11 @@ class TestVisualization_images(unittest.TestCase):
 
 		plt.title("test title 2")
 		plt.xlabel("x label")
-		resultName = os.path.join(self.result_path, 'test_density_plotting_03.png')
-		plt.savefig(resultName)
-
+		result_name = os.path.join(self.result_path, 'test_density_plotting_03.png')
+		plt.savefig(result_name)
 
 	def test_particle_path_plotting(self):
 		traj_json = tra.read_json_trajectory_file(self.test_json_trajectory)
-		resultName = os.path.join(self.result_path, 'test_particle_plotting_01')
+		result_name = os.path.join(self.result_path, 'test_particle_plotting_01')
 		dat = [[traj_json,"json trajectory"]]
-		vis.plot_particles_path(dat,resultName,[1,2])
+		vis.plot_particles_path(dat,result_name, [1, 2])
