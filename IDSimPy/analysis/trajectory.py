@@ -519,20 +519,35 @@ def select(trajectory, selector_data, value):
 	return result
 
 
-def center_of_charge(tr):
+def center_of_charge(trajectory):
 	"""
-	Calculates the center of charge of a charged particle cloud
+	Calculates the center of charge of an ensemble of particles in a Trajectory.
 
-	:param tr: Traject
-	:type tr: trajectories vector from dict returned from readTrajectoryFile
-	:return: vector of the spatial position of the center of mass
-	:rtype: numpy.array
+	**Note:**
+	If there is no explicit information about the particle charges in the input trajectory object
+	(the optional trajectory attribute ``OptionalAttribute.PARTICLE_MASSES`` is not present) *all* particles are
+	assumbed to be singly positively charged.
+
+	:param trajectory: Trajectory to calculate the center of charge for
+	:type trajectory: Trajectory
+	:return: Vector of the spatial position of the center of mass: Array with time steps as first and spatial dimension
+		(x,y,z) as second dimension
+	:rtype: numpy.ndarray
 	"""
-	nSteps = np.shape(tr)[2]
-	coc = np.zeros([nSteps, 3])
-	for i in range(nSteps):
-		xMean = np.mean(tr[:, 0, i])
-		yMean = np.mean(tr[:, 1, i])
-		zMean = np.mean(tr[:, 2, i])
-		coc[i, :] = np.array([xMean, yMean, zMean])
+	n_timesteps = trajectory.n_timesteps
+	coc = np.zeros((n_timesteps, 3))
+
+	particle_charges = None
+	if trajectory.optional_attributes and OptionalAttribute.PARTICLE_CHARGES in trajectory.optional_attributes:
+		particle_charges = trajectory.optional_attributes[OptionalAttribute.PARTICLE_CHARGES]
+
+	for i in range(n_timesteps):
+		p_pos = trajectory.get_positions(i)
+
+		x_mean = np.average(p_pos[:, 0], weights=particle_charges)
+		y_mean = np.average(p_pos[:, 1], weights=particle_charges)
+		z_mean = np.average(p_pos[:, 2], weights=particle_charges)
+
+		coc[i, :] = np.array([x_mean, y_mean, z_mean])
+
 	return coc

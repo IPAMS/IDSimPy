@@ -226,3 +226,63 @@ class TestTrajectory(unittest.TestCase):
 		np.testing.assert_almost_equal(particle_selected_variable[0], (12.0, 0.6, 0.0))
 		np.testing.assert_almost_equal(particle_selected_variable[1], (6.0, 6.0, 0.0, 0.0))
 
+#  --------------- test Trajectory analysis ---------------
+
+	def test_center_of_charge_calculation_with_static_trajectory(self):
+		tra = ia.read_hdf5_trajectory_file(self.new_hdf5_static_fname)
+
+		coc = ia.center_of_charge(tra)
+		self.assertEqual(coc.shape[0], tra.n_timesteps)
+		np.testing.assert_almost_equal(coc[3, :], (1.6910134945e-05, 3.038242994e-06, 3.465348754e-07))
+
+		p_pos_frame = np.array(
+			((-10, -10, -10),
+			 ( 10,  10,  10),
+			 (  0,   0,   0),
+			 (-10,  10,  10),
+			 ( 10, -10, -10)))
+
+		p_pos = np.dstack((p_pos_frame, p_pos_frame))
+		times = np.array((1.0, 2.0))
+
+		synth_tra_static = ia.Trajectory(
+			positions=p_pos,
+			times=times
+		)
+
+		coc_synth_tra = ia.center_of_charge(synth_tra_static)
+
+		self.assertEqual(synth_tra_static.is_static_trajectory, True)
+		np.testing.assert_almost_equal(coc_synth_tra[0], (0.0, 0.0, 0.0))
+
+		charge_weights = np.array((0, 10, 1, 0, 0))
+		synth_tra_static.optional_attributes = {ia.OptionalAttribute.PARTICLE_CHARGES: charge_weights}
+
+		coc_synth_tra_weighted = ia.center_of_charge(synth_tra_static)
+		np.testing.assert_almost_equal(coc_synth_tra_weighted[0], (9.0909091, 9.0909091, 9.0909091))
+
+	def test_center_of_charge_calculation_with_variable_trajectory(self):
+		p_pos_1 = np.array(
+			((-10, -10, -10),
+			 (  0,   0,   0)))
+
+		p_pos_2 = np.array(
+			((-10, -10, -10),
+			 (  0,   0,   0),
+			 ( 10,  10,  10)))
+
+		p_pos = [p_pos_1, p_pos_2]
+		times = np.array((1.0, 2.0))
+
+		synth_tra_variable = ia.Trajectory(
+			positions=p_pos,
+			times=times
+		)
+
+		coc_synth_tra = ia.center_of_charge(synth_tra_variable)
+
+		self.assertEqual(synth_tra_variable.is_static_trajectory, False)
+		np.testing.assert_almost_equal(coc_synth_tra[0], (-5.0, -5.0, -5.0))
+		np.testing.assert_almost_equal(coc_synth_tra[1], (0.0, 0.0, 0.0))
+
+
