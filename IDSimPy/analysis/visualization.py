@@ -751,7 +751,7 @@ def render_scatter_animation(
 	else:
 		raise ValueError('illegal file type flag (not legacy_hdf5, hdf5, json or compressed)')
 
-	if tr['static_trajectory']:
+	if tr.is_static_trajectory:
 		plot_fct = animate_scatter_plot
 	else:
 		plot_fct = animate_variable_scatter_plot
