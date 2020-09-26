@@ -27,21 +27,32 @@ class TestTrajectory(unittest.TestCase):
 		cls.result_path = "test_results"
 
 	@classmethod
-	def generate_test_trajectory(cls, n_ions, n_steps):
+	def generate_test_trajectory(cls, n_ions, n_steps, static=True):
 		times = np.linspace(0, 5, n_steps)
-		pos = np.zeros((n_ions, 3, n_steps))
-		additional_attributes = np.zeros((n_ions, 4, n_steps))
 		additional_attribute_names = ('param1', 'param2', 'param3', 'chemical id')
 
-		x_pos = np.arange(0, n_ions) * 2.0
+		x_pos = np.arange(0, n_ions)
+
+		if static:
+			pos = np.zeros((n_ions, 3, n_steps))
+			additional_attributes = np.zeros((n_ions, 4, n_steps))
+		else:
+			pos = [np.zeros((n_ions + i, 3)) for i in range(n_steps)]
+			additional_attributes = [np.zeros((n_ions + i, 4)) for i in range(n_steps)]
+
 		for ts in range(n_steps):
 			add_frame = np.zeros((n_ions, 4))
-			add_frame[:ts, 3] = 1
+			add_frame[-(ts+1):, 3] = 1
 			add_frame[:, :2] = ts
-			additional_attributes[:, :, ts] = add_frame
 
-			pos[:, 0, ts] = x_pos
-			pos[:, 1, ts] = ts * 0.1
+			if static:
+				additional_attributes[:, :, ts] = add_frame
+				pos[:, 0, ts] = x_pos
+				pos[:, 1, ts] = ts * 0.1
+			else:
+				additional_attributes[ts][:n_ions, :] = add_frame
+				pos[ts][:n_ions, 0] = x_pos
+				pos[ts][:n_ions, 1] = ts * 0.1
 
 		result = ia.Trajectory(
 			positions= pos,
@@ -142,35 +153,17 @@ class TestTrajectory(unittest.TestCase):
 	#  --------------- test Trajectory filtering ---------------
 
 	def test_parameter_filter_with_synthetic_trajectory(self):
-		tra = self.generate_test_trajectory(20, 15)
-		id_column = tra.particle_attribute_names.index('chemical id')
-		tra_filtered_vec = ia.filter_parameter(tra.positions, tra.particle_attributes[:, id_column, 5], 1)
-		self.assertTrue(isinstance(tra_filtered_vec, np.ndarray))
-		self.assertEqual(np.shape(tra_filtered_vec), (5, 3, 15))
+		tra_static = self.generate_test_trajectory(20, 15, static=True)
+		tra_variable = self.generate_test_trajectory(20, 15, static=False)
 
-		chem_id = tra.particle_attributes[:, id_column, :]
-		tra_filtered = ia.filter_parameter(tra.positions, chem_id, 1)
-		self.assertTrue(isinstance(tra_filtered, list))
+		tra_filtered_static = ia.filter_attribute(tra_static, 'chemical id', 1)
+		tra_filtered_variable = ia.filter_attribute(tra_variable, 'chemical id', 1)
 
-		n_ts = 15
-		self.assertEqual(len(tra_filtered), n_ts)
+		particle_static = tra_filtered_static.get_particle(2, 5)
+		np.testing.assert_almost_equal(particle_static[0], (16.0, 0.5, 0.0))
 
-		self.assertTrue(isinstance(tra_filtered[0], np.ndarray))
-		self.assertTrue(isinstance(tra_filtered[1], np.ndarray))
+		particle_variable = tra_filtered_variable.get_particle(1, 7)
+		np.testing.assert_almost_equal(particle_variable[0], (13.0, 0.7, 0.0))
 
-		ts_result = np.array([[0.0, 0.3, 0.0], [2.0, 0.3, 0.0], [4.0, 0.3, 0.0]])
-		np.testing.assert_allclose(tra_filtered[3], ts_result)
-		for i in range(n_ts):
-			self.assertEqual(np.shape(tra_filtered[i]), (i, 3))
-
-	def test_parameter_filter_with_qit_trajectory(self):
-		tra = ia.read_legacy_hdf5_trajectory_file(self.legacy_hdf5_reactive_fn_b)
-
-		id_column = tra.particle_attribute_names.index('chemical id')
-		chem_id = tra.particle_attributes[:, id_column, :]
-		tra_filtered = [ia.filter_parameter(tra.positions, chem_id, i) for i in (0, 1, 2)]
-		for tra_f in tra_filtered:
-			self.assertTrue(isinstance(tra_f, list))
-			self.assertEqual(len(tra_f), 51)
 
 #  --------------- test Trajectory export ---------------

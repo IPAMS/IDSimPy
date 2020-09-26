@@ -12,7 +12,8 @@ __all__ = (
 	'read_hdf5_trajectory_file',
 	'read_legacy_hdf5_trajectory_file',
 	'translate_json_trajectories_to_vtk',
-	'filter_parameter',
+	'filter_attribute',
+	'filter',
 	'center_of_charge')
 
 
@@ -28,10 +29,10 @@ class Trajectory:
 	:ivar positions: Particle positions. The particles are stored in a different scheme, depending if the trajectory
 		is static:
 
-		* If the trajectory is static: **positions** is a ``numpy.ndarray`` with the shape ``[n ions, spatial dimensions,
-		  n time steps]``. With 5 particles and 15 time steps the shape would be ``[5, 3, 15]``.
+		* If the trajectory is static: **positions** is a ``numpy.ndarray`` with the shape ``[n ions, spatial
+		  dimensions, n time steps]``. With 5 particles and 15 time steps the shape would be ``[5, 3, 15]``.
 		* If the trajectory is not static: **positions** is a ``list`` of ``numpy.ndarray`` with the shape ``[spatial
-		  dimensions, n ions``]
+		  dimensions, n ions]``
 
 	:ivar times: Vector of simulated times for the individual time frames.
 	:type times: numpy.ndarray
@@ -45,7 +46,7 @@ class Trajectory:
 		  particle attribute, n time steps]``. With 5 particles, 4 additional numerical attributes (e.g. x,y,z velocity
 		  and chemical id) and 15 time steps the shape would be ``[5, 4, 15]``.
 		* If the trajectory is not static: **particle_attributes** is a ``list`` of ``numpy.ndarray`` with the shape
-		  ``[particle attribute, n ions``]
+		  ``[particle attribute, n ions]``
 
 	:ivar particle_attribute_names: Names of the particle attributes
 	:type particle_attribute_names: list[str]
@@ -397,42 +398,49 @@ POINTS """
 # -------------- Data Processing Methods -------------- #
 
 
-def filter_parameter(positions, filter_param, value):
+def filter_attribute(trajectory, attribute_name, value):
 	"""
-	Filters out trajectories of ions according to a value in a given particle parameter.
-	The method takes the positions of particles, data representing a parameter of the particles and a value which
-	is selected for.
+	Filters select ions according to a value of a specified particle attribute.
+	The method takes a :py:class:`Trajectory` the name of a particle attribute and a value which
+	is selected for and constructs a new :py:class:`Trajectory` from the filtered data.
 
-	:param positions: Positions vector from an imported trajectories object
-	:type positions: Positions vector from dict returned from a trajectory read method
-	:param filter_param: Particle parameter data from an imported trajectories dict to filter for
+	Currently optional trajectory attributes and splat times are **not** retained.
 
-		* if a vector is provided it is assumed, that the particle parameter which is  filtered for
-		  is stable across all time steps
-		* if a two dimensional array is provided, the filtering is performed with an variable particle parameter
-		  which is filtered for. Every time step has an vector of parameter values for the individual particles
+	This method returns always a variable, non static Trajectory.
 
-	:param value: Value to filter for: This value is selected for retainment from the particle parameter data
-	:return: Filtered particle positions
 
-		* if a filter vector is provided: Numpy array is returned with the particles, spatial dimensions and time steps
-		  as dimensions
-		* if a filter matrix (individual filter param vectors for the individual time steps) is provided:
-		  list of individual filterd position vectors for the individual time steps
+	:param trajectory: Trajectory object with the trajectory data to filter for
+	:type trajectory: Trajectory
+	:param attribute_name: Name of a particle attribute to filter for
+	:type attribute_name: str
+	:param value: Value to filter for: This value is used as selector
+	:return: A Trajectory object with filtered particle positions
+	:rtype: Trajectory
 	"""
-	# if filter_param is a vector: Same filtering for all time steps
-	if filter_param.ndim == 1:
-		filtered_indexes = np.nonzero(filter_param == value)
-		return positions[filtered_indexes, :, :][0]
-	if filter_param.ndim == 2:
-		# we have a different filter parameter vector per time step
-		# filtered particles per time step could variate: generate a vector per time step
-		n_ts = np.shape(filter_param)[1]
-		filtered_indexes = [np.nonzero(filter_param[:, i] == value) for i in range(n_ts)]
-		result = [positions[filtered_indexes[i], :, i][0] for i in range(len(filtered_indexes))]
-		return result
-	else:
-		raise ValueError('Filter parameter is not a vector nor a two dimensional array')
+
+	attribute_index = trajectory.particle_attribute_names.index(attribute_name)
+	n_ts = trajectory.n_timesteps
+
+	#  iterate through time steps and construct time step wise selected index arrays
+	filtered_indexes = [
+		np.nonzero(trajectory.get_particle_attributes(i)[:, attribute_index] == value)[0]
+		for i in range(n_ts)
+	]
+	new_positions = [trajectory.get_positions(i)[filtered_indexes[i], :] for i in range(n_ts)]
+	new_particle_attributes = [trajectory.get_particle_attributes(i)[filtered_indexes[i], :] for i in range(n_ts)]
+
+	result = Trajectory(
+		positions=new_positions,
+		particle_attributes=new_particle_attributes,
+		particle_attribute_names=trajectory.particle_attribute_names,
+		times=trajectory.times)
+
+	return result
+
+
+def filter(trajectory, selector_data, value):
+	pass
+
 
 
 def center_of_charge(tr):
