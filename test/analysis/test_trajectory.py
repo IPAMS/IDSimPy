@@ -148,7 +148,7 @@ class TestTrajectory(unittest.TestCase):
 		tra = ia.read_json_trajectory_file(self.test_json_fname)
 		self.assertEqual(tra.positions.shape, (2000, 3, 101))
 		self.assertEqual(tra.particle_attributes.shape, (2000, 1, 101))
-		self.assertEqual(len(tra.optional_attributes['masses']), 2000)
+		self.assertEqual(len(tra.optional_attributes[ia.OptionalAttribute.PARTICLE_MASSES]), 2000)
 
 	#  --------------- test Trajectory filtering ---------------
 
@@ -164,7 +164,6 @@ class TestTrajectory(unittest.TestCase):
 
 		particle_variable = tra_filtered_variable.get_particle(1, 7)
 		np.testing.assert_almost_equal(particle_variable[0], (13.0, 0.7, 0.0))
-
 
 	def test_trajectory_selection_with_static_synthetic_trajectory(self):
 		n_particles = 20
@@ -227,4 +226,3 @@ class TestTrajectory(unittest.TestCase):
 		np.testing.assert_almost_equal(particle_selected_variable[0], (12.0, 0.6, 0.0))
 		np.testing.assert_almost_equal(particle_selected_variable[1], (6.0, 6.0, 0.0, 0.0))
 
-#  --------------- test Trajectory export ---------------

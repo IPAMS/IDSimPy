@@ -5,9 +5,11 @@ import json
 import io
 import h5py
 import numpy as np
+from enum import Enum
 
 __all__ = (
 	'Trajectory',
+	'OptionalAttribute',
 	'read_json_trajectory_file',
 	'read_hdf5_trajectory_file',
 	'read_legacy_hdf5_trajectory_file',
@@ -15,6 +17,15 @@ __all__ = (
 	'filter_attribute',
 	'select',
 	'center_of_charge')
+
+
+class OptionalAttribute(Enum):
+	"""
+	Optional trajectory attributes identifiers: Distinct and extensible identifiers for optional trajectory
+	data attributes.
+	"""
+	PARTICLE_MASSES = 1  #: Particle masses
+	PARTICLE_CHARGES = 2  #: Particle charges
 
 
 class Trajectory:
@@ -247,7 +258,7 @@ def read_json_trajectory_file(trajectory_filename):
 	for i in range(len(splat_times_json)):
 		splat_times[i] = float(splat_times_json[i])
 
-	optional_attributes = {'masses': masses}
+	optional_attributes = {OptionalAttribute.PARTICLE_MASSES: masses}
 
 	result = Trajectory(
 		positions=positions,
@@ -512,7 +523,7 @@ def center_of_charge(tr):
 	"""
 	Calculates the center of charge of a charged particle cloud
 
-	:param tr: a trajectories vector from an imported trajectories object
+	:param tr: Traject
 	:type tr: trajectories vector from dict returned from readTrajectoryFile
 	:return: vector of the spatial position of the center of mass
 	:rtype: numpy.array
