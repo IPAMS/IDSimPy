@@ -13,7 +13,7 @@ __all__ = (
 	'read_legacy_hdf5_trajectory_file',
 	'translate_json_trajectories_to_vtk',
 	'filter_attribute',
-	'filter',
+	'select',
 	'center_of_charge')
 
 
@@ -135,8 +135,7 @@ class Trajectory:
 		else:
 			return self.positions[timestep_index]
 
-	@property
-	def n_particles(self):
+	def get_n_particles(self, timestep_index=None):
 		"""
 		Returns the static number of particles in a static trajectory
 
@@ -146,7 +145,13 @@ class Trajectory:
 		if self.is_static_trajectory:
 			return self.positions.shape[0]
 		else:
-			raise AttributeError("Time step independent number of ions is only defined for static trajectories")
+			if timestep_index is not None:
+				return self.positions[timestep_index].shape[0]
+			else:
+				raise AttributeError("Time step independent number of ions is only defined for static trajectories")
+
+	n_particles = property(get_n_particles)
+
 
 	def get_positions(self, timestep_index):
 		"""
@@ -438,9 +443,69 @@ def filter_attribute(trajectory, attribute_name, value):
 	return result
 
 
-def filter(trajectory, selector_data, value):
-	pass
+def select(trajectory, selector_data, value):
+	"""
+	Selects simulated particles according to given value in an array of selector data and constructs a new
+	:py:class:`Trajectory` with the selected data.
 
+	This method is primarily intended to provide a flexible mechanism to select particles from a trajectory
+	with a custom constructed parameter to be used for selection.
+
+
+	:param trajectory: The trajectory object to be selected from
+	:param selector_data: Selector data which assigns one value of a parameter to be used for selection
+		to every particle.
+
+		* if a vector (one dimensional array) is provided it is assumed, that the particle related parameter which is
+		  filtered for is stable across all time steps. This is only possible for static :py:class:`Trajectory` objects.
+		* An individual filtering for every time step is done when a list of selector data vectors, one per time step,
+		  is provided. Every time step then has an vector of parameter values for the individual particles. This
+		  mode is possible for static an variable :py:class:`Trajectory` objects.
+	:type selector_data: numpy.ndarray or list of numpy.ndarray
+
+	:param value: Value to select for: Particles with this value are selected from the trajectory object.
+	:return: Trajectory with selected data
+	:rtype: Trajectory
+	"""
+
+	# if selector is a vector: Same filtering for all time steps
+	if type(selector_data) is np.ndarray and selector_data.ndim == 1:
+		static_selector = True
+		selected_indices = np.nonzero(selector_data == value)[0]
+
+	elif type(selector_data) is list:
+		# we have a different filter parameter vector per time step
+		# filtered particles per time step could variate: generate a vector per time step
+		static_selector = False
+		n_ts = len(selector_data)
+		selected_indices = [np.nonzero(selector_data[i] == value)[0] for i in range(n_ts)]
+
+	else:
+		raise TypeError('Wrong data type for selector_data. One dimensional numpy array or list of one dimensional '
+		                'numpy arrays expected')
+
+	new_splat_times = None
+	if static_selector:
+		if trajectory.is_static_trajectory:
+			new_positions = trajectory.positions[selected_indices, :, :]
+			new_particle_attributes = trajectory.particle_attributes[selected_indices, :, :]
+			if trajectory.splat_times is not None:
+				new_splat_times = trajectory.splat_times[selected_indices]
+		else:
+			raise TypeError('Variable trajectory can not be filtered with static selector_data')
+
+	else:
+		new_positions = [trajectory.get_positions(i)[selected_indices[i], :] for i in range(n_ts)]
+		new_particle_attributes = [trajectory.get_particle_attributes(i)[selected_indices[i], :] for i in range(n_ts)]
+
+	result = Trajectory(
+		positions=new_positions,
+		times=trajectory.times,
+		particle_attribute_names=trajectory.particle_attribute_names,
+		particle_attributes=new_particle_attributes,
+		splat_times=new_splat_times
+	)
+	return result
 
 
 def center_of_charge(tr):

@@ -166,4 +166,65 @@ class TestTrajectory(unittest.TestCase):
 		np.testing.assert_almost_equal(particle_variable[0], (13.0, 0.7, 0.0))
 
 
+	def test_trajectory_selection_with_static_synthetic_trajectory(self):
+		n_particles = 20
+		n_steps = 10
+		tra_static = self.generate_test_trajectory(n_particles, n_steps, static=True)
+
+		static_selector = np.zeros(n_particles)
+		static_selector[5:8] = 5.0
+
+		tra_selected_static = ia.select(tra_static, static_selector, 5.0)
+		self.assertEqual(tra_selected_static.is_static_trajectory, True)
+		self.assertEqual(tra_selected_static.n_particles, 3)
+		particle_selected_static = tra_selected_static.get_particle(1, 5)
+		np.testing.assert_almost_equal(particle_selected_static[0], (6.0, 0.5, 0.0))
+		np.testing.assert_almost_equal(particle_selected_static[1], (5.0, 5.0, 0.0, 0.0))
+
+		static_non_numeric_selector = np.array(['no' for i in range(n_particles)], dtype=object)
+		static_non_numeric_selector[5:8] = 'yes'
+		tra_selected_static_non_num = ia.select(tra_static, static_non_numeric_selector, 'yes')
+		self.assertEqual(tra_selected_static_non_num.is_static_trajectory, True)
+		self.assertEqual(tra_selected_static_non_num.n_particles, 3)
+		particle_selected_static_non_num = tra_selected_static_non_num.get_particle(1, 5)
+		np.testing.assert_almost_equal(particle_selected_static_non_num[0], (6.0, 0.5, 0.0))
+		np.testing.assert_almost_equal(particle_selected_static_non_num[1], (5.0, 5.0, 0.0, 0.0))
+
+		variable_selector = [np.zeros(n_particles) for i in range(n_steps)]
+		variable_selector[6][10:15] = 2.0
+		variable_selector[6][5:8] = 5.0
+
+		tra_selected_variable = ia.select(tra_static, variable_selector, 2.0)
+		self.assertEqual(tra_selected_variable.is_static_trajectory, False)
+		self.assertEqual(len(tra_selected_variable.get_positions(0)), 0)
+		self.assertEqual(len(tra_selected_variable.get_positions(6)), 5)
+
+		particle_selected_variable = tra_selected_variable.get_particle(2, 6)
+		np.testing.assert_almost_equal(particle_selected_variable[0], (12.0, 0.6, 0.0))
+		np.testing.assert_almost_equal(particle_selected_variable[1], (6.0, 6.0, 0.0, 0.0))
+
+	def test_trajectory_selection_with_variable_synthetic_trajectory(self):
+		n_particles = 20
+		n_steps = 10
+		tra_variable = self.generate_test_trajectory(n_particles, n_steps, static=False)
+
+		static_selector = np.zeros(n_particles)
+
+		with self.assertRaises(TypeError):
+			ia.select(tra_variable, static_selector, 5.0)
+
+		variable_selector = [
+			np.zeros(tra_variable.get_n_particles(i)) for i in range(n_steps)]
+		variable_selector[6][10:15] = 2.0
+		variable_selector[6][5:8] = 5.0
+
+		tra_selected_variable = ia.select(tra_variable, variable_selector, 2.0)
+		self.assertEqual(tra_selected_variable.is_static_trajectory, False)
+		self.assertEqual(len(tra_selected_variable.get_positions(0)), 0)
+		self.assertEqual(len(tra_selected_variable.get_positions(6)), 5)
+
+		particle_selected_variable = tra_selected_variable.get_particle(2, 6)
+		np.testing.assert_almost_equal(particle_selected_variable[0], (12.0, 0.6, 0.0))
+		np.testing.assert_almost_equal(particle_selected_variable[1], (6.0, 6.0, 0.0, 0.0))
+
 #  --------------- test Trajectory export ---------------
