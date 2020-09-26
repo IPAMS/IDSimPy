@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+
+# NOTE: This analysis module is outdated and has to be updated. Many things will not work currently.
+# TODO: Update QIT simulation analysis
+
 import numpy as np
 import pylab as plt
 import pandas as pd
