@@ -52,5 +52,10 @@ class TestVisualization_images(unittest.TestCase):
 	def test_particle_path_plotting(self):
 		traj_json = tra.read_json_trajectory_file(self.test_json_trajectory)
 		result_name = os.path.join(self.result_path, 'test_particle_plotting_01')
-		dat = [[traj_json,"json trajectory"]]
-		vis.plot_particles_path(dat,result_name, [1, 2])
+
+		dat = [
+			(traj_json, (1, 2, 3, 4), "multiple particles"),
+			(traj_json, 5, "single particle"),
+		]
+
+		vis.plot_particle_traces(result_name, dat)

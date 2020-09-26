@@ -7,47 +7,83 @@ from matplotlib.image import NonUniformImage
 from . import trajectory as tra
 
 __all__ = (
-        'plot_particles_path',
-        'plot_density_xz',
-        'animate_xz_density',
-        'render_xz_density_animation',
-		'animate_xz_density_comparison_plot',
-		'render_xz_density_comparison_animation',
-		'animate_scatter_plot',
-		'animate_variable_scatter_plot',
-		'render_scatter_animation')
+	'plot_particle_traces',
+	'plot_density_xz',
+	'animate_xz_density',
+	'render_xz_density_animation',
+	'animate_xz_density_comparison_plot',
+	'render_xz_density_comparison_animation',
+	'animate_scatter_plot',
+	'animate_variable_scatter_plot',
+	'render_scatter_animation')
+
 
 # Simple Plot Methods ######################
 
-def plot_particles_path(trajectory_data, pl_filename, p_indices, plot_mark='*-', time_range=(0, 1)):
-	"""
-	Plots the paths of a selection of particles in a x,z and y,z projection
 
-	:param trajectory_data: trajectory input data
-	:type trajectory_data: list of lists of trajectory dictionaries from read_trajectory_file and an according label
+def plot_particle_traces(pl_filename, particle_definitions, plot_mark='*-', time_range=(0, 1)):
+	"""
+	Plots the paths of a selection of particles in a x,z and y,z projection and saves the plot as pdf.
+	To keep the function flexible, it takes a list of (trajectory, indices, label) tuples which specify the
+	plotted particles and legend labels.
+
+	Indices can be a numeric index or a tuple of indices to draw multiple particle traces from a trajectory object.
+
+	Example:
+
+	.. code-block:: python
+
+		particle_definitions = (
+				(tra1, (1,2), 'trajectory 1'),
+				(tra2, 3, 'trajectory 2')
+			)
+
+	will plot from ``tra1`` particle 1 and 2 with the label ``trajectory 1`` and from ``tra2`` particle 3 with the
+	label ``trajectory 2``.
+
+	**Note:**
+	The trajectories are assumed to be static.
+
 	:param pl_filename: the basename of the plot image files to create
-	:param p_indices:
-	:type p_indices: list of integers
+	:type pl_filename: str
+	:param particle_definitions: Trajectory / particle definition input data
+	:type particle_definitions: list of tuples of (:py:class:`Trajectory`, int, str)
 	:param plot_mark: matplotlib plot format string which is used for the path-plots
 	:type plot_mark: str
-	:param time_range: range of times to plot (given as a fraction between 0 and 1)
+	:param time_range: range of times to plot (given as normalized fraction between 0 and 1)
 	:type time_range: tuple of two floats between 0 and 1
 	"""
 	fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
 
-	for tr in trajectory_data:
-		times = tr[0]['times']
-		n_times = len(times)
-		pos = tr[0]['positions']
+	for pdef in particle_definitions:
+		trajectory = pdef[0]
+		p_indices = pdef[1]
+		label = pdef[2]
 
-		i_start = int(n_times*time_range[0])
+		if not isinstance(trajectory, tra.Trajectory):
+			raise TypeError('First element of particle definition tuple is not a Trajectory object')
+
+		if not isinstance(p_indices, (int, tuple)):
+			raise TypeError('Second element of particle definition tuple, particle indices, is not an int nor a tuple')
+
+		if not isinstance(label, str):
+			raise TypeError('Second element of particle definition tuple, label string, is not str')
+
+		times = trajectory.times
+		n_times = trajectory.n_timesteps
+		pos = trajectory.positions
+
+		i_start = int(n_times * time_range[0])
 		i_stop = int(n_times * time_range[1])
-		i_range = np.arange(i_start,i_stop)
+		i_range = np.arange(i_start, i_stop)
 
-		for p in p_indices:
-			p_pos = pos[p, :, i_range]
-			ax1.plot(p_pos[:, 0], p_pos[:, 2], plot_mark)
-			ax2.plot(p_pos[:, 1], p_pos[:, 2], plot_mark, label=tr[1] + ' p ' + str(p))
+		if isinstance(p_indices, int):
+			p_indices = [p_indices]
+
+		for pi in p_indices:
+			trace_pos = pos[pi, :, i_range]
+			ax1.plot(trace_pos[:, 0], trace_pos[:, 2], plot_mark)
+			ax2.plot(trace_pos[:, 1], trace_pos[:, 2], plot_mark, label=label + ' p ' + str(pi))
 
 	ax1.set_xlabel('x')
 	ax1.set_ylabel('z')
@@ -88,6 +124,7 @@ def plot_density_xz(
 
 	return fig
 
+
 # High Level Simulation Project Processing Methods ######################
 
 
@@ -98,7 +135,6 @@ def animate_xz_density(
 		xedges=None, zedges=None,
 		figsize=(7, 7), interval=1, n_frames=10,
 		output_mode='animation', axis_equal=True):
-
 	"""
 	Animates an density plot of a static simulation trajectory in a z-x projection. Still frames can also be rendered.
 
@@ -162,7 +198,7 @@ def animate_xz_density(
 		ax.set_aspect('equal')
 
 	def animate(i):
-		ts_number = i*interval
+		ts_number = i * interval
 		h_vals, _, _ = np.histogram2d(x_pos[:, ts_number], z_pos[:, ts_number], bins=(xedges, zedges))
 		h_vals = h_vals.T
 		im.set_data(xcenters, zcenters, h_vals)
@@ -283,7 +319,7 @@ def animate_xz_density_comparison_plot(
 		raise ValueError('Length of trajectories differ')
 	if not (times_a == times_b).all():
 		raise ValueError('The times of the trajectories differ')
-	if n_frames*interval > len(times_a):
+	if n_frames * interval > len(times_a):
 		raise ValueError(
 			'number of frames * interval (' + str(n_frames * interval) +
 			') is longer than trajectory (' + str(len(times_a)) + ')')
@@ -316,8 +352,8 @@ def animate_xz_density_comparison_plot(
 	xedges = np.linspace(limits[0], limits[1], bins[0])
 	zedges = np.linspace(limits[2], limits[3], bins[1])
 	h_vals = np.random.rand(len(xedges), len(zedges))
-	fig_ratio = (limits[3]-limits[2]) / (limits[1]-limits[0])
-	fig = plt.figure(figsize=(basesize, basesize*fig_ratio+basesize/10.0))
+	fig_ratio = (limits[3] - limits[2]) / (limits[1] - limits[0])
+	fig = plt.figure(figsize=(basesize, basesize * fig_ratio + basesize / 10.0))
 	ax = fig.add_subplot(1, 1, 1, ylim=(zedges[0], zedges[-1]), xlim=(xedges[0], xedges[-1]))
 
 	im1 = ax.imshow(
@@ -333,7 +369,7 @@ def animate_xz_density_comparison_plot(
 	plt.ylabel("z (mm)")
 
 	def animate(i):
-		ts_number = i*interval
+		ts_number = i * interval
 		# if the dat objects are lists: we have filtered the particles in a way that the number of selected
 		# particles change between the timesteps and we got a list of individual particle vectors
 		if isinstance(dat_a, list):
@@ -495,9 +531,9 @@ def animate_scatter_plot(
 			c_param = np.tile(color_parameter, (n_timesteps, 1)).T
 
 	if not n_frames:
-		n_frames = int(np.floor(n_timesteps/interval))
+		n_frames = int(np.floor(n_timesteps / interval))
 
-	if n_frames*interval > n_timesteps:
+	if n_frames * interval > n_timesteps:
 		raise ValueError(
 			'number of frames * interval (' + str(n_frames * interval) +
 			') is longer than trajectory (' + str(n_timesteps) + ')')
@@ -602,12 +638,12 @@ def animate_variable_scatter_plot(
 			cp_index = ap_names.index(color_parameter)
 			c_param = [ts_ap[:, cp_index] for ts_ap in ap]
 		elif hasattr(color_parameter, "__iter__"):  # is iterable
-			c_param = np.tile(color_parameter,(n_timesteps,1)).T
+			c_param = np.tile(color_parameter, (n_timesteps, 1)).T
 
 	if not n_frames:
-		n_frames = int(np.floor(n_timesteps/interval))
+		n_frames = int(np.floor(n_timesteps / interval))
 
-	if n_frames*interval > n_timesteps:
+	if n_frames * interval > n_timesteps:
 		raise ValueError(
 			'number of frames * interval (' + str(n_frames * interval) +
 			') is longer than trajectory (' + str(n_timesteps) + ')')
