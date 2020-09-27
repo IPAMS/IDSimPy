@@ -1,8 +1,19 @@
 .. _usersguide-visualization:
 
-===========================================
-User guide: Visualization of IDSimF results
-===========================================
+===============================
+Visualization of IDSimF results
+===============================
 
 
 Todo: Describe visualization of IDSimF results
+
+
+Custom plotting with matplotlib
+===============================
+
+Particle trace plots
+====================
+
+Density and scatter animations
+==============================
+

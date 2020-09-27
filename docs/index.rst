@@ -35,6 +35,7 @@ The current main features are:
     usersguide/trajectory
     usersguide/visualization
     usersguide/comsol_import
+    usersguide/preprocessing
 
 .. toctree::
     :maxdepth: 1

@@ -1,8 +1,8 @@
 .. _usersguide-comsol_import:
 
-=================================================================
-User guide: Import of Comsol Multiphysics result data into IDSimF
-=================================================================
+=====================================================
+Import of Comsol Multiphysics result data into IDSimF
+=====================================================
 
 
-Todo: Describe visualization of IDSimF results
+Todo: Describe import of comsol data into IDSimF
