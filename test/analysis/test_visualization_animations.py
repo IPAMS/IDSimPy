@@ -98,7 +98,7 @@ class TestVisualizationAnimations(unittest.TestCase):
 	def test_density_animation_low_level(self):
 		traj_hdf5 = tra.read_legacy_hdf5_trajectory_file(self.legacy_hdf5_trajectory_a)
 		anim = vis.animate_xz_density(
-			traj_hdf5['positions'],
+			traj_hdf5,
 			xedges=np.linspace(-0.001, 0.001, 50),
 			zedges=np.linspace(-0.001, 0.001, 50),
 			figsize=(10, 5))
@@ -146,7 +146,7 @@ class TestVisualizationAnimations(unittest.TestCase):
 			ValueError,
 			vis.animate_xz_density_comparison_plot, [tra_c, tra_c], [0, 1], 71, 1)
 
-		anim = vis.animate_xz_density_comparison_plot([tra_c, tra_c], [0, 1], 51, 1, s_lim=0.001, select_mode='substance')
+		anim = vis.animate_xz_density_comparison_plot((tra_c, tra_c), [0, 1], 51, 1, s_lim=0.001, select_mode='substance')
 		result_name = os.path.join(self.result_path, 'reactive_density_animation_test_1.mp4')
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 

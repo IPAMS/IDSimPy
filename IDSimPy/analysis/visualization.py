@@ -261,29 +261,33 @@ def render_xz_density_animation(
 		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
 
 	if not n_frames:
-		n_frames = len(tr['times'])
+		n_frames = tr.n_timesteps
 
 	ani = animate_xz_density(
-		tr['positions'], xedges=xedges, zedges=zedges, n_frames=n_frames, figsize=figsize,
+		tr, xedges=xedges, zedges=zedges, n_frames=n_frames, figsize=figsize,
 		axis_equal=axis_equal, interval=interval, output_mode='animation')
 
 	ani.save(result_name + "_densityXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 
 
 def animate_xz_density_comparison_plot(
-		trajectory_data, selected, n_frames, interval,
+		trajectories, selected, n_frames, interval,
 		select_mode='substance', output_mode='video', mode='lin',
 		s_lim=3, n_bins=100, basesize=17, alpha=1, colormap=plt.cm.coolwarm,
 		annotate_string=""):
 	"""
 	Animate the densities of two mostly symmetric ion clouds (probably from a QIT simulation) in a z-x projection.
+	The ion ensembles have to have an invariant number of particles across all time steps (static simulation
+	trajectories).
 
-	:param trajectory_data: imported trajectories object
-	:type trajectory_data: dict returned from the readTrajectoryFile methods
-	:param selected: two element list with values to select particles to be rendered
-	:type selected: list
+	:param trajectories: Tuple of two Trajectory objects with the data to animate
+	:type trajectories: tuple of Trajectory
+	:param selected: two element list with values to select particles which should be rendered
+	:type selected: list of two selector values
 	:param n_frames: number of frames to export
+	:type n_frames: int
 	:param interval: interval in terms of data frames in the input data between the animation frames
+	:type interval: int
 	:param select_mode: defines the mode for selection of particles:
 		"mass" for selecting by mass,
 		"substance" for chemical substance / chemical id
@@ -293,7 +297,7 @@ def animate_xz_density_comparison_plot(
 			(given as distance from the origin of the coordinate system or explicit limits: [xlo, xhi, zlo, zhi]
 	:param n_bins: number of density bins in the spatial directions or list of bin numbers ([x z])
 	:type n_bins: int or list of two ints
-	:param basesize: the base size of the plot
+	:param basesize: the base (vertical) size of the plot
 	:type basesize: float
 	:param alpha: blending factor for graphical blending the densities of the two species
 	:param colormap: a colormap for the density rendering (a pure species will end up on one side of the colormap)
@@ -302,18 +306,27 @@ def animate_xz_density_comparison_plot(
 	"""
 
 	if select_mode == 'mass':
-		select_parameter = [trajectory_data[0]['masses'], trajectory_data[1]['masses']]
+		select_parameter = [
+			trajectories[0].optional_attributes[tra.OptionalAttribute.PARTICLE_MASSES],
+			trajectories[1].optional_attributes[tra.OptionalAttribute.PARTICLE_MASSES]]
 
 	elif select_mode == 'substance':
-		id_column = trajectory_data[0]['additional_names'].index('chemical id')
-		select_parameter = [
-			trajectory_data[0]['particle_attributes'][:, id_column, :],
-			trajectory_data[1]['particle_attributes'][:, id_column, :]]
+		id_column_0 = trajectories[0].particle_attribute_names.index('chemical id')
+		id_column_1 = trajectories[1].particle_attribute_names.index('chemical id')
+
+		# the select function requires a list of individual selector data vectors if
+		# the selector data changes across the time steps
+		chem_id_0 = [trajectories[0].get_particle_attributes(i)[:, id_column_0]
+		             for i in range(trajectories[0].n_timesteps)]
+		chem_id_1 = [trajectories[1].get_particle_attributes(i)[:, id_column_1]
+		             for i in range(trajectories[1].n_timesteps)]
+
+		select_parameter = (chem_id_0, chem_id_1)
 	else:
 		raise ValueError('Invalid select_mode')
 
-	times_a = trajectory_data[0]["times"]
-	times_b = trajectory_data[1]["times"]
+	times_a = trajectories[0].times
+	times_b = trajectories[1].times
 
 	if len(times_a) != len(times_b):
 		raise ValueError('Length of trajectories differ')
@@ -325,14 +338,14 @@ def animate_xz_density_comparison_plot(
 			') is longer than trajectory (' + str(len(times_a)) + ')')
 
 	if selected[0] == "all":
-		dat_a = trajectory_data[0]["positions"]
+		dat_a = trajectories[0]
 	else:
-		dat_a = tra.filter_parameter(trajectory_data[0]["positions"], select_parameter[0], selected[0])
+		dat_a = tra.select(trajectories[0], select_parameter[0], selected[0])
 
 	if selected[1] == "all":
-		dat_b = trajectory_data[1]["positions"]
+		dat_b = trajectories[1]
 	else:
-		dat_b = tra.filter_parameter(trajectory_data[1]["positions"], select_parameter[1], selected[1])
+		dat_b = tra.select(trajectories[1], select_parameter[1], selected[1])
 
 	if output_mode == 'video':
 		plt.figure(figsize=[10, 10])
@@ -370,24 +383,14 @@ def animate_xz_density_comparison_plot(
 
 	def animate(i):
 		ts_number = i * interval
-		# if the dat objects are lists: we have filtered the particles in a way that the number of selected
-		# particles change between the timesteps and we got a list of individual particle vectors
-		if isinstance(dat_a, list):
-			x = dat_a[ts_number][:, 0]
-			z = dat_a[ts_number][:, 2]
-		else:
-			x = dat_a[:, 0, ts_number]
-			z = dat_a[:, 2, ts_number]
-		h_a, zedges2, xedges2 = np.histogram2d(z, x, bins=(zedges, xedges))
 
-		if isinstance(dat_b, list):
-			x = dat_b[ts_number][:, 0]
-			z = dat_b[ts_number][:, 2]
-		else:
-			x = dat_b[:, 0, ts_number]
-			z = dat_b[:, 2, ts_number]
+		x_a = dat_a.get_positions(ts_number)[:, 0]
+		z_a = dat_a.get_positions(ts_number)[:, 2]
+		h_a, zedges2, xedges2 = np.histogram2d(z_a, x_a, bins=(zedges, xedges))
 
-		h_b, zedges2, xedges2 = np.histogram2d(z, x, bins=(zedges, xedges))
+		x_b = dat_b.get_positions(ts_number)[:, 0]
+		z_b = dat_b.get_positions(ts_number)[:, 2]
+		h_b, zedges2, xedges2 = np.histogram2d(z_b, x_b, bins=(zedges, xedges))
 
 		nf_a = np.max(h_a)
 		nf_b = np.max(h_b)
@@ -475,7 +478,7 @@ def render_xz_density_comparison_animation(
 		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
 
 	anim = animate_xz_density_comparison_plot(
-		[tj0, tj1], selected, n_frames, interval,
+		(tj0, tj1), selected, n_frames, interval,
 		mode=mode, s_lim=s_lim, select_mode=select_mode, n_bins=n_bins,
 		basesize=base_size, annotate_string=annotation)
 	anim.save(result_name + "_densitiesComparisonXZ.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
@@ -591,7 +594,7 @@ def animate_scatter_plot(
 
 
 def animate_variable_scatter_plot(
-		trajectory_data, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
+		trajectory, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
 		color_parameter=None, cmap=plt.cm.get_cmap('viridis'), alpha=0.1, figsize=(13, 5)):
 	"""
 	TODO:/ FIXME: Usage of color parameter is not yet implemented
@@ -600,8 +603,8 @@ def animate_variable_scatter_plot(
 	Generates a scatter animation of the particles in an ion trajectory
 	with varying particle number in the simulation frames
 
-	:param trajectory_data: a particle trajectory
-	:type trajectory_data: dict returned from the readTrajectoryFile methods
+	:param trajectory: a particle trajectory to be animated
+	:type trajectory: Trajectory
 	:param xlim: limits of the plot in x direction (if None, the maximum of the x position range is used)
 	:type xlim: tuple of two floats
 	:param ylim: limits of the plot in y direction (if None, the maximum of the y position range is used)
@@ -624,19 +627,19 @@ def animate_variable_scatter_plot(
 	:type figsize: tuple of two numbers
 	"""
 	fig = plt.figure(figsize=figsize)
-	n_timesteps = trajectory_data['n_timesteps']
-	pos = trajectory_data['positions']
+	n_timesteps = trajectory.n_timesteps
+	pos = trajectory.positions
 
-	if 'particle_attributes' in trajectory_data.keys():
-		ap = trajectory_data['particle_attributes']
-		ap_names = trajectory_data['additional_names']
+	if trajectory.particle_attributes:
+		p_attrib = trajectory.particle_attributes
+		p_attrib_names = trajectory.particle_attribute_names
 
 	c_param = None
 	if not (color_parameter is None):
 
 		if type(color_parameter) is str:
-			cp_index = ap_names.index(color_parameter)
-			c_param = [ts_ap[:, cp_index] for ts_ap in ap]
+			cp_index = p_attrib_names.index(color_parameter)
+			c_param = [ts_ap[:, cp_index] for ts_ap in p_attrib]
 		elif hasattr(color_parameter, "__iter__"):  # is iterable
 			raise NotImplementedError('Usage of a custom color parameter array is not yet implemented')
 			#  c_param = np.tile(color_parameter, (n_timesteps, 1)).T
