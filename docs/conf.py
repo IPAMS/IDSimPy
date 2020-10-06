@@ -77,3 +77,4 @@ html_theme_options = {
 # -- Autodoc configuration ---------------------------------------------------
 
 autoclass_content = 'both'
+#add_module_names = False
