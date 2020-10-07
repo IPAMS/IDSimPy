@@ -186,6 +186,19 @@ For example, the retrieval of the particle masses from a trajectory ``tra`` is d
 Reading trajectory data files
 =============================
 
+IDSimPy provides file reader functions which read IDSimF trajectory files and construct :py:class:`.Trajectory` objects from the read data. 
+
+The primary IDSimF trajectory file format is HDF5 which can be opened with :py:func:`.read_hdf5_trajectory_file`. The file reading function takes the name of the HDF5 trajectory file to open as argument and returns a :py:class:`.Trajectory` object:
+
+.. code-block:: python 
+
+    import IDSimPy.analysis.trajectory as tra
+
+    hdf5_file_name = os.path.join('data', 'simulation_trajectory.hd5')
+    traj = tra.read_hdf5_trajectory_file(hdf5_file_name)
+
+
+There are two legacy file formats which are used by some legacy IDSimF applicatiions: JSON trajectories and legacy HDF5 files. They can be opened in a similar way by their specific reading functions :py:func:`.read_json_trajectory_file` and :py:func:`.read_legacy_hdf5_trajectory_file`.
 
 Analyzing trajectory data
 =========================
