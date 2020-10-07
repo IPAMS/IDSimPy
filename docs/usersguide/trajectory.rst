@@ -18,7 +18,7 @@ IDSimF particle simulation trajectory data is read into :py:class:`.Trajectory` 
 Positions and simulated times
 -----------------------------
 
-A minimal simulation trajectory holds at least the positions of the simulated particles at the recorded time steps of the simulation and the times of the time steps. The ``positions`` and ``times`` attributes of the Trajectory class can be directly accessed: 
+A minimal simulation trajectory holds at least the positions of the simulated particles at the recorded time steps of the simulation and the times of the time steps. The :py:attr:`.positions` and :py:attr:`.times` attributes of the Trajectory class can be directly accessed: 
 
 .. code-block:: python
 
@@ -36,7 +36,7 @@ yields the raw times vector, for example:
  7.2e-05 7.4e-05 7.6e-05 7.8e-05 8.0e-05 8.2e-05 8.4e-05 8.6e-05 8.8e-05
  9.0e-05 9.2e-05 9.4e-05 9.6e-05 9.8e-05 1.0e-04]
 
-Similarly, the ``positions`` are directly accessible: 
+Similarly, the :py:attr:`positions` are directly accessible: 
 
 .. code-block:: python
 
@@ -63,7 +63,7 @@ yields the raw positions table, for example:
     [ 4.42521385e-04 -3.25540517e-04 -2.27704595e-06 ... -1.75142908e-04
         4.18572658e-04 -3.89383291e-04]]]
 
-The exact type and shape of ``positions`` depends on the type of the Trajectory.
+The exact type and shape of :py:attr:`positions` depends on the type of the Trajectory.
 
 --------------------------------
 Static vs. variable Trajectories
@@ -71,7 +71,7 @@ Static vs. variable Trajectories
 
 Trajectories can be ``static`` or ``variable`` with respect to the number of particles: The number of particles in the trajectory do not change across the time steps in a ``static`` trajectory while the number changes between time steps in a ``variable`` trajectory. 
 
-If a trajectory is static or variable can be determined by the ``is_static_trajectory`` flag: 
+If a trajectory is static or variable can be determined by the :py:attr:`is_static_trajectory` flag attribute: 
 
 .. code-block:: python
 
@@ -98,9 +98,9 @@ Particle attributes
 
 IDSimF simulation applications can store an arbitrary number of additional attributes for the individual simulated particles in the simulation result files. Typical examples of particle attributes are the components of the velocity vector, the temperature or the chemical identity of the simulated particles. 
 
-Particle attributes are stored in the ``particle_attributes`` attribute of the Trajectory object. They are stored in a data structure which is similar to ``positions``. A static trajectory stores the particle attributes in a three dimensional Numpy Array with the dimensions ``[particle, attribute, time step]``. A variable trajectory stores the particle attributes as ``list`` of two dimensional Numpy arrays, one array per time step. The arrays have the dimensions ``[particle, attribute]``. 
+Particle attributes are stored in the :py:attr:`particle_attributes` attribute of the Trajectory object. They are stored in a data structure which is similar to :py:attr:`positions`. A static trajectory stores the particle attributes in a three dimensional Numpy Array with the dimensions ``[particle, attribute, time step]``. A variable trajectory stores the particle attributes as ``list`` of two dimensional Numpy arrays, one array per time step. The arrays have the dimensions ``[particle, attribute]``. 
 
-The names of the particle attribute columns accessible in the ``particle_attribute_names`` attribute of the Trajectory object: 
+The names of the particle attribute columns accessible in the :py:attr:`particle_attribute_names` attribute of the Trajectory object: 
 
 .. code-block:: python
 
@@ -164,7 +164,7 @@ The number of particles vary between time steps in variable trajectories. Thus, 
 Optional trajectory attributes
 ------------------------------
 
-Trajectory objects can have an arbitrary set of optional attributes, which are not commonly set by all IDSimF simulation applications. Typical examples are the masses of simulated particles or the charges of simulated particles. The optional trajectory attributes are technically stored as key-value pairs in a ``dict`` which can be accessed with the ``optional_attributes`` attribute of the Trajectory class. 
+Trajectory objects can have an arbitrary set of optional attributes, which are not commonly set by all IDSimF simulation applications. Typical examples are the masses of simulated particles or the charges of simulated particles. The optional trajectory attributes are technically stored as key-value pairs in a ``dict`` which can be accessed with the :py:attr:`optional_attributes` attribute of the Trajectory class. 
 
 To allow structured access to the optional trajectory attributes, an extensible set of semantic keys is provided by the :py:class:`.OptionalAttribute` enum class. 
 
@@ -175,6 +175,12 @@ For example, the retrieval of the particle masses from a trajectory ``tra`` is d
     import IDSimPy.analysis as ia
 
     particle_masses = tra.optional_attributes[ia.OptionalAttribute.PARTICLE_MASSES]
+
+:py:class:`.OptionalAttribute` has currently two optional trajectory attribute keys: 
+
+* :py:attr:`.OptionalAttribute.PARTICLE_MASSES` masses of the simulated particles
+* :py:attr:`.OptionalAttribute.PARTICLE_CHARGES` charges of the simulated particles
+
 
 
 Reading trajectory data files
