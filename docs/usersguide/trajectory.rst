@@ -200,5 +200,42 @@ The primary IDSimF trajectory file format is HDF5 which can be opened with :py:f
 
 There are two legacy file formats which are used by some legacy IDSimF applicatiions: JSON trajectories and legacy HDF5 files. They can be opened in a similar way by their specific reading functions :py:func:`.read_json_trajectory_file` and :py:func:`.read_legacy_hdf5_trajectory_file`.
 
+Filtering trajectory data and selecting particles
+=================================================
+
+The analysis of trajectory data often requires the selection of individual groups of particles from trajectory data based on some characteristics or conditions of the particles, e.g. particle attributes. The selection of particles is done with *filtering* functions, which take a :py:class:`.Trajectory`, apply a selection and construct a new Trajectory object with the filtered particle ensemble. 
+
+A simple selection method is to select particles by a given value of a specific particle attribute. This is done with :py:func:`.filter_attribute`, which takes a :py:class:`.Trajectory` to be filtered, the name of the particle attribute which should be used for filtering and the value which is filtered for. For example, selection of all particles with a ``chemical_id`` of 2 from a trajectory object ``tra``:
+
+.. code-block:: python 
+
+    import IDSimPy.analysis as ia
+
+    tra_filtered = ia.filter_attribute(tra, 'chemical id', 2)
+
+If simple selection based on a single particle attribute is not sufficient, :py:func:`.select` provides a more flexible mechanism to select particles from a :py:class:`.Trajectory` based on custom conditions. This function also takes a :py:class:`.Trajectory` object with the data to filter. The second argument to the function is a custom derived or constructed particle attribute which should be used for filtering ("selector_data"). The third argument is the value to filter for. 
+
+For example, selection of all particles with a position outside a radius of 5.0e-4 around the coordinate system origin: 
+
+.. code-block:: python 
+
+    
+    import numpy as np
+    import IDSimPy.analysis.trajectory as tr
+
+    # `tra` is an imported trajectory object 
+
+    # push positions of individual time steps into a vector for processing: 
+    positions = [ tra.get_positions(i) for i in range(tra.n_timesteps)]
+
+    # calculate length of position vector of the particles and check if longer than 5.0e-4: 
+    condition = [ np.linalg.norm(pos, axis=1) > 5.0e-4 for pos in positions]
+
+    # filter trajectory with custom condition:
+    tra_filtered = tr.select(tra, condition, True)
+
+If selector data is a one dimensional vector, the same filtering is applied to all time steps. If selector data is a ``list`` of selector data vectors, one per time step, an individual filtering for every time step is applied. 
+
 Analyzing trajectory data
 =========================
+
