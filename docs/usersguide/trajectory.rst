@@ -1,8 +1,8 @@
 .. _usersguide-trajectory:
 
-================================================
-Reading and analyzing IDSimF ion trajectory data
-================================================
+===========================================================
+Reading, filtering and analyzing IDSimF ion trajectory data
+===========================================================
 
 IDSimF applications typically produce result files which records the positions and additional attributes  of an simulated particle ensemble. Often, the combined dynamics of the simulated particle ensemble, recorded in an IDSimF result file, is called a *simulation trajectory*. 
 
@@ -238,4 +238,6 @@ If selector data is a one dimensional vector, the same filtering is applied to a
 
 Analyzing trajectory data
 =========================
+
+It is planned to provide a set of functions with IDSimPy to analyze IDSimF trajectory data. Currently, only one general analysis function is part of IDSimPy: :py:func:`.center_of_charge` takes a :py:class:`.Trajectory` object and returns the position of the center of charge for every time step. 
 
