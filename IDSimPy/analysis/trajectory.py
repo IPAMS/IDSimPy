@@ -526,7 +526,7 @@ def center_of_charge(trajectory):
 	**Note:**
 	If there is no explicit information about the particle charges in the input trajectory object
 	(the optional trajectory attribute ``OptionalAttribute.PARTICLE_MASSES`` is not present) *all* particles are
-	assumbed to be singly positively charged.
+	assumed to be singly positively charged.
 
 	:param trajectory: Trajectory to calculate the center of charge for
 	:type trajectory: Trajectory
