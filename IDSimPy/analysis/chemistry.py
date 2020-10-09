@@ -25,6 +25,9 @@ def plot_concentration_file(filename, time_range=(0, 1)):
 	
 	:param filename: name of the file to plot
 	:type filename: str
+	:param time_range: Begin and end of the time segment to plot. The begin and end times are given as
+		relative fractions of the total length of the concentration file.
+	:type time_range: tuple of two float
 	"""
 	df = read_concentration_file(filename)
 	time = df['Time']
