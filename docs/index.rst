@@ -16,8 +16,8 @@ Features
 
 The current main features are: 
 
-    * Reading of IDSimF trajectory data
-    * Filtering / statistical analysis of trajectroy data
+    * Reading of IDSimF trajectory and chemistry data
+    * Filtering / statistical analysis of trajectory data
     * Visualization of IDSimF results (plotting and animation rendering)
     * Preparation of ion cloud files
     * Transformation of field data (electric fields / flow fields) from other codes (Comsol / OpenFOAM) to IDSimF input files
@@ -33,6 +33,7 @@ The current main features are:
     :caption: User Guide:
 
     usersguide/trajectory
+    usersguide/chemistry
     usersguide/visualization
     usersguide/comsol_import
     usersguide/preprocessing

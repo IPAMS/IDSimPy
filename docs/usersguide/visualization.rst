@@ -1,9 +1,8 @@
 .. _usersguide-visualization:
 
-===============================
-Visualization of IDSimF results
-===============================
-
+========================================
+Visualization of IDSimF ion trajectories
+========================================
 
 Todo: Describe visualization of IDSimF results
 
