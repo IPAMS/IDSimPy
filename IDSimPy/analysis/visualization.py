@@ -289,6 +289,7 @@ def animate_xz_density_comparison_plot(
 	:param interval: interval in terms of data frames in the input data between the animation frames
 	:type interval: int
 	:param select_mode: defines the mode for selection of particles:
+		None for not selecting at all,
 		"mass" for selecting by mass,
 		"substance" for chemical substance / chemical id
 	:param output_mode: render either a video ("video") or single frames as image files ("singleFrame")
@@ -305,7 +306,9 @@ def animate_xz_density_comparison_plot(
 	:return: animation object or figure (depends on the file mode)
 	"""
 
-	if select_mode == 'mass':
+	if select_mode is None:
+		select_parameter = None
+	elif select_mode == 'mass':
 		select_parameter = [
 			trajectories[0].optional_attributes[tra.OptionalAttribute.PARTICLE_MASSES],
 			trajectories[1].optional_attributes[tra.OptionalAttribute.PARTICLE_MASSES]]
@@ -430,7 +433,7 @@ def render_xz_density_comparison_animation(
 		project_names, selected, result_name,
 		select_mode='substance', n_frames=400, interval=1,
 		s_lim=7, n_bins=50, base_size=12,
-		annotation="", mode="lin", file_type='legacy_hdf5'):
+		annotation="", mode="lin", file_type='hdf5'):
 	"""
 	Reads two trajectories, renders XZ density projection of two ion clouds in the trajectories and writes
 	a video file with the result.
@@ -457,12 +460,18 @@ def render_xz_density_comparison_animation(
 	:type annotation: str
 	:param mode: scale density linearly ("lin") or logarithmically ("log")
 	:param file_type: type of the trajectory file,
+		'hdf5' for hdf5,
+		'legacy_hdf5' for old legacy hdf5 format,
 		'json' for uncompressed json,
 		'compressed' for compressed json
-		'hdf5' for compressed hdf5
+
 	"""
 
-	if file_type == 'legacy_hdf5':
+	if file_type == 'hdf5':
+		file_ext = "_trajectories.hd5"
+		tj0 = tra.read_hdf5_trajectory_file(project_names[0] + file_ext)
+		tj1 = tra.read_hdf5_trajectory_file(project_names[1] + file_ext)
+	elif file_type == 'legacy_hdf5':
 		file_ext = "_trajectories.hd5"
 		tj0 = tra.read_legacy_hdf5_trajectory_file(project_names[0] + file_ext)
 		tj1 = tra.read_legacy_hdf5_trajectory_file(project_names[1] + file_ext)
