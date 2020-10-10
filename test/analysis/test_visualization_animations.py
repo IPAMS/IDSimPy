@@ -30,6 +30,9 @@ class TestVisualizationAnimations(unittest.TestCase):
 		cls.new_hdf5_static_projectName = os.path.join(
 			data_base_path, 'qitSim_2019_07_variableTrajectoryQIT',  'qitSim_2019_07_22_002')
 
+		cls.hdf5_reactive_ims_projectName = os.path.join(
+			data_base_path, 'reactive_IMS', 'IMS_HS_reactive_test_001')
+
 		cls.result_path = "test_results"
 
 	def test_scatter_animation_variable_hdf5_trajectory(self):
@@ -137,6 +140,15 @@ class TestVisualizationAnimations(unittest.TestCase):
 			project_names, masses, result_name, n_frames=100, interval=1,
 			select_mode='mass', s_lim=[-1, 5, -1, 1], n_bins=[100, 20],
 			annotation="", mode="log", file_type='json')
+
+	def test_comparison_animation_with_custom_limits_with_hdf5(self):
+		project_names = [self.hdf5_reactive_ims_projectName, self.hdf5_reactive_ims_projectName]
+		chem_ids = [0, 1]
+		result_name = os.path.join(self.result_path, 'reactive_ims_1')
+		vis.render_xz_density_comparison_animation(
+			project_names, chem_ids, result_name, n_frames=30, interval=1,
+			select_mode='substance', s_lim=[0, 5e-3, -1e-3, 2e-3], n_bins=[150, 40],
+			annotation="", mode="log", file_type='hdf5')
 
 	def test_low_level_reactive_density_comparison_animation_with_hdf5(self):
 		tra_b = tra.read_legacy_hdf5_trajectory_file(self.legacy_hdf5_trajectory_b)
