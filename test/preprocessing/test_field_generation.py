@@ -10,7 +10,6 @@ class TestFieldGeneration(unittest.TestCase):
 	def setUpClass(cls):
 		cls.result_path = "test_results"
 
-
 	def test_simple_scalar_field_generation(self):
 		# define simple linear scalar field:
 		grid_points = [[0, 2, 5, 15], [0, 2, 10], [0, 2, 5, 7, 10]]
@@ -50,10 +49,10 @@ class TestFieldGeneration(unittest.TestCase):
 
 	def test_2d_3d_conversion_for_scalar_field(self):
 
-		grid_r = [np.linspace(0, 0.01, 30)]
-		grid_z = [np.linspace(0, 0.1, 200)]
+		points_r = [np.linspace(0, 0.01, 30)]
+		points_z = [np.linspace(0, 0.1, 200)]
 
-		r_axi, z_ca = np.meshgrid(grid_r, grid_z, indexing='ij')
+		r_axi, z_ca = np.meshgrid(points_r, points_z, indexing='ij')
 
 		v_axi = r_axi * z_ca * 1e2
 		v_axi[1:10, :] = 0
@@ -77,64 +76,63 @@ class TestFieldGeneration(unittest.TestCase):
 
 		#todo: Test convesion of axial symmetric vector field
 
-
-class Buffer():
-
-
-
 	def test_quadrupole_vector_field_generation(self):
-		# define 2d axial symmetric pressure field and translate it to 3d cartesian:
-		grid_r = [np.linspace(0, 0.01, 30)]
-		grid_z = [np.linspace(0, 0.1, 200)]
-		# grid_r = np.arange(0,20)
-		# grid_z = 10
 
-		R, Z = np.meshgrid(grid_r, grid_z)
-		P = R * Z
-		P[:, 1:10] = 0
+		def write_radial_pressure_field():
+			# define 2d axial symmetric pressure field and translate it to 3d cartesian:
+			points_r = [np.linspace(0, 0.01, 30)]
+			points_z = [np.linspace(0, 0.1, 200)]
 
-		X, Y, Z, P3 = fg.transform_2d_axial_to_3d(R, Z, P)
-		grid_points = [X[0, :, 0], Y[:, 0, 0], Z[0, 0, :]]
-		grid_points_len = [len(X[0, :, 0]), len(Y[:, 0, 0]), len(Z[0, 0, :])]
+			r_axi, z_ca = np.meshgrid(points_r, points_z, indexing='ij')
+			p_axi = r_axi * z_ca
+			p_axi[:, 1:10] = 0
 
-		fields = [{'name': 'radial_pressure', 'data': P3}]
-		dat = {"grid_points": grid_points, "fields": fields}
-		fg.write_3d_scalar_fields_as_vtk_point_data(dat, os.path.join(self.result_path, 'quad_dev_pressure_radial.vts'))
+			x_ca, y_ca, z_ca, p_ca = fg.transform_2d_axial_to_3d(r_axi, z_ca, p_axi)
+			grid_ca = [x_ca[:, 0, 0], y_ca[0, :, 0], z_ca[0, 0, :]]  # cartesian grid
 
-		# define simple 3d pressure field for testing / development:
-		dx = 0.4
-		dyz = 0.1
-		grid_points = [np.linspace(-dx, dx, 300), np.linspace(-dyz, dyz, 40), np.linspace(-dyz, dyz, 40)]
+			fields = [{'name': 'radial_pressure', 'data': p_ca}]
+			dat = {"grid_points": grid_ca, "fields": fields}
+			fg.write_3d_scalar_fields_as_vtk_point_data(dat,
+			                                            os.path.join(self.result_path,
+			                                                         'quad_dev_pressure_radial.vts'))
 
-		X, Y, Z = np.meshgrid(grid_points[0], grid_points[1], grid_points[2])
-		S = np.zeros(np.shape(X)) + 10.0  # (dx-X)*10
-		fields = [{'name': 'pressure', 'data': S}]
-		dat = {"grid_points": grid_points, "meshgrid": [X, Y, Z], "fields": fields}
-		fg.write_3d_scalar_fields_as_vtk_point_data(dat, os.path.join(self.result_path, 'quad_dev_pressure_3d.vts'))
+		def write_3d_fields():
+			# define simple 3d pressure field for testing / development:
+			dx = 0.4
+			dyz = 0.1
+			grid_ca = [np.linspace(-dx, dx, 300), np.linspace(-dyz, dyz, 40), np.linspace(-dyz, dyz, 40)]
 
-		# define simple 3d vector flow field for testing / development:
-		S_x = ((dyz - np.abs(Y)) * (dyz - np.abs(Z))) * 150 / (dyz ** 2)
-		S_y = np.zeros(np.shape(X))
-		S_z = np.zeros(np.shape(X))
-		S_xyz = (S_x, S_y, S_z)
-		S_xyz_scaled = [fi * 2.0 for fi in S_xyz]
+			x_ca, y_ca, z_ca = np.meshgrid(grid_ca[0], grid_ca[1], grid_ca[2], indexing='ij')
+			S = np.zeros(np.shape(x_ca)) + 10.0  # (dx-X)*10
+			fields = [{'name': 'pressure', 'data': S}]
+			dat = {"grid_points": grid_ca, "meshgrid": [x_ca, y_ca, z_ca], "fields": fields}
+			fg.write_3d_scalar_fields_as_vtk_point_data(dat, os.path.join(self.result_path, 'quad_dev_pressure_3d.vts'))
 
-		#fields = [{'name': 'U', 'data': S_x}, {'name': 'V', 'data': S_y}, {'name': 'W', 'data': S_z}]
-		fields = [
-			{'name': 'velocity', 'data': S_xyz},
-			{'name': 'velocity_scaled', 'data': S_xyz_scaled}
-		]
+			# define simple 3d vector flow field for testing / development:
+			S_x = ((dyz - np.abs(y_ca)) * (dyz - np.abs(z_ca))) * 150 / (dyz ** 2)
+			S_y = np.zeros(np.shape(x_ca))
+			S_z = np.zeros(np.shape(x_ca))
+			S_xyz = (S_x, S_y, S_z)
+			S_xyz_scaled = [fi * 2.0 for fi in S_xyz]
 
-		dat = {"grid_points": grid_points, "meshgrid": [X, Y, Z], "fields": fields}
-		fg.write_3d_vector_fields_as_vtk_point_data(dat, os.path.join(self.result_path, 'quad_dev_flow_3d.vts'))
+			fields = [
+				{'name': 'velocity', 'data': S_xyz},
+				{'name': 'velocity_scaled', 'data': S_xyz_scaled}
+			]
 
-		# define simple 3d vector electrical field for testing / development:
-		S_x = 0.0 + np.zeros(np.shape(X))
-		S_y = Y * -10.0
-		S_z = Z * -10.0
+			dat = {"grid_points": grid_ca, "meshgrid": [x_ca, y_ca, z_ca], "fields": fields}
+			fg.write_3d_vector_fields_as_vtk_point_data(dat, os.path.join(self.result_path, 'quad_dev_flow_3d.vts'))
 
-		fields = [{'name': 'electric field', 'data': (S_x, S_y, S_z)}]
-		dat = {"grid_points": grid_points, "meshgrid": [X, Y, Z], "fields": fields}
-		fg.write_3d_vector_fields_as_vtk_point_data(dat, os.path.join(self.result_path, 'quad_dev_field.vts'))
+			# define simple 3d vector electrical field for testing / development:
+			S_x = 0.0 + np.zeros(np.shape(x_ca))
+			S_y = y_ca * -10.0
+			S_z = z_ca * -10.0
+
+			fields = [{'name': 'electric field', 'data': (S_x, S_y, S_z)}]
+			dat = {"grid_points": grid_ca, "meshgrid": [x_ca, y_ca, z_ca], "fields": fields}
+			fg.write_3d_vector_fields_as_vtk_point_data(dat, os.path.join(self.result_path, 'quad_dev_field.vts'))
+
+		write_radial_pressure_field()
+		write_3d_fields()
 
 
