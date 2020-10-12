@@ -82,3 +82,41 @@ The functions defining particle groups return the defined particles as array, wh
 There are some functions which modifies an ion cloud in more complex ways. For example, :py:func:`.add_thermalized_kinetic_energy` adds a random thermalized velocity component to the particles in an ion cloud. 
 
 
+Generating scalar and vector field input data for IDSimF
+========================================================
+
+IDSimF can import fields of scalar and vector values on a regular grid. Those fields are imported by IDSimF from HDF5 files with a defined structure. The module :py:mod:`.preprocessing.field_generation` provides an interface to write such field files from a compact structured data representation. 
+
+The primary functions in the module are :py:func:`write_3d_scalar_fields_to_hdf5` which writes a set of scalar fields to a HDF5 file and :py:func:`write_3d_vector_fields_to_hdf5` which writes a vector field to a HDF5 file. 
+
+--------------------------
+Basic field representation
+--------------------------
+
+The field export functions expect the data to export in a defined compact structure. Data objects are dictionaries (:py:obj:`dict`) with two primary entries: :py:data:`grid_points` and :py:data:`fields`. 
+
+Fields represent data on a regular spatial grid, which is defined by the positions grid nodes on the spatial axes. The entry :py:data:`grid_points` is a :py:obj:`list` which consists of three lists of grid positions, one for every spatial dimension. A valid :py:data:`grid_points` entry would thus be for example 
+
+.. code-block:: python 
+
+    [[0, 2, 5, 15], [0, 2, 10], [0, 2, 5, 7, 10]]
+
+As this example shows, the grid points do not have to be equidistant and can differ between the spatial dimensions.
+
+
+The :py:data:`fields` entry contains the actual field data. Since field files can contain multiple individual data fields on the same spatial grid, :py:data:`fields` is a :py:obj:`list` of dictionaries (:py:obj:`dict`), each defining one individual data field. Such an individual field entry has two entries: :py:data:`name` which is a name / identifier of the individual data field, and :py:data:`data` which contain the actual data. The data is given as three dimensional numpy array for scalar data fields and as four dimensional numpy array for vector data fields.  A valid :py:data:`fields` entry with two data fields would therefore be
+
+.. code-block:: python 
+
+    # dt_a and dt_b would be the prepared field data arrays with the actual field data: 
+    fields = [ {'name': 'test_field_a', 'data': dt_a}, {'name': 'test_field_b', 'data': dt_b}]
+
+-------------------
+Scalar field export 
+-------------------
+
+
+
+-------------------
+Vector field export 
+-------------------
