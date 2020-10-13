@@ -88,8 +88,8 @@ ENV/
 # Editors and IDEs
 .spyderproject
 .vscode
+.idea
 
 # Test result files
 test/test_results
 #demo/results/*
-/.idea/
