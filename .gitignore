@@ -92,3 +92,4 @@ ENV/
 # Test result files
 test/test_results
 #demo/results/*
+/.idea/
