@@ -16,7 +16,7 @@ class TestFieldGeneration(unittest.TestCase):
 		X, Y, Z = np.meshgrid(grid_points[0], grid_points[1], grid_points[2], indexing='ij')
 		S = X + Y + Z
 		fields = [{'name': 'test_field', 'data': S}]
-		dat = {"grid_points": grid_points, "meshgrid": [X, Y, Z], "fields": fields}
+		dat = {"grid_points": grid_points, "fields": fields}
 		fg.write_3d_scalar_fields_as_vtk_point_data(dat, os.path.join(self.result_path,
 		                                                              'test_linear_scalar_field_01.vts'))
 
@@ -39,7 +39,7 @@ class TestFieldGeneration(unittest.TestCase):
 			{'name': 'test_vectorfield_2', 'data': [S_x, S_y2, S_z2]}
 		]
 
-		dat = {"grid_points": grid_points, "meshgrid": [X, Y, Z], "fields": fields}
+		dat = {"grid_points": grid_points, "fields": fields}
 		fg.write_3d_vector_fields_as_vtk_point_data(dat, os.path.join(self.result_path,
 		                                                              'test_linear_vector_field_01.vts'))
 
@@ -105,7 +105,7 @@ class TestFieldGeneration(unittest.TestCase):
 			x_ca, y_ca, z_ca = np.meshgrid(grid_ca[0], grid_ca[1], grid_ca[2], indexing='ij')
 			S = np.zeros(np.shape(x_ca)) + 10.0  # (dx-X)*10
 			fields = [{'name': 'pressure', 'data': S}]
-			dat = {"grid_points": grid_ca, "meshgrid": [x_ca, y_ca, z_ca], "fields": fields}
+			dat = {"grid_points": grid_ca, "fields": fields}
 			fg.write_3d_scalar_fields_as_vtk_point_data(dat, os.path.join(self.result_path, 'quad_dev_pressure_3d.vts'))
 
 			# define simple 3d vector flow field for testing / development:
@@ -120,7 +120,7 @@ class TestFieldGeneration(unittest.TestCase):
 				{'name': 'velocity_scaled', 'data': S_xyz_scaled}
 			]
 
-			dat = {"grid_points": grid_ca, "meshgrid": [x_ca, y_ca, z_ca], "fields": fields}
+			dat = {"grid_points": grid_ca, "fields": fields}
 			fg.write_3d_vector_fields_as_vtk_point_data(dat, os.path.join(self.result_path, 'quad_dev_flow_3d.vts'))
 
 			# define simple 3d vector electrical field for testing / development:
@@ -129,7 +129,7 @@ class TestFieldGeneration(unittest.TestCase):
 			S_z = z_ca * -10.0
 
 			fields = [{'name': 'electric field', 'data': (S_x, S_y, S_z)}]
-			dat = {"grid_points": grid_ca, "meshgrid": [x_ca, y_ca, z_ca], "fields": fields}
+			dat = {"grid_points": grid_ca, "fields": fields}
 			fg.write_3d_vector_fields_as_vtk_point_data(dat, os.path.join(self.result_path, 'quad_dev_field.vts'))
 
 		write_radial_pressure_field()
