@@ -111,12 +111,66 @@ The :py:data:`fields` entry contains the actual field data. Since field files ca
     # dt_a and dt_b would be the prepared field data arrays with the actual field data: 
     fields = [ {'name': 'test_field_a', 'data': dt_a}, {'name': 'test_field_b', 'data': dt_b}]
 
+with the numpy arrays :py:data:`dt_a` and :py:data:`dt_b`. 
+
 -------------------
 Scalar field export 
 -------------------
 
+Scalar fields are written to HDF5 files with :py:func:`.write_3d_scalar_fields_to_hdf5`. The data arrays in the :py:data:`fields` entry of the data to export are expected to have three dimensions and a shape compatible with :py:data:`grid_points`. 
 
+The following example show how to define a linear field with increasing values in x,y,z direction and how to write this field to a HDF5 file for IDSimF: 
+
+.. code-block:: python 
+
+    import numpy as np
+    import IDSimPy.preprocessing.field_generation as fg
+
+    # define simple linear scalar field:
+    grid_points = [[0, 2, 5, 15], [0, 2, 10], [0, 2, 5, 7, 10]]
+    x_g, y_g, z_g = np.meshgrid(grid_points[0], grid_points[1], grid_points[2], indexing='ij')
+    linear_field = x_g + y_g + z_g
+
+    # define data to export: 
+    fields = [{'name': 'test_field', 'data': linear_field}]
+    dat = {"grid_points": grid_points, "fields": fields}
+
+    fg.write_3d_scalar_fields_to_hdf5(dat, 'test_linear_scalar_field.h5')
 
 -------------------
 Vector field export 
 -------------------
+
+Vector fields are written to HDF5 files with :py:func:`.write_3d_scalar_fields_to_hdf5`. The data arrays in the :py:data:`fields` entry of the data to export are expected to have four dimensions, with the  and a shape compatible with :py:data:`grid_points`. 
+
+The following example show how to define two vector fields with simple increasing components in x,y,z direction and how to write those fields to a HDF5 file for IDSimF: 
+
+.. code-block:: python
+
+    import numpy as np
+    import IDSimPy.preprocessing.field_generation as fg
+
+    # define two simple linear vector fields:
+    grid_points = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20], [-10, 0, 10], [0, 10]]
+    x_g, y_g, z_g = np.meshgrid(grid_points[0], grid_points[1], grid_points[2], indexing='ij')
+    v_zero = np.zeros(np.shape(x_g))
+
+    # linear increasing components for the vector fields:
+    v_x1 = x_g
+    v_y1 = y_g
+    v_z1 = z_g
+
+    v_x2 = x_g * 2.0
+    v_y2 = y_g * 4.0
+    v_z2 = z_g * 6.0
+
+    # prepare data to export, vector components are given as list of individual arrays: 
+    fields = [
+        {'name': 'test_vectorfield_1', 'data': [v_x1, v_y1, v_z1]},
+        {'name': 'test_vectorfield_2', 'data': [v_x2, v_y2, v_z2]}
+    ]
+
+    # export data
+    dat = {"grid_points": grid_points, "fields": fields}
+    fg.write_3d_vector_fields_to_hdf5(dat, 'test_linear_vector_field.h5')
+
