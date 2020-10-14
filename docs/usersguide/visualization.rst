@@ -174,7 +174,7 @@ The color of the rendered particle symbols can be used to display additional inf
         'reactive_IMS', 
         'IMS_HS_reactive_test_001')
 
-    result_name = os.path.join('scatter_colorized')
+    result_name = os.path.join('chemical_id_colorized')
 
     # render scatter animation with 'chemical_id' as colorization parameter and 'Set1' as colormap: 
     vis.render_scatter_animation(project_name, result_name, 
@@ -188,7 +188,7 @@ The example yields an animation similar to:
 .. raw:: html
 
     <video width="650" height="350" controls>
-        <source src="../_static/scatter_colorized_scatter.mp4" type="video/mp4">
+        <source src="../_static/chemical_id_colorized_scatter.mp4" type="video/mp4">
         Your browser does not support the video tag.
     </video>
 
