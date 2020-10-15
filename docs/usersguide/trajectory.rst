@@ -4,7 +4,7 @@
 Reading, filtering and analyzing IDSimF ion trajectory data
 ===========================================================
 
-IDSimF applications typically produce result files which records the positions and additional attributes  of an simulated particle ensemble. Often, the combined dynamics of the simulated particle ensemble, recorded in an IDSimF result file, is called a *simulation trajectory*. 
+IDSimF applications typically produce result files which record the positions and additional attributes of a simulated particle ensemble. Often, the combined dynamics of the simulated particle ensemble, recorded in an IDSimF result file, is called a *simulation trajectory*. 
 
 One primary task of IDSimPy is to make IDSimF simulation trajectories available for analysis. Thus, IDSimPy aims to provide a simple to use but capable interface for reading IDSimF data into convenient data objects and analyze the imported data. 
 
@@ -13,6 +13,8 @@ The Trajectory class
 ====================
 
 IDSimF particle simulation trajectory data is read into :py:class:`.Trajectory` objects which bundles the different parts of a simulation trajectory. 
+
+Note that all indices in :py:class:`.Trajectory` are zero based.
 
 -----------------------------
 Positions and simulated times
@@ -80,11 +82,11 @@ If a trajectory is static or variable can be determined by the :py:attr:`is_stat
     # yields: True
     
 
-How the positions are stored depends if it is a static or a variable trajectory: 
+How the positions are stored depends on whether it is a static or a variable trajectory: 
 
 For **static** trajectories, the positions are stored in a three dimensional Numpy array. The particle index is the first dimension, the spatial dimension (``x``, ``y``, ``z``) is the second and the time steps are the third dimension. Thus, for example a static trajectory with an ensemble of 6 particles with 20 time steps would have a positions array with the shape ``(6, 3, 20)``.
 
-For **variable** trajectories, the positions are stored as ``list`` of individual Numpy arrays, one per time step, which store the positions of the particles in the individual time step. The dimensions in the time step specific arrays are the particle index as first, and the spatial dimension as second dimension. Thus, a simulation with 3 time steps with 2, 5 and 9 particles in the first, second and third time step would have the shape: 
+For **variable** trajectories, the positions are stored as ``list`` of individual Numpy arrays, one per time step. Each array stores the positions of the particles in the individual time step. The dimensions in the time step specific arrays are the particle index as first, and the spatial dimension as second dimension. Thus, a simulation with 3 time steps with 2, 5 and 9 particles in the first, second and third time step would have the shape: 
 
 .. code-block:: python 
 
@@ -98,9 +100,9 @@ Particle attributes
 
 IDSimF simulation applications can store an arbitrary number of additional attributes for the individual simulated particles in the simulation result files. Typical examples of particle attributes are the components of the velocity vector, the temperature or the chemical identity of the simulated particles. 
 
-Particle attributes are stored in the :py:attr:`particle_attributes` attribute of the Trajectory object. They are stored in a data structure which is similar to :py:attr:`positions`. A static trajectory stores the particle attributes in a three dimensional Numpy Array with the dimensions ``[particle, attribute, time step]``. A variable trajectory stores the particle attributes as ``list`` of two dimensional Numpy arrays, one array per time step. The arrays have the dimensions ``[particle, attribute]``. 
+Particle attributes are stored in the :py:attr:`particle_attributes` attribute of the Trajectory object. They are stored in a data structure which is similar to :py:attr:`positions`. A static trajectory stores the particle attributes in a three dimensional Numpy array with the dimensions ``[particle, attribute, time step]``. A variable trajectory stores the particle attributes as ``list`` of two dimensional Numpy arrays, one array per time step. The arrays have the dimensions ``[particle, attribute]``. 
 
-The names of the particle attribute columns accessible in the :py:attr:`particle_attribute_names` attribute of the Trajectory object: 
+The names of the particle attribute columns are accessible in the :py:attr:`particle_attribute_names` attribute of the Trajectory object: 
 
 .. code-block:: python
 
@@ -120,7 +122,7 @@ Trajectory data access methods
 Unified access methods for positions and particle attributes
 ------------------------------------------------------------
 
-The Trajectory class provides with :py:meth:`.Trajectory.get_positions` and with :py:meth:`.Trajectory.get_particle_attributes` unified access methods to the positions and particle attributes, which is independent from if the trajectory is static: 
+The Trajectory class provides with :py:meth:`.Trajectory.get_positions` and with :py:meth:`.Trajectory.get_particle_attributes` unified access methods to the positions and particle attributes, for both static and variable trajectories: 
 
 .. code-block:: python
 
@@ -192,10 +194,10 @@ The primary IDSimF trajectory file format is HDF5 which can be opened with :py:f
 
 .. code-block:: python 
 
-    import IDSimPy.analysis.trajectory as tra
+    import IDSimPy.analysis.trajectory as tr
 
     hdf5_file_name = os.path.join('data', 'simulation_trajectory.hd5')
-    traj = tra.read_hdf5_trajectory_file(hdf5_file_name)
+    tra = tr.read_hdf5_trajectory_file(hdf5_file_name)
 
 
 There are two legacy file formats which are used by some legacy IDSimF applicatiions: JSON trajectories and legacy HDF5 files. They can be opened in a similar way by their specific reading functions :py:func:`.read_json_trajectory_file` and :py:func:`.read_legacy_hdf5_trajectory_file`.

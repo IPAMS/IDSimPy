@@ -2,13 +2,13 @@
 Welcome to IDSimPy 
 ==================
 
-IDSimPy is an pre- and postprocessing package for `IDSimF <https://github.com/IPAMS/IDSimF>`_. IDSimF, the *Ion Dynamics Simulation Framework*, is an open source framework for the simulation of non relativistic dynamics of molecular ions. The primary application of IDSimF is in the domain of mass spectrometry and ion mobility spectrometry.
+IDSimPy is a pre- and postprocessing package for `IDSimF <https://github.com/IPAMS/IDSimF>`_. IDSimF, the *Ion Dynamics Simulation Framework*, is an open source framework for the simulation of non-relativistic dynamics of molecular ions. The primary application of IDSimF is in the domain of mass spectrometry and ion mobility spectrometry.
 
 
 Introduction and Overview
 =========================
 
-IDSimPy is an Python companion package to IDSimF. IDSimPy bundles functionality for the pre- and postprocessing of input data for IDSimF simulations and of IDSimF result data. IDSimPy aims to provide a simple and productive interface to IDSimF. 
+IDSimPy is a Python companion package to IDSimF. IDSimPy bundles functionality for the pre- and postprocessing of input data for IDSimF simulations and of IDSimF result data. IDSimPy aims to provide a simple and productive interface to IDSimF. 
 
 --------
 Features

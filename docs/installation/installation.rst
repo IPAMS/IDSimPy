@@ -12,7 +12,7 @@ IDSimPy is a Python 3 package. It requires a working and up to date Python 3 env
 Installation
 ============
 
-IDSimPy is currently not yet listed on PyPi `PyPi <https://pypi.org>`_.  Therefore, the public `Git repository <https://github.com/IPAMS/IDSimPy>`_  has to be cloned and the package has to be installed from source. 
+IDSimPy is currently not yet listed on `PyPi <https://pypi.org>`_.  Therefore, the public `Git repository <https://github.com/IPAMS/IDSimPy>`_  has to be cloned and the package has to be installed from source. 
 
 With git installed clone the repository to a local directory: 
 
@@ -20,7 +20,7 @@ With git installed clone the repository to a local directory:
 
     git clone https://github.com/IPAMS/IDSimPy.git
 
-Then change into the cloned directory and install IDSimPy from source by invoking the setup script:
+Then move into the cloned directory and install IDSimPy from source by invoking the setup script:
 
 .. code-block:: console
 

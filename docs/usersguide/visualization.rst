@@ -48,18 +48,9 @@ Particle trace plots
 
 The traces of individual particles can be plotted in a flexible way with :py:func:`.plot_particle_traces`. This function can plot individual particle traces from different trajectories in one figure, which allows the direct comparison of different particles. 
 
-The function renders the plot as PDF and takes the name of the result PDF file as first argument. The second argument, ``particle_definitions``, defines the particles to plot. It is a tuple of tuples, which each define the particles to plot for a :py:class:`.Trajectory` object. Each of those configuration lines consist of a :py:class:`.Trajectory`, a list of particle indices to plot, and a legend label for the series of particles defined by the line. 
+The function renders the plot as PDF and takes the name of the result PDF file as first argument. The second argument, ``particle_definitions``, defines the particles to plot. It is a tuple of tuples, which each defines the particles to plot for a :py:class:`.Trajectory` object. Each of those configuration lines consists of a :py:class:`.Trajectory`, a list of particle indices to plot, and a legend label for the series of particles defined by the line. 
 
-For example 
-
-.. code-block:: python 
-
-    particle_definition = [
-        (tra_1, (1, 2), "10_001"),
-        (tra_2, 20, "10_002"),
-    ]
-
-in the following example, defines the particles 1 and 2 from trajectory :py:data:`tra_1` with the label ``10_001`` and particle 20 from trajectory :py:data:`tra_2` with the label ``10_002``:
+In the following example, :py:data:`particle_definition` defines the particles 1 and 2 from trajectory :py:data:`tra_1` with the label ``10_001`` and particle 20 from trajectory :py:data:`tra_2` with the label ``10_002``:
 
 .. code-block:: python 
 
@@ -93,14 +84,14 @@ Particle scatter plots and animations
 
 Scatter plots draw individual symbols for the simulated particles in a particle ensemble. Usually, the spatial position of the particle symbols in the coordinate system of the plot reflect the spatial position of the simulated particles. There are also different variants of this plot type, where the velocity of the simulated particles becomes a spatial dimension in the plot (phase space plots). 
 
-There is a high level plot function, which allows to generate generic scatter plot animations quickly and comparably conveniently. The high level functions are wrapper functions around the actual scatter plot rendering functions. The wrapper functions open the trajectory, generate the scatter animation and writes it to a video file. The actual scatter plot rendering functions can also be used directly, e.g. if the resulting scatter animation should be processed further or reading a trajectory multiple times is inefficient. 
+There is a high level plot function, which allows to generate generic scatter plot animations quickly and comparably conveniently. The high level functions are wrapper functions around the actual scatter plot rendering functions. The wrapper functions open the trajectory, generate the scatter animation and write it to a video file. The actual scatter plot rendering functions can also be used directly, e.g. if the resulting scatter animation should be processed further or reading a trajectory multiple times is inefficient. 
 
 High level scatter plot animation function
 ------------------------------------------
 
-:py:func:`.render_scatter_animation` provides a simple function to render scatter animations in an xy and xz projection. It takes the name of a simulation *project* as first argument, opens the trajectory file of that project and renders an animation into a mp4 file given as second argument. For example, specifying ``my_simulation`` as output name in an IDSimF solver will usually generate a trajectory file ``my_simulation_trajectories.hd5`` which can be animated by calling :py:func:`.render_scatter_animation` with ``my_simulation`` as first argument. 
+:py:func:`.render_scatter_animation` provides a simple function to render scatter animations in an xy and xz projection. It takes the name of a simulation *project* as first argument, opens the trajectory file of that project and renders an animation into an mp4 file given as second argument. For example, specifying ``my_simulation`` as output name in an IDSimF solver will usually generate a trajectory file ``my_simulation_trajectories.hd5`` which can be animated by calling :py:func:`.render_scatter_animation` with ``my_simulation`` as first argument. 
 
-A minimal example of a scatter plot an IDSimF simulation result would be
+A minimal example of a scatter plot of an IDSimF simulation result would be
 
 .. code-block:: python 
 
@@ -194,13 +185,13 @@ The example yields an animation similar to:
 
 The chemical identity of the particles are discernible and it becomes visible, that the particles begin to separate. 
 
-It is possible to use a fully custom colorization for static trajectories: The :py:data:`color_parameter` argument in :py:func:`.render_scatter_animation` can also be a vector of custom numeric values, one per simulated particle, which is then used for colorization. The next example in the next section shows this with the low level scatter plot function. 
+It is possible to use a fully custom colorization for static trajectories: The :py:data:`color_parameter` argument in :py:func:`.render_scatter_animation` can also be a vector of custom numeric values, one per simulated particle, which is then used for colorization. The first example in the next section shows this with the low level scatter plot function. 
 
 
 Low level scatter plot functions
 --------------------------------
 
-Technical, the "high level" plot function is a wrapper function around the actual scatter plot rendering functions :py:func:`.animate_scatter_plot` and :py:func:`.animate_variable_scatter_plot`. Both functions take a :py:class:`.Trajectory` object and a set of rendering / style options and generate an animation object. The function :py:func:`.animate_scatter_plot` generates scatter plots from static trajectories, while :py:func:`.animate_variable_scatter_plot` generates scatter plots from variable trajectory objects. The resulting animation objects can be saved to a video file, as shown in the following example: 
+Technically, the "high level" plot function is a wrapper function around the actual scatter plot rendering functions :py:func:`.animate_scatter_plot` and :py:func:`.animate_variable_scatter_plot`. Both functions take a :py:class:`.Trajectory` object and a set of rendering / style options and generate an animation object. The function :py:func:`.animate_scatter_plot` generates scatter plots from static trajectories, while :py:func:`.animate_variable_scatter_plot` generates scatter plots from variable trajectory objects. The resulting animation objects can be saved to a video file, as shown in the following example: 
 
 .. code-block:: python 
 
@@ -250,7 +241,7 @@ Particle density plots and animations
 Simple density plots
 --------------------
 
-A density plot shows the density of simulated particles in the cells of a grid across a spatial domain. This allows to understand the spatially resolved particle density in the region of interest, even when the individual symbols rendered by scatter plots are not providing any useful information anymore, e.g. due to very high numbers of simulated particles. 
+A density plot shows the density of simulated particles in the cells of a grid across a spatial domain. This allows to highlight the spatially resolved particle density in the region of interest, even when the individual symbols rendered by scatter plots are not providing any useful information anymore, e.g. due to very high numbers of simulated particles. 
 
 The function :py:func:`.plot_density_xz` provides a density plot of the particle density in a projection on a xz plane: 
 
@@ -301,7 +292,7 @@ High level density animation function
 
 Similarly to the scatter plot functionality, there is a high level and a more low level function to render density animations. :py:func:`.render_xz_density_animation` is a high level animation plot function which gives a quick way to look into the dynamics of an IDSimF result. 
 
-Similarly to :py:func:`.render_scatter_animation`, the function takes the name of a simulation *project* as first argument, opens the trajectory file of that project and renders an animation into a mp4 file given as second argument. For example, specifying ``my_simulation`` as output name in an IDSimF solver will usually generate a trajectory file ``my_simulation_trajectories.hd5`` which can be animated by calling :py:func:`.render_xz_density_animation` with ``my_simulation`` as first argument. 
+Similarly to :py:func:`.render_scatter_animation`, the function takes the name of a simulation *project* as first argument, opens the trajectory file of that project and renders an animation into an mp4 file given as second argument. For example, specifying ``my_simulation`` as output name in an IDSimF solver will usually generate a trajectory file ``my_simulation_trajectories.hd5`` which can be animated by calling :py:func:`.render_xz_density_animation` with ``my_simulation`` as first argument. 
 
 Similarly to :py:func:`.plot_density_xz`, additional parameters like the edges of the bins of the grid used for the local summation of particles can be changed: 
 
@@ -318,7 +309,7 @@ Similarly to :py:func:`.plot_density_xz`, additional parameters like the edges o
         zedges=np.linspace(-0.004, 0.004, 100),
         axis_equal=False, file_type='legacy_hdf5')
 
-The edges of the bin grid (:py:data:`xedges`, :py:data:`zedges`) can be set directly as array as presented in the example for :py:data:`zedges`. If a integer value is given as argument for the edges, the full extend of the particle positions in the spatial direction is segmented into the specified number of equidistant bins. 
+The edges of the bin grid (:py:data:`xedges`, :py:data:`zedges`) can be set directly as an array as presented in the example for :py:data:`zedges`. If an integer value is given as argument for the edges, the full extend of the particle positions in the spatial direction is segmented into the specified number of equidistant bins. 
 
 The example yields an animation similar to 
 
@@ -333,7 +324,7 @@ The example yields an animation similar to
 Low level density animation function
 ------------------------------------
 
-Besides the high level function described above, there is also a low level function :py:func:`.animate_xz_density`, which is in fact used by the high level function for creating the animation. The low level function takes a trajectory object and return an animation object, which then can be processed further, e.g. saved to a video file: 
+Besides the high level function described above, there is also a low level function :py:func:`.animate_xz_density`, which is in fact used by the high level function for creating the animation. The low level function takes a trajectory object and returns an animation object, which can then be processed further, e.g. saved to a video file: 
 
 .. code-block:: python 
 
@@ -363,7 +354,7 @@ This example yields an animation similar to
         Your browser does not support the video tag.
     </video>
 
-Note that the low level function is also capable to export single frames as images. 
+Note that the low level function is also capable of exporting single frames as images. 
 
 
 Comparative density animations

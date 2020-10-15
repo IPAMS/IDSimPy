@@ -44,7 +44,7 @@ Generating ion clouds
 
 The module :py:mod:`.preprocessing.ion_cloud_generation` provides functionality to define ion ensembles and write them to ion cloud files. 
 
-The module provides functions to define individual groups of particles in defined geometric shapes (e.g. cylinders or spheres) and functions to modify characteristics of those particle groups. The complete ion cloud is then built by combining the subgroups of particles. The combined ion cloud is then written to a ion cloud file. 
+The module provides functions to define individual groups of particles in defined geometric shapes (e.g. cylinders or spheres) and functions to modify characteristics of those particle groups. The complete ion cloud is then built by combining the subgroups of particles. The combined ion cloud is then written to an ion cloud file. 
 
 The following example shows this basic principle: Two groups of particles with random positions within a cylinder in x direction are defined. The first particle group has particles with charge 1 and mass 1, the second group has particles with charge 2 and mass 10. The groups are combined and written to an ion cloud file:
 
@@ -121,7 +121,7 @@ Scalar field export
 
 Scalar fields are written to HDF5 files with :py:func:`.write_3d_scalar_fields_to_hdf5`. The data arrays in the :py:data:`fields` entry of the data to export are expected to have three dimensions and a shape compatible with :py:data:`grid_points`. 
 
-The following example show how to define a linear field with increasing values in x,y,z direction and how to write this field to a HDF5 file for IDSimF: 
+The following example shows how to define a linear field with increasing values in x,y,z direction and how to write this field to a HDF5 file for IDSimF: 
 
 .. code-block:: python 
 
@@ -143,9 +143,9 @@ The following example show how to define a linear field with increasing values i
 Vector field export 
 -------------------
 
-Vector fields are written to HDF5 files with :py:func:`.write_3d_vector_fields_to_hdf5`. The data arrays in the :py:data:`fields` entry of the data to export are expected to have four dimensions, with the  and a shape compatible with :py:data:`grid_points`. 
+Vector fields are written to HDF5 files with :py:func:`.write_3d_vector_fields_to_hdf5`. The data arrays in the :py:data:`fields` entry of the data to export are expected to have four dimensions and a shape compatible with :py:data:`grid_points`. 
 
-The following example show how to define two vector fields with simple increasing components in x,y,z direction and how to write those fields to a HDF5 file for IDSimF: 
+The following example shows how to define two vector fields with simple increasing components in x,y,z direction and how to write those fields to a HDF5 file for IDSimF: 
 
 .. code-block:: python
 

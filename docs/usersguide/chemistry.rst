@@ -4,7 +4,7 @@
 Reading and analyzing IDSimF chemistry results
 ==============================================
 
-IDSimF is primarily a charged particle trajectory simulation code, but it includes particle based chemical kinetics also. The simulation of chemical kinetics is typically part of simulation of the trajectories of reactive charged particles, but there are also solvers which only simulate kinetics, e.g. with the assumption of an ideally mixed reactor. 
+IDSimF is primarily a charged particle trajectory simulation code, but it also includes particle based chemical kinetics. The simulation of chemical kinetics is typically part of simulation of the trajectories of reactive charged particles, but there are also solvers which only simulate kinetics, e.g. with the assumption of an ideally mixed reactor. 
 
 The results of chemical kinetics simulations in IDSimF are often intrinsically also part of a trajectory result file, since solvers often write the chemical identifier (chemical ID) of the simulated particles to the trajectory. However, the primary result of chemical simulations in IDSimF is s separate file, the *reaction simulation result*. 
 
@@ -23,7 +23,7 @@ Currently, this file is a simple delimiter separated text file, which contains t
     1200 ; 1.2e-05 ;  149 ; 251 ; 200 ;
     1400 ; 1.4e-05 ;  146 ; 254 ; 200 ;
 
-Here, three ``discrete`` chemical species were simulated and recorded: `Cl_1`, `Cl_2` and `Cl_3`. Discrete species are the actively simulated chemical species, which are described by individual particles by the reaction simuatlion (RS) module of IDSimF. There are other chemical species in RS, which are not written to chemistry result files. See the IDSimF documentation for details. 
+Here, three ``discrete`` chemical species were simulated and recorded: `Cl_1`, `Cl_2` and `Cl_3`. Discrete species are the actively simulated chemical species, which are described by individual particles by the reaction simulation (RS) module of IDSimF. There are other chemical species in RS, which are not written to chemistry result files. See the IDSimF documentation for details. 
 
 Reading of concentration files
 ==============================
