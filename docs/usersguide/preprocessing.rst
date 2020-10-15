@@ -82,6 +82,8 @@ The functions defining particle groups return the defined particles as array, wh
 There are some functions which modifies an ion cloud in more complex ways. For example, :py:func:`.add_thermalized_kinetic_energy` adds a random thermalized velocity component to the particles in an ion cloud. 
 
 
+.. _usersguide-preprocessing-field-generation:
+
 Generating scalar and vector field input data for IDSimF
 ========================================================
 
@@ -141,7 +143,7 @@ The following example show how to define a linear field with increasing values i
 Vector field export 
 -------------------
 
-Vector fields are written to HDF5 files with :py:func:`.write_3d_scalar_fields_to_hdf5`. The data arrays in the :py:data:`fields` entry of the data to export are expected to have four dimensions, with the  and a shape compatible with :py:data:`grid_points`. 
+Vector fields are written to HDF5 files with :py:func:`.write_3d_vector_fields_to_hdf5`. The data arrays in the :py:data:`fields` entry of the data to export are expected to have four dimensions, with the  and a shape compatible with :py:data:`grid_points`. 
 
 The following example show how to define two vector fields with simple increasing components in x,y,z direction and how to write those fields to a HDF5 file for IDSimF: 
 
