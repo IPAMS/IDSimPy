@@ -6,7 +6,7 @@
 import numpy as np
 import pylab as plt
 import pandas as pd
-import json
+import commentjson
 import os
 from matplotlib import animation
 from .constants import *
@@ -50,7 +50,7 @@ def read_QIT_conf(conf_file_name):
 	:return: a parsed dictionary with the configuration parameters
 	"""
 	with open(conf_file_name) as jsonFile:
-		confJson = json.load(jsonFile)
+		confJson = commentjson.load(jsonFile)
 
 	return (confJson)
 
@@ -109,10 +109,10 @@ def read_and_analyze_stability_scan(project_path, t_range=(0, 1)):
 	time, inactive_ions = read_ions_inactive_record(project_path)
 
 	with open(project_path + "_conf.json") as jsonFile:
-		conf_json = json.load(jsonFile)
+		conf_json = commentjson.load(jsonFile)
 
-	V_rf_start = conf_json["V_rf_start"]
-	V_rf_end = conf_json["V_rf_end"]
+	V_rf_start = conf_json["rf_ramp_start_V"]
+	V_rf_end = conf_json["rf_ramp_stop_V"]
 	V_rf = np.linspace(V_rf_start, V_rf_end, len(time))
 
 	n_samples = len(time)
@@ -184,7 +184,7 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 	the time vector and amplitude of the transient
 	"""
 	with open(project_path + "_conf.json") as jsonFile:
-		confJson = json.load(jsonFile)
+		confJson = commentjson.load(jsonFile)
 
 	if load_mode == "fft_record":
 		t,z = read_FFT_record(project_path)
@@ -218,11 +218,12 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 	ax[1].set_ylabel('Amplitude (arb.)')
 
 	projectName = project_path.split("/")[-1]
+
+	titlestring = projectName + " p:" + str(confJson["partial_pressures_Pa"]) +\
+	              " Pa, c gas mass:" + str(confJson["collision_gas_masses_amu"]) + " amu, "
+
 	if "space_charge_factor" in confJson:
-		titlestring = projectName+" p:"+str(confJson["background_pressure_Pa"])+" Pa, c gas mass:"+str(confJson["collision_gas_mass_amu"])+" amu, "
 		titlestring = titlestring + "space charge factor:"+'%6g' % (confJson["space_charge_factor"])
-	else:
-		titlestring = projectName+" p:"+str(confJson["background_pressure_Pa"])+" Pa"
 
 
 	#titlestring = titlestring + ", nIons:"+str(confJson["n_ions"])+ ", ion masses:"+str(confJson["ion_masses"])
@@ -241,23 +242,24 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 
 def analyze_stability_scan(project_path, window_width=0, t_range=[0, 1], result_path=None):
 	with open(project_path + "_conf.json") as jsonFile:
-		confJson = json.load(jsonFile)
+		confJson = commentjson.load(jsonFile)
 
-	V_rf_start = confJson["V_rf_start"]
-	V_rf_end = confJson["V_rf_end"]
+	V_rf_start = confJson["rf_ramp_start_V"]
+	V_rf_end = confJson["rf_ramp_stop_V"]
 
 	projectName = project_path.split("/")[-1]
 
-	titlestring = projectName + " p " + str(confJson["background_pressure_Pa"]) + " Pa, c. gas " + str(
-		confJson["collision_gas_mass_amu"]) + " amu, "
+	titlestring = projectName + " p " + str(confJson["partial_pressures_Pa"]) + " Pa, c. gas " + str(
+		confJson["collision_gas_masses_amu"]) + " amu, "
 	titlestring = titlestring + "spc:" + '%4g, ' % (confJson["space_charge_factor"])
 	titlestring = titlestring + "RF: " + str(V_rf_start) + " to " + str(V_rf_end) + " V @ " + str(
 		confJson["f_rf"] / 1000.0) + " kHz"
 
 	t_end = confJson["sim_time_steps"]*confJson["dt"]
-	dUdt = (confJson["V_rf_end"] - confJson["V_rf_start"]) / t_end
+	dUdt = (V_rf_end - V_rf_start) / t_end
 	titlestring = titlestring + (' (%2g V/s), ' % (dUdt))
-	titlestring = titlestring + str(confJson["excite_potential"]) + " V exci."
+	if confJson['excite_mode'] != 'off':
+		titlestring = titlestring + str(confJson["excite_potential"]) + " V exci."
 
 	project = [[project_path, ""]]
 	plot_fn = project_path
