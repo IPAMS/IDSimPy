@@ -8,8 +8,8 @@ class TestFieldGeneration(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
-		cls.quad_rf_field = os.path.join('testfiles', 'transfer_quad_rf_field.csv.gz')
-		cls.result_path = "test_results"
+		cls.quad_rf_field = os.path.join('test', 'testfiles', 'transfer_quad_rf_field.csv.gz')
+		cls.result_path = os.path.join('test', 'test_results')
 		cls.hdf5_vector_result_file = os.path.join(cls.result_path, 'comsol_vector_import.h5')
 		cls.hdf5_scalar_result_file = os.path.join(cls.result_path, 'comsol_scalar_import.h5')
 
