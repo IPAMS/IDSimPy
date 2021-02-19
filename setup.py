@@ -19,5 +19,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
-    install_requires=['numpy', 'matplotlib', 'pandas', 'h5py', 'vtk']
+    install_requires=['numpy', 'matplotlib', 'pandas', 'commentjson', 'h5py', 'vtk']
 )

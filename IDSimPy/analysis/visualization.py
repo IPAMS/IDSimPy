@@ -314,8 +314,8 @@ def animate_xz_density_comparison_plot(
 			trajectories[1].optional_attributes[tra.OptionalAttribute.PARTICLE_MASSES]]
 
 	elif select_mode == 'substance':
-		id_column_0 = trajectories[0].particle_attribute_names.index('chemical_id')
-		id_column_1 = trajectories[1].particle_attribute_names.index('chemical_id')
+		id_column_0 = trajectories[0].particle_attribute_names.index('chemical id')
+		id_column_1 = trajectories[1].particle_attribute_names.index('chemical id')
 
 		# the select function requires a list of individual selector data vectors if
 		# the selector data changes across the time steps
@@ -373,7 +373,7 @@ def animate_xz_density_comparison_plot(
 	ax = fig.add_subplot(1, 1, 1, ylim=(zedges[0], zedges[-1]), xlim=(xedges[0], xedges[-1]))
 
 	im1 = ax.imshow(
-		h_vals, interpolation='nearest', origin='low', alpha=1, vmin=0, vmax=10, cmap="Reds",
+		h_vals, interpolation='nearest', origin='lower', alpha=1, vmin=0, vmax=10, cmap="Reds",
 		extent=[xedges[0], xedges[-1], zedges[0], zedges[-1]])
 
 	text_time = ax.annotate(

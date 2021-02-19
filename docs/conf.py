@@ -20,7 +20,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'IDSimPy'
-copyright = '2020, Institute for Pure and Applied Mass Spectrometry, University of Wuppertal, Germany'
+copyright = '2021, Institute for Pure and Applied Mass Spectrometry, University of Wuppertal, Germany'
 author = 'Institute for Pure and Applied Mass Spectrometry, University of Wuppertal, Germany'
 
 

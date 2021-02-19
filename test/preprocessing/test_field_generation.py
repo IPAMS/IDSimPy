@@ -8,7 +8,7 @@ class TestFieldGeneration(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
-		cls.result_path = "test_results"
+		cls.result_path = os.path.join('test', 'test_results')
 
 	def test_simple_scalar_field_generation(self):
 		# define simple linear scalar field:
