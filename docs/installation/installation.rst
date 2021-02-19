@@ -26,3 +26,11 @@ Then change into the cloned directory and install IDSimPy from source by invokin
 
     cd IDSimPy
     python setup.py install
+
+
+Alternatively, IDSimPy can also installed from the cloned repository with pip:
+
+.. code-block:: console
+
+    cd IDSimPy
+    pip install .
