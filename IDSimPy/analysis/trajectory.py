@@ -295,7 +295,9 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 
 	particle_attributes_names = None
 	if 'auxiliary parameter names' in attribs.keys():
-		particle_attributes_names = [name.decode('UTF-8') for name in attribs['auxiliary parameter names']]
+		particle_attributes_names = [
+			name.decode('UTF-8') if isinstance(name, bytes) else name for name in attribs['auxiliary parameter names']
+		]
 
 	positions = []
 	particle_attributes = []
@@ -364,7 +366,10 @@ def read_legacy_hdf5_trajectory_file(trajectory_file_name):
 	aux_parameters_names = None
 	aux_parameters = None
 	if 'aux_parameters' in tra_group.keys():
-		aux_parameters_names = [name.decode('UTF-8') for name in attribs['auxiliary parameter names']]
+		#aux_parameters_names = [name.decode('UTF-8') for name in attribs['auxiliary parameter names']]
+		aux_parameters_names = [
+			name.decode('UTF-8') if isinstance(name, bytes) else name for name in attribs['auxiliary parameter names']
+		]
 		aux_parameters = np.array(tra_group['aux_parameters'])
 
 	result = Trajectory(
