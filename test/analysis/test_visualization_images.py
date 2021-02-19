@@ -9,7 +9,7 @@ class TestVisualization_images(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
-		data_base_path = os.path.join('analysis', 'data')
+		data_base_path = os.path.join('test', 'analysis', 'data')
 		cls.test_json_trajectory = os.path.join(data_base_path, 'test_trajectories.json')
 		cls.test_json_projectName = os.path.join(data_base_path, 'test')
 		cls.test_reactive_projectName = os.path.join(data_base_path, 'qitSim_2019_04_scanningTrapTest',
@@ -20,7 +20,7 @@ class TestVisualization_images(unittest.TestCase):
 		                                          'qitSim_2019_04_10_002_trajectories.hd5')
 		cls.test_hdf5_trajectory_c = os.path.join(data_base_path, 'qitSim_2019_04_scanningTrapTest',
 		                                          'qitSim_2019_04_15_001_trajectories.hd5')
-		cls.result_path = "test_results"
+		cls.result_path = os.path.join('test', 'test_results')
 
 	def test_basic_density_plotting(self):
 		time_step_index = 1

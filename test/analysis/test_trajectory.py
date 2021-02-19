@@ -8,7 +8,7 @@ class TestTrajectory(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
-		data_base_path = os.path.join('analysis', 'data')
+		data_base_path = os.path.join('test', 'analysis', 'data')
 		cls.legacy_hdf5_bare_fname = os.path.join(data_base_path, 'QIT_test_trajectory.hd5')
 		cls.legacy_hdf5_aux_fname = os.path.join(data_base_path, 'QIT_test_trajectory_aux.hd5')
 
@@ -24,7 +24,7 @@ class TestTrajectory(unittest.TestCase):
 		                                             'qitSim_2019_04_15_001_trajectories.hd5')
 
 		cls.test_json_fname = os.path.join(data_base_path, 'test_trajectories.json')
-		cls.result_path = "test_results"
+		cls.result_path = os.path.join('test', 'test_results')
 
 	@classmethod
 	def generate_test_trajectory(cls, n_ions, n_steps, static=True):
