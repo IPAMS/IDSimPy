@@ -56,6 +56,7 @@ class TestVisualizationAnimations(unittest.TestCase):
 	def test_scatter_animation_hdf5_trajectory(self):
 		result_name = os.path.join(self.result_path, 'scatter_animation_test_2')
 
+		# should raise because the number of frames is too high:
 		self.assertRaises(
 			ValueError, vis.render_scatter_animation, self.test_reactive_projectName,
 			result_name, n_frames=100, interval=5, file_type='hdf5')
