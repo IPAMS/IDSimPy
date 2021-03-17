@@ -555,9 +555,12 @@ def animate_scatter_plot(
 			scatterplot = plt.scatter(positions[:, xindex, 0], positions[:, yindex, 0], s=10, alpha=alpha)
 		else:
 			if crange is None:
+				frame_range_max = np.max(c_param)
+				frame_range_min = np.min(c_param)
 				scatterplot = plt.scatter(
 					positions[:, xindex, 0], positions[:, yindex, 0], s=10,
-					alpha=alpha, c=c_param[:, 0], cmap=cmap)
+					alpha=alpha, c=c_param[:, 0],
+					vmin=frame_range_min, vmax=frame_range_max , cmap=cmap)
 			else:
 				scatterplot = plt.scatter(
 					positions[:, xindex, 0], positions[:, yindex, 0], s=10,
