@@ -285,4 +285,14 @@ class TestTrajectory(unittest.TestCase):
 		np.testing.assert_almost_equal(coc_synth_tra[0], (-5.0, -5.0, -5.0))
 		np.testing.assert_almost_equal(coc_synth_tra[1], (0.0, 0.0, 0.0))
 
+	#  --------------- test Trajectory export / writing ---------------
+
+	def test_static_trajectory_legacy_vtk_export(self):
+		tra = ia.read_hdf5_trajectory_file(self.new_hdf5_static_fname)
+		vtk_export_path = os.path.join(self.result_path, 'vtk_export')
+		if not os.path.exists(vtk_export_path):
+			os.makedirs(vtk_export_path)
+		ia.export_trajectory_to_vtk(tra, os.path.join(self.result_path, 'vtk_export', 'static_test'))
+
+
 

@@ -7,17 +7,6 @@ import h5py
 import numpy as np
 from enum import Enum
 
-__all__ = (
-	'Trajectory',
-	'OptionalAttribute',
-	'read_json_trajectory_file',
-	'read_hdf5_trajectory_file',
-	'read_legacy_hdf5_trajectory_file',
-	'translate_json_trajectories_to_vtk',
-	'filter_attribute',
-	'select',
-	'center_of_charge')
-
 
 class OptionalAttribute(Enum):
 	"""
@@ -384,18 +373,15 @@ def read_legacy_hdf5_trajectory_file(trajectory_file_name):
 
 # -------------- Trajectory output / translation -------------- #
 
-
-def translate_json_trajectories_to_vtk(json_file_name, vtk_file_base_name):
+def export_trajectory_to_vtk(trajectory: Trajectory, vtk_file_base_name):
 	"""
-	Translates a ion trajectory file to set of legacy VTK ascii files
+	Translates and exports an ion trajectory to a set of legacy VTK ascii files
 
-	:param json_file_name: the trajectory file to translate
-	:type json_file_name: str
-	:param vtk_file_base_name: the base name of the vtk files to generate
+	:param trajectory: The trajectory to translate and export
+	:type json_file_name: Trajectory
+	:param vtk_file_base_name: The base name of the vtk files to generate
 	:type vtk_file_base_name: str
 	"""
-
-	tr = read_json_trajectory_file(json_file_name)
 
 	header = """# vtk DataFile Version 2.0
 BTree Test
@@ -403,16 +389,16 @@ ASCII
 DATASET POLYDATA
 POINTS """
 
-	n_steps = len(tr["times"])
+	n_steps = trajectory.n_timesteps
 
 	for i in range(n_steps):
 		vtk_file_name = vtk_file_base_name + "%05d" % i + ".vtk"
 		print(vtk_file_name)
 		with open(vtk_file_name, 'w') as vtk_file:
-			vtk_file.write(header + str(tr["n_ions"]) + " float\n")
+			vtk_file.write(header + str(trajectory.get_n_particles()) + " float\n")
 
-			ion_positions = tr["positions"]
-			for i_pos in ion_positions[:, :, i]:
+			ion_positions = trajectory.get_positions(i)
+			for i_pos in ion_positions[:, :]:
 				vtk_file.write(str(i_pos[0]) + " " + str(i_pos[1]) + " " + str(i_pos[2]) + " \n")
 
 
