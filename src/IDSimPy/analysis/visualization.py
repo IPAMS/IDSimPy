@@ -373,7 +373,7 @@ def animate_xz_density_comparison_plot(
 	ax = fig.add_subplot(1, 1, 1, ylim=(zedges[0], zedges[-1]), xlim=(xedges[0], xedges[-1]))
 
 	im1 = ax.imshow(
-		h_vals, interpolation='nearest', origin='low', alpha=1, vmin=0, vmax=10, cmap="Reds",
+		h_vals, interpolation='nearest', origin='lower', alpha=1, vmin=0, vmax=10, cmap="Reds",
 		extent=[xedges[0], xedges[-1], zedges[0], zedges[-1]])
 
 	text_time = ax.annotate(
@@ -555,9 +555,12 @@ def animate_scatter_plot(
 			scatterplot = plt.scatter(positions[:, xindex, 0], positions[:, yindex, 0], s=10, alpha=alpha)
 		else:
 			if crange is None:
+				frame_range_max = np.max(c_param)
+				frame_range_min = np.min(c_param)
 				scatterplot = plt.scatter(
 					positions[:, xindex, 0], positions[:, yindex, 0], s=10,
-					alpha=alpha, c=c_param[:, 0], cmap=cmap)
+					alpha=alpha, c=c_param[:, 0],
+					vmin=frame_range_min, vmax=frame_range_max , cmap=cmap)
 			else:
 				scatterplot = plt.scatter(
 					positions[:, xindex, 0], positions[:, yindex, 0], s=10,
