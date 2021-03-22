@@ -314,8 +314,8 @@ def animate_xz_density_comparison_plot(
 			trajectories[1].optional_attributes[tra.OptionalAttribute.PARTICLE_MASSES]]
 
 	elif select_mode == 'substance':
-		id_column_0 = trajectories[0].particle_attribute_names.index('chemical_id')
-		id_column_1 = trajectories[1].particle_attribute_names.index('chemical_id')
+		id_column_0 = trajectories[0].particle_attribute_names.index('chemical id')
+		id_column_1 = trajectories[1].particle_attribute_names.index('chemical id')
 
 		# the select function requires a list of individual selector data vectors if
 		# the selector data changes across the time steps
