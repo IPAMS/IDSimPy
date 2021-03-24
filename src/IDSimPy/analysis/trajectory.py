@@ -393,7 +393,6 @@ POINTS """
 
 	for i in range(n_steps):
 		vtk_file_name = vtk_file_base_name + "%05d" % i + ".vtk"
-		print(vtk_file_name)
 		with open(vtk_file_name, 'w') as vtk_file:
 			vtk_file.write(header + str(trajectory.get_n_particles()) + " float\n")
 
