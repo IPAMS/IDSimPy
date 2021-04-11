@@ -10,19 +10,25 @@ class TestTrajectory(unittest.TestCase):
 	def setUpClass(cls):
 		data_base_path = os.path.join('test', 'analysis', 'data')
 		hdf_v2_path = os.path.join(data_base_path, 'trajectory_v2')
+		hdf_v3_path = os.path.join(data_base_path, 'trajectory_v3')
 		cls.legacy_hdf5_bare_fname = os.path.join(data_base_path, 'QIT_test_trajectory.hd5')
 		cls.legacy_hdf5_aux_fname = os.path.join(data_base_path, 'QIT_test_trajectory_aux.hd5')
-
-		cls.new_hdf5_variable_fname = os.path.join(hdf_v2_path, 'qitSim_2019_07_variableTrajectoryQIT',
-		                                           'qitSim_2019_07_22_001_trajectories.hd5')
-
-		cls.new_hdf5_static_fname = os.path.join(hdf_v2_path, 'qitSim_2019_07_variableTrajectoryQIT',
-		                                         'qitSim_2019_07_22_002_trajectories.hd5')
-
 		cls.legacy_hdf5_reactive_fn_a = os.path.join(hdf_v2_path, 'qitSim_2019_04_scanningTrapTest',
 		                                             'qitSim_2019_04_10_002_trajectories.hd5')
 		cls.legacy_hdf5_reactive_fn_b = os.path.join(hdf_v2_path, 'qitSim_2019_04_scanningTrapTest',
 		                                             'qitSim_2019_04_15_001_trajectories.hd5')
+
+		cls.hdf5_v2_variable_fname = os.path.join(hdf_v2_path, 'qitSim_2019_07_variableTrajectoryQIT',
+		                                           'qitSim_2019_07_22_001_trajectories.hd5')
+
+		cls.hdf5_v2_static_fname = os.path.join(hdf_v2_path, 'qitSim_2019_07_variableTrajectoryQIT',
+		                                         'qitSim_2019_07_22_002_trajectories.hd5')
+
+		cls.hdf5_v3_variable_fname = os.path.join(hdf_v3_path, 'qitSim_2019_07_variableTrajectoryQIT',
+		                                           'qitSim_2019_07_22_001_trajectories.hd5')
+
+		cls.hdf5_v3_static_fname = os.path.join(hdf_v3_path, 'qitSim_2019_07_variableTrajectoryQIT',
+		                                         'qitSim_2019_07_22_002_trajectories.hd5')
 
 		cls.test_json_fname = os.path.join(data_base_path, 'test_trajectories.json')
 		cls.result_path = os.path.join('test', 'test_results')
@@ -65,6 +71,32 @@ class TestTrajectory(unittest.TestCase):
 		return result
 
 	#  --------------- test Trajectory basics ---------------
+
+	def test_particle_attribute_class(self):
+		float_names = ("X", "Y", "Z")
+		int_names = ("A", "B")
+
+		n_ions = 5
+		n_steps = 3
+
+		float_dat = np.zeros((n_ions, 3, n_steps))
+		float_dat[1, 2, :] = np.arange(n_steps) * 0.1
+
+		int_dat = np.zeros((n_ions, 2, n_steps))
+		int_dat[2, 0, :] = np.arange(n_steps)
+
+		int_dat_non_static = [np.zeros((n_ions, 2)) for i in range(n_steps)]
+
+		with self.assertRaises(ValueError):
+			ia.ParticleAttributes(float_names, float_dat, int_names, int_dat_non_static)
+
+		p_attribs = ia.ParticleAttributes(float_names, float_dat, int_names, int_dat)
+
+		self.assertEqual(p_attribs.attr_name_map['Z'], (True, 2))
+		self.assertEqual(p_attribs.attr_name_map['B'], (False, 1))
+
+		self.assertEqual(p_attribs['Z', 2][1], 0.2)
+		self.assertEqual(p_attribs['A', 1][2], 1)
 
 	def test_trajectory_class_basic_instantiation_and_methods(self):
 		n_timesteps = 5
@@ -121,16 +153,32 @@ class TestTrajectory(unittest.TestCase):
 
 	#  --------------- test Trajectory reading from files ---------------
 
-	def test_hdf5_trajectory_reading_variable_timesteps(self):
-		tra = ia.read_hdf5_trajectory_file(self.new_hdf5_variable_fname)
+	def test_hdf5_v3_trajectory_reading_variable_timesteps(self):
+		tra = ia.read_hdf5_trajectory_file(self.hdf5_v3_variable_fname)
+
+		self.assertEqual(tra.file_version_id, 3)
+		self.assertEqual(tra.is_static_trajectory, False)
+		self.assertEqual(np.shape(tra[3]), (208, 3))
+		self.assertAlmostEqual(tra[3][200, 2], 0.0029616614)
+
+		self.assertEqual(tra.particle_attribute_names,
+		                 ['velocity x', 'velocity y', 'velocity z',
+		                  'rf x', 'rf y' 'rf z',
+		                  'spacecharge x', 'spacecharge y', 'spacecharge z'])
+
+		# test reading particle attributes:
+
+
+	def test_hdf5_v2_trajectory_reading_variable_timesteps(self):
+		tra = ia.read_hdf5_trajectory_file(self.hdf5_v2_variable_fname)
 
 		self.assertEqual(tra.file_version_id, 2)
 		self.assertEqual(tra.is_static_trajectory, False)
 		self.assertEqual(np.shape(tra[9]), (512, 3))
 		self.assertAlmostEqual(tra[9][500, 2], -0.000135881)
 
-	def test_hdf5_trajectory_reading_static_timesteps(self):
-		tra = ia.read_hdf5_trajectory_file(self.new_hdf5_static_fname)
+	def test_hdf5_v2_trajectory_reading_static_timesteps(self):
+		tra = ia.read_hdf5_trajectory_file(self.hdf5_v2_static_fname)
 
 		self.assertEqual(tra.file_version_id, 2)
 		self.assertEqual(tra.is_static_trajectory, True)
@@ -230,7 +278,7 @@ class TestTrajectory(unittest.TestCase):
 #  --------------- test Trajectory analysis ---------------
 
 	def test_center_of_charge_calculation_with_static_trajectory(self):
-		tra = ia.read_hdf5_trajectory_file(self.new_hdf5_static_fname)
+		tra = ia.read_hdf5_trajectory_file(self.hdf5_v2_static_fname)
 
 		coc = ia.center_of_charge(tra)
 		self.assertEqual(coc.shape[0], tra.n_timesteps)
@@ -289,7 +337,7 @@ class TestTrajectory(unittest.TestCase):
 	#  --------------- test Trajectory export / writing ---------------
 
 	def test_static_trajectory_legacy_vtk_export(self):
-		tra = ia.read_hdf5_trajectory_file(self.new_hdf5_static_fname)
+		tra = ia.read_hdf5_trajectory_file(self.hdf5_v2_static_fname)
 		vtk_export_path = os.path.join(self.result_path, 'vtk_export')
 		if not os.path.exists(vtk_export_path):
 			os.makedirs(vtk_export_path)

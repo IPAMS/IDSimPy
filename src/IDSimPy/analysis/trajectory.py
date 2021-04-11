@@ -17,6 +17,78 @@ class OptionalAttribute(Enum):
 	PARTICLE_CHARGES = 2  #: Particle charges
 
 
+class ParticleAttributes:
+	"""
+	Container class for heterogeneous particle attributes
+	"""
+
+	def __init__(self, attribute_names_float=None, attributes_float=None, attribute_names_int=None, attributes_int=None):
+		self.attr_names_float = attribute_names_float
+		self.attr_names_int = attribute_names_int
+		self.attr_dat_float = attributes_float
+		self.attr_dat_int = attributes_int
+
+		float_static = None
+		if self.attr_dat_float is not None:
+			if type(self.attr_dat_float) == np.ndarray:
+				float_static = True
+			elif type(self.attr_dat_float) == list:
+				float_static = False
+			else:
+				raise TypeError('Wrong type for float particle attributes, has to be an numpy.ndarray or a list of numpy.ndarrays')
+
+		int_static = None
+		if self.attr_dat_int is not None:
+			if type(self.attr_dat_int) == np.ndarray:
+				int_static = True
+			elif type(self.attr_dat_int) == list:
+				int_static = False
+			else:
+				raise TypeError('Wrong type for int particle attributes, has to be an numpy.ndarray or a list of numpy.ndarrays')
+
+		if float_static is not None and int_static is not None:
+			if float_static == int_static:
+				self.is_static = float_static
+			else:
+				raise ValueError('Float and int particle attributes have to be both equally static or non static')
+		else:
+			if float_static is not None:
+				self.is_static = float_static
+			else:
+				self.is_static = int_static
+
+		attributes_ids = []
+		if attribute_names_float:
+			attributes_ids += [(self.attr_names_float[i], True, i) for i in range(len(self.attr_names_float))]
+
+		if attribute_names_int:
+			attributes_ids += [(self.attr_names_int[i], False, i) for i in range(len(self.attr_names_int))]
+
+		self.attr_name_map = {ai[0]: (ai[1], ai[2]) for ai in attributes_ids}
+
+	def __getitem__(self, args):
+
+		attrib_name = args[0]
+		timestep_index = args[1]
+
+		ap = self.attr_name_map[attrib_name]
+
+		if self.is_static:
+			if ap[0]:
+				return self.attr_dat_float[:, ap[1], timestep_index]
+			else:
+				return self.attr_dat_int[:, ap[1], timestep_index]
+
+		else:
+			if ap[0]:
+				return self.attr_dat_float[timestep_index][:, ap[1]]
+			else:
+				return self.attr_dat_int[timestep_index][:, ap[1]]
+
+
+
+
+
 class Trajectory:
 	"""
 	An IDSimF particle simulation trajectory. The simulation trajectory combines the result of an IDSimF particle
@@ -99,12 +171,12 @@ class Trajectory:
 		if particle_attributes is not None:
 			if self.is_static_trajectory:
 				if type(particle_attributes) != np.ndarray:
-					raise ValueError('Additional parameter has wrong type for static trajectory')
+					raise ValueError('Particle attributes has wrong type for static trajectory')
 				n_additional_attributes = particle_attributes.shape[1]
 				self.particle_attributes = particle_attributes
 			else:
 				if type(particle_attributes) != list:
-					raise ValueError('Additional parameter has wrong type for variable trajectory')
+					raise ValueError('Particle attributes has wrong type for variable trajectory')
 				n_additional_attributes = particle_attributes[0].shape[1]
 				self.particle_attributes = particle_attributes
 
@@ -260,21 +332,8 @@ def read_json_trajectory_file(trajectory_filename):
 	return result
 
 
-def read_hdf5_trajectory_file(trajectory_file_name):
-	"""
-	Reads a version 2 hdf5 trajectory file (which allows also exported simulation frames
-	with variable number of particles.
-
-	:param trajectory_file_name: Name of the file to read
-	:type trajectory_file_name: str
-	:return: Trajectory object with trajectory data
-	:rtype: Trajectory
-	"""
-	hdf5file = h5py.File(trajectory_file_name, 'r')
-
-	tra_group = hdf5file['particle_trajectory']
+def _read_hdf5_v2_trajectory(tra_group):
 	attribs = tra_group.attrs
-
 	file_version_id = attribs['file version'][0]
 
 	n_timesteps = attribs['number of timesteps'][0]
@@ -285,7 +344,8 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 	particle_attributes_names = None
 	if 'auxiliary parameter names' in attribs.keys():
 		particle_attributes_names = [
-			name.decode('UTF-8') if isinstance(name, bytes) else name for name in attribs['auxiliary parameter names']
+			name.decode('UTF-8') if isinstance(name, bytes) else name for name in
+			attribs['auxiliary parameter names']
 		]
 
 	positions = []
@@ -324,6 +384,100 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 		particle_attributes_dat = particle_attributes
 		if static_trajectory:
 			particle_attributes_dat = np.dstack(np.array(particle_attributes_dat))
+
+
+	result = Trajectory(
+		positions=positions,
+		times=np.array(times),
+		particle_attributes=particle_attributes_dat,
+		particle_attribute_names=particle_attributes_names,
+		splat_times=splat_times,
+		file_version_id=file_version_id)
+
+	return result
+
+
+def read_hdf5_trajectory_file(trajectory_file_name):
+	"""
+	Reads a version 2 hdf5 trajectory file (which allows also exported simulation frames
+	with variable number of particles.
+
+	:param trajectory_file_name: Name of the file to read
+	:type trajectory_file_name: str
+	:return: Trajectory object with trajectory data
+	:rtype: Trajectory
+	"""
+	with h5py.File(trajectory_file_name, 'r') as hdf5file:
+
+		tra_group = hdf5file['particle_trajectory']
+		attribs = tra_group.attrs
+		file_version_id = attribs['file version'][0]
+
+		if file_version_id == 2:
+			return _read_hdf5_v2_trajectory(tra_group)
+
+		n_timesteps = attribs['number of timesteps'][0]
+
+		timesteps_group = tra_group['timesteps']
+		times = tra_group['times']
+
+		particle_attributes_names = []
+		if 'attributes names' in attribs.keys():
+			particle_attributes_names += [
+				(name.decode('UTF-8'), float) if isinstance(name, bytes) else name for name in attribs['attributes names']
+			]
+
+		if 'integer attributes names' in attribs.keys():
+			particle_attributes_names += [
+				(name.decode('UTF-8'), int) if isinstance(name, bytes) else name for name in attribs['integer attributes names']
+			]
+
+		positions = []
+		particle_attributes = []
+
+		n_ion_per_frame = []
+
+		if len(particle_attributes_names) > 0:
+			particle_attributes_dtype = np.dtype({
+				'names': (pn[0] for pn in particle_attributes_names),
+				'formats': (pn[1] for pn in particle_attributes_names)})
+
+		for ts_i in range(n_timesteps):
+			ts_group = timesteps_group[str(ts_i)]
+
+			ion_positions = np.array(ts_group['positions'])
+
+			n_ion_per_frame.append(np.shape(ion_positions)[0])
+			positions.append(ion_positions)
+
+			if len(particle_attributes_names) > 0:
+				dat_float = np.array(ts_group['particle_attributes_float'])
+				dat_int = np.array(ts_group['particle_attributes_integer'])
+				pa_dat = np.array(np.hstack([dat_float, dat_int]), dtype=particle_attributes_dtype)
+
+				particle_attributes.append(np.array(ts_group['aux_parameters']))
+
+		unique_n_ions = len(set(n_ion_per_frame))
+
+		# if more than one number of ions are present in the frames, the trajectory is not static
+		# and has variable frames
+		# if the trajectory is static, transform the trajectory to the old format returned by
+		# legacy hdf5 and json files to allow compatibility with the visualization methods
+		if unique_n_ions > 1:
+			static_trajectory = False
+		else:
+			static_trajectory = True
+			positions = np.dstack(positions)
+
+		splat_times = None
+		if 'splattimes' in tra_group.keys():
+			splat_times = np.array(tra_group['splattimes'])
+
+		particle_attributes_dat = None
+		if particle_attributes_names:
+			particle_attributes_dat = particle_attributes
+			if static_trajectory:
+				particle_attributes_dat = np.dstack(np.array(particle_attributes_dat))
 
 	result = Trajectory(
 		positions=positions,
