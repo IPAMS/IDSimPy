@@ -7,7 +7,7 @@ class TestChemistry(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
-		data_base_path = os.path.join('test', 'analysis', 'data')
+		data_base_path = os.path.join('test', 'analysis', 'data', 'trajectory_v2')
 
 		cls.test_concentrations_a = os.path.join(data_base_path, 'qitSim_2019_04_scanningTrapTest',
 		                                          'qitSim_2019_04_10_001_concentrations.txt')

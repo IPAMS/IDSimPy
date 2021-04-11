@@ -9,8 +9,9 @@ class TestQitSimAnalysis(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		data_base_path = os.path.join('test', 'analysis', 'data')
-		cls.sim_name_staticrf = os.path.join(data_base_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_001')
-		cls.sim_name_scanned = os.path.join(data_base_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_002')
+		hdf5_v2_path = os.path.join(data_base_path, 'trajectory_v2')
+		cls.sim_name_staticrf = os.path.join(hdf5_v2_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_001')
+		cls.sim_name_scanned = os.path.join(hdf5_v2_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_002')
 		cls.result_path = os.path.join('test', 'test_results')
 
 	def test_qit_stability_parameters(self):
