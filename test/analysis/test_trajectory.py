@@ -36,35 +36,44 @@ class TestTrajectory(unittest.TestCase):
 	@classmethod
 	def generate_test_trajectory(cls, n_ions, n_steps, static=True):
 		times = np.linspace(0, 5, n_steps)
-		additional_attribute_names = ('param1', 'param2', 'param3', 'chemical id')
+		additional_attribute_names_float = ('param1', 'param2', 'param3')
+		additional_attribute_names_int = ('chemical id')
 
 		x_pos = np.arange(0, n_ions)
 
 		if static:
 			pos = np.zeros((n_ions, 3, n_steps))
-			additional_attributes = np.zeros((n_ions, 4, n_steps))
+			additional_attributes_float = np.zeros((n_ions, 3, n_steps))
+			additional_attributes_int = np.zeros((n_ions, 1, n_steps), dtype=int)
 		else:
 			pos = [np.zeros((n_ions + i, 3)) for i in range(n_steps)]
-			additional_attributes = [np.zeros((n_ions + i, 4)) for i in range(n_steps)]
+			additional_attributes_float = [np.zeros((n_ions + i, 3)) for i in range(n_steps)]
+			additional_attributes_int = [np.zeros((n_ions + i, 1), dtype=int) for i in range(n_steps)]
 
 		for ts in range(n_steps):
-			add_frame = np.zeros((n_ions, 4))
-			add_frame[-(ts+1):, 3] = 1
-			add_frame[:, :2] = ts
+			add_frame_float = np.zeros((n_ions, 3))
+			add_frame_int = np.zeros((n_ions, 1), dtype=int)
+			add_frame_int[-(ts+1):, 0] = 1
+			add_frame_float[:, :2] = ts
 
 			if static:
-				additional_attributes[:, :, ts] = add_frame
+				additional_attributes_float[:, :, ts] = add_frame_float
+				additional_attributes_int[:, :, ts] = add_frame_int
 				pos[:, 0, ts] = x_pos
 				pos[:, 1, ts] = ts * 0.1
 			else:
-				additional_attributes[ts][:n_ions, :] = add_frame
+				additional_attributes_float[ts][:n_ions, :] = add_frame_float
+				additional_attributes_int[ts][:n_ions, :] = add_frame_int
 				pos[ts][:n_ions, 0] = x_pos
 				pos[ts][:n_ions, 1] = ts * 0.1
 
+		particle_attributes = ia.ParticleAttributes(
+			additional_attribute_names_float, additional_attributes_float,
+			additional_attribute_names_int, additional_attributes_int)
+
 		result = ia.Trajectory(
-			positions= pos,
-			particle_attributes=additional_attributes,
-			particle_attribute_names=additional_attribute_names,
+			positions=pos,
+			particle_attributes=particle_attributes,
 			times=times
 		)
 
@@ -227,7 +236,7 @@ class TestTrajectory(unittest.TestCase):
 		self.assertEqual(tra_selected_static.n_particles, 3)
 		particle_selected_static = tra_selected_static.get_particle(1, 5)
 		np.testing.assert_almost_equal(particle_selected_static[0], (6.0, 0.5, 0.0))
-		np.testing.assert_almost_equal(particle_selected_static[1], (5.0, 5.0, 0.0, 0.0))
+		self.assertEqual(particle_selected_static[1], [5.0, 5.0, 0.0, 0])
 
 		static_non_numeric_selector = np.array(['no' for i in range(n_particles)], dtype=object)
 		static_non_numeric_selector[5:8] = 'yes'
@@ -236,7 +245,7 @@ class TestTrajectory(unittest.TestCase):
 		self.assertEqual(tra_selected_static_non_num.n_particles, 3)
 		particle_selected_static_non_num = tra_selected_static_non_num.get_particle(1, 5)
 		np.testing.assert_almost_equal(particle_selected_static_non_num[0], (6.0, 0.5, 0.0))
-		np.testing.assert_almost_equal(particle_selected_static_non_num[1], (5.0, 5.0, 0.0, 0.0))
+		self.assertEqual(particle_selected_static_non_num[1], [5.0, 5.0, 0.0, 0])
 
 		variable_selector = [np.zeros(n_particles) for i in range(n_steps)]
 		variable_selector[6][10:15] = 2.0

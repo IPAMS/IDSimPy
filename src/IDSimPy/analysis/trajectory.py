@@ -23,39 +23,73 @@ class ParticleAttributes:
 	"""
 
 	def __init__(self, attribute_names_float=None, attributes_float=None, attribute_names_int=None, attributes_int=None):
+		"""
+
+
+		Similarly to ``positions`` the shape depends if the trajectory is static or not:
+
+		* If the trajectory is static: **particle_attributes** is a ``numpy.ndarray`` with the shape ``[n ions,
+		  particle attribute, n time steps]``. With 5 particles, 4 additional numerical attributes (e.g. x,y,z velocity
+		  and chemical id) and 15 time steps the shape would be ``[5, 4, 15]``.
+		* If the trajectory is not static: **particle_attributes** is a ``list`` of ``numpy.ndarray`` with the shape
+		  ``[particle attribute, n ions]``
+		"""
 		self.attr_names_float = attribute_names_float
 		self.attr_names_int = attribute_names_int
 		self.attr_dat_float = attributes_float
 		self.attr_dat_int = attributes_int
 
 		float_static = None
+		float_n_ts = None
 		if self.attr_dat_float is not None:
 			if type(self.attr_dat_float) == np.ndarray:
 				float_static = True
+				float_n_ts = np.shape(self.attr_dat_float)[2]
+				n_columns_float = np.shape(self.attr_dat_float)[1]
 			elif type(self.attr_dat_float) == list:
 				float_static = False
+				float_n_ts = len(self.attr_dat_float)
+				n_columns_float = np.shape(self.attr_dat_float[0])[1]
 			else:
 				raise TypeError('Wrong type for float particle attributes, has to be an numpy.ndarray or a list of numpy.ndarrays')
 
+			if n_columns_float != len(self.attr_names_float):
+				raise ValueError('Wrong number of data columns for particle attributes (float)')
+
 		int_static = None
+		int_n_ts = None
 		if self.attr_dat_int is not None:
 			if type(self.attr_dat_int) == np.ndarray:
 				int_static = True
+				int_n_ts = np.shape(self.attr_dat_int)[2]
+				n_columns_int = np.shape(self.attr_dat_int)[1]
 			elif type(self.attr_dat_int) == list:
 				int_static = False
+				int_n_ts = len(self.attr_dat_int)
+				n_columns_int = np.shape(self.attr_dat_int[0])[1]
 			else:
 				raise TypeError('Wrong type for int particle attributes, has to be an numpy.ndarray or a list of numpy.ndarrays')
+
+				if n_columns_int != len(self.attr_names_int):
+					raise ValueError('Wrong number of data columns for particle attributes (int)')
 
 		if float_static is not None and int_static is not None:
 			if float_static == int_static:
 				self.is_static = float_static
 			else:
 				raise ValueError('Float and int particle attributes have to be both equally static or non static')
+
+			if float_n_ts == int_n_ts:
+				self.n_timesteps = float_n_ts
+			else:
+				raise ValueError('Float and int attribute data arrays inconsistent in time step axis')
 		else:
 			if float_static is not None:
 				self.is_static = float_static
+				self.n_timesteps = float_n_ts
 			else:
 				self.is_static = int_static
+				self.n_timesteps = int_n_ts
 
 		attributes_ids = []
 		if attribute_names_float:
@@ -66,10 +100,71 @@ class ParticleAttributes:
 
 		self.attr_name_map = {ai[0]: (ai[1], ai[2]) for ai in attributes_ids}
 
-	def __getitem__(self, args):
 
-		attrib_name = args[0]
-		timestep_index = args[1]
+	def _select_nonstatic(self, selected_particle_indices):
+
+		if len(selected_particle_indices) != self.n_timesteps:
+			raise ValueError('Length of list of selected particle ids differs from number of time steps')
+
+		if self.is_static:
+			if self.attr_names_float:
+				selected_attrs_float = [self.attr_dat_float[selected_particle_indices[i], :, i]
+				                        for i in range(self.n_timesteps)]
+			else:
+				selected_attrs_float = None
+
+			if self.attr_names_int:
+				selected_attrs_int = [self.attr_dat_int[selected_particle_indices[i], :, i]
+				                      for i in range(self.n_timesteps)]
+			else:
+				selected_attrs_int = None
+		else:
+			if self.attr_names_float:
+				selected_attrs_float = [self.attr_dat_float[i][selected_particle_indices[i], :]
+				                        for i in range(self.n_timesteps)]
+			else:
+				selected_attrs_float = None
+
+			if self.attr_names_int:
+				selected_attrs_int = [self.attr_dat_int[i][selected_particle_indices[i], :]
+				                      for i in range(self.n_timesteps)]
+			else:
+				selected_attrs_int = None
+
+		return selected_attrs_float, selected_attrs_int
+
+	def select(self, selected_particle_indices):
+		"""
+		Select individual particles and return new ParticleAttribute containe with the selected data
+		"""
+
+		if type(selected_particle_indices) == np.ndarray:
+			static_selector = True
+		else:
+			static_selector = False
+
+		if not self.is_static and static_selector:
+			return TypeError("Particle attribute selection with static selection for multiple time steps"
+			                 " is only possible with static trajectories")
+
+		if static_selector:
+			if self.attr_names_float:
+				selected_attrs_float = self.attr_dat_float[selected_particle_indices, :, :]
+			else:
+				selected_attrs_float = None
+
+			if self.attr_names_int:
+				selected_attrs_int = self.attr_dat_int[selected_particle_indices, :, :]
+			else:
+				selected_attrs_int = None
+		else:
+			selected_attrs_float, selected_attrs_int = self._select_nonstatic(selected_particle_indices)
+
+		return ParticleAttributes(
+			self.attr_names_float, selected_attrs_float, self.attr_names_int, selected_attrs_int
+		)
+
+	def get(self, attrib_name, timestep_index):
 
 		ap = self.attr_name_map[attrib_name]
 
@@ -78,14 +173,56 @@ class ParticleAttributes:
 				return self.attr_dat_float[:, ap[1], timestep_index]
 			else:
 				return self.attr_dat_int[:, ap[1], timestep_index]
-
 		else:
 			if ap[0]:
 				return self.attr_dat_float[timestep_index][:, ap[1]]
 			else:
 				return self.attr_dat_int[timestep_index][:, ap[1]]
 
+	def get_attribs_for_particle(self, particle_index, timestep_index):
 
+		if self.attr_names_float:
+			if self.is_static:
+				float_attribs = self.attr_dat_float[particle_index, :, timestep_index].tolist()
+			else:
+				float_attribs = self.attr_dat_float[timestep_index][particle_index, :].tolist()
+		else:
+			float_attribs = []
+
+		if self.attr_names_int:
+			if self.is_static:
+				int_attribs = self.attr_dat_int[particle_index, :, timestep_index].tolist()
+			else:
+				int_attribs = self.attr_dat_int[timestep_index][particle_index, :].tolist()
+		else:
+			int_attribs = []
+
+		return float_attribs + int_attribs
+
+
+class StartSplatTrackingData:
+	"""
+	Container class for start / splat data of simulated particles
+	"""
+
+	def __init__(self, start_times, start_positions, splat_times, splat_positions):
+		"""
+		Constructs a new StartSplatTrackingData container
+
+		:param start_times: A vector of start times for the particles (1 dimensional numpy array)
+		:type start_times: np.ndarray with shape (n_ions, 1)
+		:param start_positions: A vector of start positions of the particles (numpy array with three columns)
+		:type start_times: np.ndarray with shape (n_ions, 3)
+		:param splat_times: A vector of splat times for the particles (1 dimensional numpy array)
+		:type splat_times: np.ndarray with shape (n_ions, 1)
+		:param splat_positions: A vector of splat positions of the particles (numpy array with three columns)
+		:type splat_times: np.ndarray with shape (n_ions, 3)
+		"""
+
+		self.start_times: np.ndarray = start_times
+		self.start_positions: np.ndarray = start_positions
+		self.splat_times: np.ndarray = splat_times
+		self.splat_positions: np.ndarray = splat_positions
 
 
 
@@ -110,18 +247,11 @@ class Trajectory:
 	:type times: numpy.ndarray
 	:ivar n_timesteps: Number of time steps in the trajectory
 	:type n_timesteps: int
-	:var particle_attributes: Optional simulation result attributes for the simulated particles. Basically,
+	:ivar particle_attributes: Optional simulation result attributes for the simulated particles. Basically,
 		particle attributes are a vector of numeric additional particle attributes, attached to every particle
-		in every time step. Similarly to ``positions`` the shape depends if the trajectory is static or not:
-
-		* If the trajectory is static: **particle_attributes** is a ``numpy.ndarray`` with the shape ``[n ions,
-		  particle attribute, n time steps]``. With 5 particles, 4 additional numerical attributes (e.g. x,y,z velocity
-		  and chemical id) and 15 time steps the shape would be ``[5, 4, 15]``.
-		* If the trajectory is not static: **particle_attributes** is a ``list`` of ``numpy.ndarray`` with the shape
-		  ``[particle attribute, n ions]``
-
-	:ivar particle_attribute_names: Names of the particle attributes
-	:type particle_attribute_names: list[str]
+		in every time step. The particle attributes are provided in a dedicated container class
+		:py:class:`ParticleAttributes`
+	:type particle_attributes: ParticleAttributes
 	:ivar splat_times: Vector of particle termination / splat times
 	:type splat_times: numpy.ndarray
 	:ivar optional_attributes: dictionary of optional / free form additional attributes for the trajectory
@@ -130,8 +260,8 @@ class Trajectory:
 	:type is_static_trajectory: bool
 	"""
 
-	def __init__(self, positions=None, times=None, particle_attributes=None, particle_attribute_names=None,
-	             splat_times=None, optional_attributes=None, file_version_id=0):
+	def __init__(self, positions=None, times=None, particle_attributes=None,
+	             start_splat_data=None, optional_attributes=None, file_version_id=0):
 		"""
 		Constructor: (for details about the shape of the parameters see the class docsting)
 
@@ -141,10 +271,8 @@ class Trajectory:
 		:type times: numpy.ndarray with shape ``[n timesteps, 1]``
 		:param particle_attributes: Additional attributes for every particle for every time step
 		:type particle_attributes: numpy.ndarray or list[numpy.ndarray]
-		:param particle_attribute_names: Names of partricle attributes
-		:type particle_attribute_names: tuple[str]
-		:param splat_times: Particle termination / "splat" times
-		:type splat_times: numpy.ndarray
+		:param start_splat_data: Particle start and termination ("splat") tracking data (start / splat times and positions)
+		:type start_splat_data: StartSplatTrackingData
 		:param optional_attributes: Optional attributes dictionary
 		:type optional_attributes: dict
 		:param file_version_id: File version id
@@ -169,32 +297,24 @@ class Trajectory:
 			raise ValueError('Times vector has wrong length')
 
 		if particle_attributes is not None:
-			if self.is_static_trajectory:
-				if type(particle_attributes) != np.ndarray:
-					raise ValueError('Particle attributes has wrong type for static trajectory')
-				n_additional_attributes = particle_attributes.shape[1]
-				self.particle_attributes = particle_attributes
-			else:
-				if type(particle_attributes) != list:
-					raise ValueError('Particle attributes has wrong type for variable trajectory')
-				n_additional_attributes = particle_attributes[0].shape[1]
-				self.particle_attributes = particle_attributes
+			if type(particle_attributes) != ParticleAttributes:
+				raise ValueError('Particle attributes argument has to be of type ParticleAttributes')
 
-			if len(particle_attribute_names) != n_additional_attributes:
-				raise ValueError('Additional parameter name vector has wrong length')
+			if particle_attributes.is_static != self.is_static_trajectory:
+				if self.is_static_trajectory:
+					raise ValueError('Non static particle attributes passed for static trajectory')
+				else:
+					raise ValueError('Static particle attributes passed for non static trajectory')
 
-		if splat_times is not None:
-			if self.is_static_trajectory:
-				if type(splat_times) != np.ndarray:
-					raise ValueError('Splat times vector has wrong type')
-			else:
-				raise ValueError('Currently, splat times are only supported for static trajectories')
+		if start_splat_data is not None:
+			if type(start_splat_data) != StartSplatTrackingData:
+				raise ValueError('Start / splat tracking data has wrong type, has to be of type StartSplatTrackingData')
 
 		self.positions = positions
 		self.times: np.ndarray = times
-		self.particle_attributes = particle_attributes
-		self.particle_attribute_names: list = particle_attribute_names
-		self.splat_times = splat_times
+		self.particle_attributes: ParticleAttributes = particle_attributes
+
+		self.start_splat_data: StartSplatTrackingData = start_splat_data
 		self.optional_attributes = optional_attributes
 		self.file_version_id: int = file_version_id
 
@@ -224,7 +344,6 @@ class Trajectory:
 
 	n_particles = property(get_n_particles)
 
-
 	def get_positions(self, timestep_index):
 		"""
 		Get particle positions for a time step
@@ -236,19 +355,17 @@ class Trajectory:
 		"""
 		return self[timestep_index]
 
-	def get_particle_attributes(self, timestep_index):
+	def particle_attribute(self, attribute_name , timestep_index):
 		"""
-		Get particle attributes for a time step
+		Get particle attribute for a time step
 
 		:param timestep_index: The index of the time step to get the attributes for
 		:type timestep_index: int
-		:return: Array of particle attributes for a time step. Dimensions are ``[n particles, attributes]``
+		:return: Particle attribute for a time step, a vector of the specified
+			attribute for all particles in the specified time step. Dimensions are ``[n particles, 1]``
 		:rtype: numpy.ndarray
 		"""
-		if self.is_static_trajectory:
-			return self.particle_attributes[:, :, timestep_index]
-		else:
-			return self.particle_attributes[timestep_index]
+		return self.particle_attributes[attribute_name, timestep_index]
 
 	def get_particle(self, particle_index, timestep_index):
 		"""
@@ -264,10 +381,10 @@ class Trajectory:
 		"""
 		if self.is_static_trajectory:
 			pos = self.positions[particle_index, :, timestep_index]
-			attributes = self.particle_attributes[particle_index, :, timestep_index]
+			attributes = self.particle_attributes.get_attribs_for_particle(particle_index, timestep_index)
 		else:
 			pos = self.positions[timestep_index][particle_index, :]
-			attributes = self.particle_attributes[timestep_index][particle_index, :]
+			attributes = self.particle_attributes.get_attribs_for_particle(particle_index, timestep_index)
 
 		return pos, attributes
 
@@ -453,7 +570,7 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 			if len(particle_attributes_names) > 0:
 				dat_float = np.array(ts_group['particle_attributes_float'])
 				dat_int = np.array(ts_group['particle_attributes_integer'])
-				pa_dat = np.array(np.hstack([dat_float, dat_int]), dtype=particle_attributes_dtype)
+				#pa_dat = np.array(np.hstack([dat_float, dat_int]), dtype=particle_attributes_dtype)
 
 				particle_attributes.append(np.array(ts_group['aux_parameters']))
 
@@ -643,22 +760,20 @@ def select(trajectory, selector_data, value):
 	if static_selector:
 		if trajectory.is_static_trajectory:
 			new_positions = trajectory.positions[selected_indices, :, :]
-			new_particle_attributes = trajectory.particle_attributes[selected_indices, :, :]
-			if trajectory.splat_times is not None:
-				new_splat_times = trajectory.splat_times[selected_indices]
+
+			new_particle_attributes = trajectory.particle_attributes.select(selected_indices)
 		else:
 			raise TypeError('Variable trajectory can not be filtered with static selector_data')
 
 	else:
 		new_positions = [trajectory.get_positions(i)[selected_indices[i], :] for i in range(n_ts)]
-		new_particle_attributes = [trajectory.get_particle_attributes(i)[selected_indices[i], :] for i in range(n_ts)]
+		new_particle_attributes = trajectory.particle_attributes.select(selected_indices)
 
 	result = Trajectory(
 		positions=new_positions,
 		times=trajectory.times,
-		particle_attribute_names=trajectory.particle_attribute_names,
 		particle_attributes=new_particle_attributes,
-		splat_times=new_splat_times
+		start_splat_data=trajectory.start_splat_data
 	)
 	return result
 
