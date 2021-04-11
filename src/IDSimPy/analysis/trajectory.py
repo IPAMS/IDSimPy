@@ -492,23 +492,16 @@ def _read_hdf5_v2_trajectory(tra_group):
 		static_trajectory = True
 		positions = np.dstack(positions)
 
-	splat_times = None
-	if 'splattimes' in tra_group.keys():
-		splat_times = np.array(tra_group['splattimes'])
-
 	particle_attributes_dat = None
 	if particle_attributes_names:
 		particle_attributes_dat = particle_attributes
 		if static_trajectory:
 			particle_attributes_dat = np.dstack(np.array(particle_attributes_dat))
 
-
 	result = Trajectory(
 		positions=positions,
 		times=np.array(times),
-		particle_attributes=particle_attributes_dat,
-		particle_attribute_names=particle_attributes_names,
-		splat_times=splat_times,
+		particle_attributes=ParticleAttributes(particle_attributes_names, particle_attributes_dat),
 		file_version_id=file_version_id)
 
 	return result
