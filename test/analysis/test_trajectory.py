@@ -169,12 +169,28 @@ class TestTrajectory(unittest.TestCase):
 		self.assertEqual(np.shape(tra[3]), (208, 3))
 		self.assertAlmostEqual(tra[3][200, 2], 0.0029616614)
 
-		self.assertEqual(tra.particle_attribute_names,
+		# test reading of particle attributes:
+		self.assertEqual(tra.particle_attributes.attribute_names,
 		                 ['velocity x', 'velocity y', 'velocity z',
-		                  'rf x', 'rf y' 'rf z',
-		                  'spacecharge x', 'spacecharge y', 'spacecharge z'])
+		                  'rf x', 'rf y', 'rf z',
+		                  'spacecharge x', 'spacecharge y', 'spacecharge z',
+		                  'global index'])
 
-		# test reading particle attributes:
+		particle_dat = tra.particle_attributes.get_attribs_for_particle(2, 10)
+		np.testing.assert_allclose(particle_dat,
+		                 [55.42161178588867, 104.02095031738281, -1889.0555419921875,
+		                  8.80931635937336e-19, 1.6636390896516032e-18, -2.4106855463877907e-17,
+		                  -7.758995343219314e-21, -5.56383587364702e-20, -8.009149139180841e-20,
+		                  2])
+		self.assertEqual(type(particle_dat[8]), float)
+		self.assertEqual(type(particle_dat[9]), int)
+
+		global_index = tra.particle_attributes.get('global index', 5)
+		self.assertEqual(global_index[0], 0)
+		self.assertEqual(global_index[10], 10)
+		self.assertEqual(len(global_index), 311)
+
+		# test reading of start / splat data:
 
 
 	def test_hdf5_v2_trajectory_reading_variable_timesteps(self):

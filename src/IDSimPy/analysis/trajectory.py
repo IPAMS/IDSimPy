@@ -25,7 +25,6 @@ class ParticleAttributes:
 	def __init__(self, attribute_names_float=None, attributes_float=None, attribute_names_int=None, attributes_int=None):
 		"""
 
-
 		Similarly to ``positions`` the shape depends if the trajectory is static or not:
 
 		* If the trajectory is static: **particle_attributes** is a ``numpy.ndarray`` with the shape ``[n ions,
@@ -39,10 +38,12 @@ class ParticleAttributes:
 		self.attr_dat_float = attributes_float
 		self.attr_dat_int = attributes_int
 
+		self.attr_names = []
 		float_static = None
 		float_n_ts = None
 		n_attr_float = 0
 		if self.attr_dat_float is not None:
+			self.attr_names += self.attr_names_float
 			n_attr_float = len(attribute_names_float)
 			if type(self.attr_dat_float) == np.ndarray:
 				float_static = True
@@ -62,6 +63,7 @@ class ParticleAttributes:
 		int_n_ts = None
 		n_attr_int = 0
 		if self.attr_dat_int is not None:
+			self.attr_names += self.attr_names_int
 			n_attr_int = len(attribute_names_int)
 			if type(self.attr_dat_int) == np.ndarray:
 				int_static = True
@@ -105,6 +107,10 @@ class ParticleAttributes:
 			attributes_ids += [(self.attr_names_int[i], False, i) for i in range(len(self.attr_names_int))]
 
 		self.attr_name_map = {ai[0]: (ai[1], ai[2]) for ai in attributes_ids}
+
+	@property
+	def attribute_names(self):
+		return self.attr_names
 
 	@property
 	def number_of_timesteps(self):
@@ -282,8 +288,9 @@ class Trajectory:
 		:type positions: numpy.ndarray or list[numpy.ndarray]
 		:param times: Times of the simulation time steps
 		:type times: numpy.ndarray with shape ``[n timesteps, 1]``
-		:param particle_attributes: Additional attributes for every particle for every time step
-		:type particle_attributes: numpy.ndarray or list[numpy.ndarray]
+		:param particle_attributes: Additional attributes for every particle for every time step, provided by a
+			ParticleAttributes container object
+		:type particle_attributes: ParticleAttributes
 		:param start_splat_data: Particle start and termination ("splat") tracking data (start / splat times and positions)
 		:type start_splat_data: StartSplatTrackingData
 		:param optional_attributes: Optional attributes dictionary
@@ -542,26 +549,21 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 		timesteps_group = tra_group['timesteps']
 		times = tra_group['times']
 
-		particle_attributes_names = []
 		if 'attributes names' in attribs.keys():
-			particle_attributes_names += [
-				(name.decode('UTF-8'), float) if isinstance(name, bytes) else name for name in attribs['attributes names']
+			particle_attributes_names_float = [
+				name.decode('UTF-8') if isinstance(name, bytes) else name for name in attribs['attributes names']
 			]
 
 		if 'integer attributes names' in attribs.keys():
-			particle_attributes_names += [
-				(name.decode('UTF-8'), int) if isinstance(name, bytes) else name for name in attribs['integer attributes names']
+			particle_attributes_names_int = [
+				name.decode('UTF-8') if isinstance(name, bytes) else name for name in attribs['integer attributes names']
 			]
 
 		positions = []
-		particle_attributes = []
+		particle_attributes_float = []
+		particle_attributes_int = []
 
 		n_ion_per_frame = []
-
-		if len(particle_attributes_names) > 0:
-			particle_attributes_dtype = np.dtype({
-				'names': (pn[0] for pn in particle_attributes_names),
-				'formats': (pn[1] for pn in particle_attributes_names)})
 
 		for ts_i in range(n_timesteps):
 			ts_group = timesteps_group[str(ts_i)]
@@ -571,12 +573,10 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 			n_ion_per_frame.append(np.shape(ion_positions)[0])
 			positions.append(ion_positions)
 
-			if len(particle_attributes_names) > 0:
-				dat_float = np.array(ts_group['particle_attributes_float'])
-				dat_int = np.array(ts_group['particle_attributes_integer'])
-				#pa_dat = np.array(np.hstack([dat_float, dat_int]), dtype=particle_attributes_dtype)
-
-				particle_attributes.append(np.array(ts_group['aux_parameters']))
+			if particle_attributes_names_float:
+				particle_attributes_float.append(np.array(ts_group['particle_attributes_float']))
+			if particle_attributes_names_int:
+				particle_attributes_int.append(np.array(ts_group['particle_attributes_integer'], dtype=int))
 
 		unique_n_ions = len(set(n_ion_per_frame))
 
@@ -594,21 +594,30 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 		if 'splattimes' in tra_group.keys():
 			splat_times = np.array(tra_group['splattimes'])
 
-		particle_attributes_dat = None
-		if particle_attributes_names:
-			particle_attributes_dat = particle_attributes
+		p_attr_final_float = None
+		if particle_attributes_names_float:
+			p_attr_final_float = particle_attributes_float
 			if static_trajectory:
-				particle_attributes_dat = np.dstack(np.array(particle_attributes_dat))
+				p_attr_final_float = np.dstack(np.array(p_attr_final_float))
 
-	result = Trajectory(
-		positions=positions,
-		times=np.array(times),
-		particle_attributes=particle_attributes_dat,
-		particle_attribute_names=particle_attributes_names,
-		splat_times=splat_times,
-		file_version_id=file_version_id)
+		p_attr_final_int = None
+		if particle_attributes_names_int:
+			p_attr_final_int = particle_attributes_int
+			if static_trajectory:
+				p_attr_final_int = np.dstack(np.array(p_attr_final_int, dtype=int))
 
-	return result
+		p_attribs = ParticleAttributes(
+				particle_attributes_names_float, p_attr_final_float,
+				particle_attributes_names_int, p_attr_final_int)
+
+		result = Trajectory(
+			positions=positions,
+			times=np.array(times),
+			particle_attributes=p_attribs,
+			#splat_times=splat_times,
+			file_version_id=file_version_id)
+
+		return result
 
 
 def read_legacy_hdf5_trajectory_file(trajectory_file_name):
