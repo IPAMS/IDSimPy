@@ -191,6 +191,13 @@ class TestTrajectory(unittest.TestCase):
 		self.assertEqual(len(global_index), 311)
 
 		# test reading of start / splat data:
+		ss_data = tra.start_splat_data
+		np.testing.assert_allclose(ss_data.start_positions[9, :], [2.8199155E-4, 6.4962376E-5, 0.0027087391])
+		np.testing.assert_allclose(ss_data.splat_positions[9, :], [0.0, 0.0, 0.0])
+		self.assertEqual(ss_data.splat_states[9, 0], 1)
+
+		np.testing.assert_allclose(ss_data.splat_positions[42, :], [-2.484479E-4, -1.4296286E-4, 0.004989132])
+		self.assertEqual(ss_data.splat_states[42, 0], 2)
 
 
 	def test_hdf5_v2_trajectory_reading_variable_timesteps(self):

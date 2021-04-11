@@ -224,7 +224,7 @@ class StartSplatTrackingData:
 	Container class for start / splat data of simulated particles
 	"""
 
-	def __init__(self, start_times, start_positions, splat_times, splat_positions):
+	def __init__(self, start_times, start_positions, splat_times, splat_positions, splat_states):
 		"""
 		Constructs a new StartSplatTrackingData container
 
@@ -236,12 +236,15 @@ class StartSplatTrackingData:
 		:type splat_times: np.ndarray with shape (n_ions, 1)
 		:param splat_positions: A vector of splat positions of the particles (numpy array with three columns)
 		:type splat_times: np.ndarray with shape (n_ions, 3)
+		:param splat_states: A vector of splat state for the particles (1 dimensional integer numpy array)
+		:type splat_states: np.ndarray with shape (n_ions, 1)
 		"""
 
 		self.start_times: np.ndarray = start_times
 		self.start_positions: np.ndarray = start_positions
 		self.splat_times: np.ndarray = splat_times
 		self.splat_positions: np.ndarray = splat_positions
+		self.splat_states: np.ndarray = splat_states
 
 
 
@@ -590,10 +593,6 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 			static_trajectory = True
 			positions = np.dstack(positions)
 
-		splat_times = None
-		if 'splattimes' in tra_group.keys():
-			splat_times = np.array(tra_group['splattimes'])
-
 		p_attr_final_float = None
 		if particle_attributes_names_float:
 			p_attr_final_float = particle_attributes_float
@@ -610,11 +609,24 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 				particle_attributes_names_float, p_attr_final_float,
 				particle_attributes_names_int, p_attr_final_int)
 
+		start_splat_data = None
+		if 'start_splat' in tra_group.keys():
+			ss_grp = tra_group['start_splat']
+			start_pos = np.array(ss_grp['particle start locations'])
+			splat_pos = np.array(ss_grp['particle splat locations'])
+			start_times = np.array(ss_grp['particle start times'])
+			splat_times = np.array(ss_grp['particle splat times'])
+			p_states = np.array(ss_grp['particle splat state'])
+
+			start_splat_data = StartSplatTrackingData(
+				start_times, start_pos, splat_times, splat_pos, p_states
+			)
+
 		result = Trajectory(
 			positions=positions,
 			times=np.array(times),
 			particle_attributes=p_attribs,
-			#splat_times=splat_times,
+			start_splat_data=start_splat_data,
 			file_version_id=file_version_id)
 
 		return result
