@@ -41,7 +41,9 @@ class ParticleAttributes:
 
 		float_static = None
 		float_n_ts = None
+		n_attr_float = 0
 		if self.attr_dat_float is not None:
+			n_attr_float = len(attribute_names_float)
 			if type(self.attr_dat_float) == np.ndarray:
 				float_static = True
 				float_n_ts = np.shape(self.attr_dat_float)[2]
@@ -58,7 +60,9 @@ class ParticleAttributes:
 
 		int_static = None
 		int_n_ts = None
+		n_attr_int = 0
 		if self.attr_dat_int is not None:
+			n_attr_int = len(attribute_names_int)
 			if type(self.attr_dat_int) == np.ndarray:
 				int_static = True
 				int_n_ts = np.shape(self.attr_dat_int)[2]
@@ -70,8 +74,10 @@ class ParticleAttributes:
 			else:
 				raise TypeError('Wrong type for int particle attributes, has to be an numpy.ndarray or a list of numpy.ndarrays')
 
-				if n_columns_int != len(self.attr_names_int):
-					raise ValueError('Wrong number of data columns for particle attributes (int)')
+			if n_columns_int != len(self.attr_names_int):
+				raise ValueError('Wrong number of data columns for particle attributes (int)')
+
+		self.n_attr = n_attr_float + n_attr_int
 
 		if float_static is not None and int_static is not None:
 			if float_static == int_static:
@@ -100,6 +106,13 @@ class ParticleAttributes:
 
 		self.attr_name_map = {ai[0]: (ai[1], ai[2]) for ai in attributes_ids}
 
+	@property
+	def number_of_timesteps(self):
+		return self.n_timesteps
+
+	@property
+	def number_of_attributes(self):
+		return self.n_attr
 
 	def _select_nonstatic(self, selected_particle_indices):
 
@@ -441,10 +454,8 @@ def read_json_trajectory_file(trajectory_filename):
 	result = Trajectory(
 		positions=positions,
 		times=times,
-		particle_attributes=additional_parameters,
-		particle_attribute_names=additional_parameters_names,
-		optional_attributes=optional_attributes,
-		splat_times=splat_times)
+		particle_attributes=ParticleAttributes(additional_parameters_names, additional_parameters),
+		optional_attributes=optional_attributes)
 
 	return result
 
@@ -628,8 +639,7 @@ def read_legacy_hdf5_trajectory_file(trajectory_file_name):
 	result = Trajectory(
 		positions=np.array(positions),
 		times=np.array(times),
-		particle_attributes=aux_parameters,
-		particle_attribute_names=aux_parameters_names,
+		particle_attributes=ParticleAttributes(aux_parameters_names, aux_parameters),
 		file_version_id=1)
 
 	return result
@@ -688,21 +698,19 @@ def filter_attribute(trajectory, attribute_name, value):
 	:rtype: Trajectory
 	"""
 
-	attribute_index = trajectory.particle_attribute_names.index(attribute_name)
 	n_ts = trajectory.n_timesteps
 
 	#  iterate through time steps and construct time step wise selected index arrays
 	filtered_indexes = [
-		np.nonzero(trajectory.get_particle_attributes(i)[:, attribute_index] == value)[0]
+		np.nonzero(trajectory.particle_attributes.get(attribute_name, i) == value)[0]
 		for i in range(n_ts)
 	]
 	new_positions = [trajectory.get_positions(i)[filtered_indexes[i], :] for i in range(n_ts)]
-	new_particle_attributes = [trajectory.get_particle_attributes(i)[filtered_indexes[i], :] for i in range(n_ts)]
+	new_particle_attributes = trajectory.particle_attributes.select(filtered_indexes)
 
 	result = Trajectory(
 		positions=new_positions,
 		particle_attributes=new_particle_attributes,
-		particle_attribute_names=trajectory.particle_attribute_names,
 		times=trajectory.times)
 
 	return result
