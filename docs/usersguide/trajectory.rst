@@ -100,50 +100,116 @@ Particle attributes
 
 IDSimF simulation applications can store an arbitrary number of additional attributes for the individual simulated particles in the simulation result files. Typical examples of particle attributes are the components of the velocity vector, the temperature or the chemical identity of the simulated particles. 
 
-Particle attributes are stored in the :py:attr:`particle_attributes` attribute of the Trajectory object. They are stored in a data structure which is similar to :py:attr:`positions`. A static trajectory stores the particle attributes in a three dimensional Numpy array with the dimensions ``[particle, attribute, time step]``. A variable trajectory stores the particle attributes as ``list`` of two dimensional Numpy arrays, one array per time step. The arrays have the dimensions ``[particle, attribute]``. 
+Particle attributes are stored in the :py:attr:`particle_attributes` attribute of the Trajectory object. They are stored in a in a special container class :py:class:`ParticleAttributes` which provide access functions to the attribute data. The attributes can be floating point numbers ("float" attributes) or integer numbers ("integer" attributes). Both attribute types are stored internally in different data arrays (and have to be passed seperately to the ParticleAttributes object when the object is created). 
 
-The names of the particle attribute columns are accessible in the :py:attr:`particle_attribute_names` attribute of the Trajectory object: 
+Similarly to the trajectory, the particle attributes can be static, which means that the number and the identity of the particles do not change over the time steps, or non static. The attribute data is stored internally in a similar fashion as the ``positions`` data in the trajectory class, but the interface to retrieve particle attributes from the attributes container is intended to be transparent with respect to the data type and if the data is static or not. 
+
+The names of the particle attribute columns are accessible in the :py:attr:`attribute_names` attribute of the ParticleAttributes object: 
 
 .. code-block:: python
 
-    print(trj.particle_attribute_names)
+    # trj is an instance of Trajectory, e.g. imported from an HDF5 trajectory file
+    
+    p_attribs = trj.particle_attributes
+    print(p_attribs.attribute_names)
 
 with a Trajectory ``trj`` yields for example 
 
 .. code-block:: none
 
-    ['velocity x', 'velocity y', 'velocity z', 'chemical id']
+    ['velocity x', 'velocity y', 'velocity z', 'kinetic energy (eV)', 'total collisions', 'chemical id', 'global index']
 
+(The details of particle attribute data access are described in the next section.)
 
-------------------------------
-Trajectory data access methods
-------------------------------
+--------------------------------------------------
+Trajectory data and particle attribute data access
+--------------------------------------------------
 
-Unified access methods for positions and particle attributes
-------------------------------------------------------------
+Access methods for position data
+--------------------------------
 
-The Trajectory class provides with :py:meth:`.Trajectory.get_positions` and with :py:meth:`.Trajectory.get_particle_attributes` unified access methods to the positions and particle attributes, for both static and variable trajectories: 
+The Trajectory class provides with :py:meth:`.Trajectory.get_positions` unified access methods to the particle positions, for both static and variable trajectories: 
 
 .. code-block:: python
 
     # get particle positions in third time step from Trajectory tra:
     time_step = tra.get_positions(2)
 
-    # get particle attributes in third time step from Trajectory tra:
-    attributes = tra.get_particle_attributes(2)
-
-The resulting positions array for a time step is always an array with the dimensions ``[particle, spatial dimension]``, the resulting particle attributes array for a time step is always an array with the dimensions ``[particle, attribute]``.
+The resulting positions array for a time step is always an array with the dimensions ``[particle, spatial dimension]``.
 
 Single particle access
 ----------------------
 
-Access to the position and attributes of a single particle at a specific time step in a trajectory is possible with the :py:meth:`.Trajectory.get_particle` method. It takes the particle and a time step index and returns the position and the particle attributes of the specified particle: 
+Access to the position and attributes of a single particle at a specific time step in a trajectory is possible with the :py:meth:`.Trajectory.get_particle` method. It takes the particle index and a time step index and returns the position and the particle attributes of the specified particle: 
 
 .. code-block:: python 
 
     particle_index = 2
     time_step_index = 4
     position, attributes = traj.get_particle(particle_index, time_step_index)
+
+Position is the position vector as three element numpy array, e.g.
+
+.. code-block:: none 
+
+    [-7.1296381e-05 -2.7986182e-04 -1.2232905e-04]
+
+Attributes are all particle attributes for the particle in the specified time step, as ``list``, which retains the original data type of the attributes, e.g.: 
+
+.. code-block:: none
+
+    [57.477237701416016, 225.61712646484375, -67.74223327636719, 0.004874825477600098, 0.0, 1.0, 2]
+
+
+Access slices of particle attributes
+------------------------------------
+
+Particle attributes for all particles in a time step
+....................................................
+
+The data of a particle attributes for all particles in a time step can be retrieved by the ``get`` method of the :py:class:`ParticleAttribute` class. The method takes the name of an attribute and a time step index as arguments
+
+.. code-block:: python 
+
+    p_attribs = trj.particle_attributes
+    v_x = p_attribs.get('velocity x', 10)
+
+and yields an vector with the values of the specified attribute for all particles in the time step: 
+
+.. code-block:: python 
+
+    print(np.shape(v_x)) # yields e.g. (600, ) if 600 particles are present
+    print(v_x[5]) # yields the attribute value of the 6th particle, e.g. -34.19147
+
+
+Particle attributes for all particles in all time steps
+.......................................................
+
+The time step index parameter can be omitted for the ``get`` method, which then retrieves all values of all particles in all time steps for the specified particle attribute: 
+
+.. code-block:: python
+
+    p_attribs = trj.particle_attributes
+    v_x = p_attribs.get('velocity x')
+
+If the particle attribute data (and thus the trajectory) is static, the particle number does not change along the time steps. The data is then returned as two dimensional array, with the dimensions ``[particle number, time step number]``:
+
+.. code-block:: python
+    
+    print(np.shape(v_x)) # Yields e.g. (600, 51) for a simulation with 600 particles and 51 time steps
+    print(v_x[5,:]) # Yields the attribute values for the 6th particle over all time steps
+
+
+For non static (variable) trajectories, the particle number can varies between the time steps. Similarly to the positions, the particle attribute data is then returned as list of attribute data vectors for the individual time steps: 
+
+.. code-block:: python 
+
+    p_attribs = trj_variable.particle_attributes
+    v_x = p_attribs.get('velocity x')
+    
+    print(len(v_x)) # yields the number of time steps, e.g. 51
+    print(len(v_x[5])) # yields the number of particles in the time step, e.g. 311
+    print(v_x[5][10]) # accesses an individual particle parameter value
 
 
 Particle number
@@ -155,12 +221,13 @@ The number of particles in a trajectory is accessible with :py:meth:`.Trajectory
 
     number_of_particles = tra.get_n_particles()
 
-The number of particles vary between time steps in variable trajectories. Thus, the time step has to be specified for a variable trajectory: 
+The number of particles varies between time steps in variable trajectories. Thus, the time step has to be specified for a variable trajectory: 
 
 .. code-block:: python 
 
     time_step_index = 20
     number_of_particles = variable_tra.get_n_particles(time_step_index)
+
 
 ------------------------------
 Optional trajectory attributes
@@ -182,7 +249,6 @@ For example, the retrieval of the particle masses from a trajectory ``tra`` is d
 
 * :py:attr:`.OptionalAttribute.PARTICLE_MASSES` masses of the simulated particles
 * :py:attr:`.OptionalAttribute.PARTICLE_CHARGES` charges of the simulated particles
-
 
 
 Reading trajectory data files

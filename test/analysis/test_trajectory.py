@@ -121,7 +121,6 @@ class TestTrajectory(unittest.TestCase):
 		attributes_static = np.zeros((n_particles_static, 2, n_timesteps))
 		attributes_static[3, :, 2] = (10, 300)
 
-
 		tra_static = ia.Trajectory(positions=pos_static, times=times,
 		                           particle_attributes=ia.ParticleAttributes(attribute_names, attributes_static))
 		self.assertEqual(tra_static.is_static_trajectory, True)
@@ -198,7 +197,6 @@ class TestTrajectory(unittest.TestCase):
 
 		np.testing.assert_allclose(ss_data.splat_positions[42, :], [-2.484479E-4, -1.4296286E-4, 0.004989132])
 		self.assertEqual(ss_data.splat_states[42, 0], 2)
-
 
 	def test_hdf5_v2_trajectory_reading_variable_timesteps(self):
 		tra = ia.read_hdf5_trajectory_file(self.hdf5_v2_variable_fname)
