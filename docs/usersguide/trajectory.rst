@@ -264,6 +264,7 @@ Currently this object is a simple container for five data vectors:
   * ``start_times`` Start times of the particles
   * ``splat_times`` Splat / termination times of the particles 
   * ``start_positions`` Start positions of the particles 
+  * ``splat_positions`` Splat positions of the particles 
   * ``splat_states`` Particle status, encoded as integer number. Details should (hopefully) be found in the IDSimF documentation, but currently the states mean: 
 
     * STARTED = 1,
