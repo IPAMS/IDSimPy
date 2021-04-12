@@ -314,14 +314,11 @@ def animate_xz_density_comparison_plot(
 			trajectories[1].optional_attributes[tra.OptionalAttribute.PARTICLE_MASSES]]
 
 	elif select_mode == 'substance':
-		id_column_0 = trajectories[0].particle_attribute_names.index('chemical id')
-		id_column_1 = trajectories[1].particle_attribute_names.index('chemical id')
-
 		# the select function requires a list of individual selector data vectors if
 		# the selector data changes across the time steps
-		chem_id_0 = [trajectories[0].get_particle_attributes(i)[:, id_column_0]
+		chem_id_0 = [trajectories[0].particle_attributes.get('chemical id', i)
 		             for i in range(trajectories[0].n_timesteps)]
-		chem_id_1 = [trajectories[1].get_particle_attributes(i)[:, id_column_1]
+		chem_id_1 = [trajectories[1].particle_attributes.get('chemical id', i)
 		             for i in range(trajectories[1].n_timesteps)]
 
 		select_parameter = (chem_id_0, chem_id_1)
@@ -534,11 +531,9 @@ def animate_scatter_plot(
 	c_param = None
 	if not (color_parameter is None):
 		p_attrib = trajectory.particle_attributes
-		p_attrib_names = trajectory.particle_attribute_names
 
 		if type(color_parameter) is str:
-			cp_index = p_attrib_names.index(color_parameter)
-			c_param = p_attrib[:, cp_index, :]
+			c_param = p_attrib.get(color_parameter)
 		elif hasattr(color_parameter, "__iter__"):  # is iterable
 			c_param = np.tile(color_parameter, (n_timesteps, 1)).T
 
@@ -560,7 +555,7 @@ def animate_scatter_plot(
 				scatterplot = plt.scatter(
 					positions[:, xindex, 0], positions[:, yindex, 0], s=10,
 					alpha=alpha, c=c_param[:, 0],
-					vmin=frame_range_min, vmax=frame_range_max , cmap=cmap)
+					vmin=frame_range_min, vmax=frame_range_max, cmap=cmap)
 			else:
 				scatterplot = plt.scatter(
 					positions[:, xindex, 0], positions[:, yindex, 0], s=10,
@@ -604,10 +599,9 @@ def animate_scatter_plot(
 		fargs=(positions, scat_xy, scat_xz))
 	return ani
 
-
 def animate_variable_scatter_plot(
 		trajectory, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
-		color_parameter=None, cmap=plt.cm.get_cmap('viridis'), alpha=0.1, figsize=(13, 5)):
+		color_parameter=None, crange=None, cmap=plt.cm.get_cmap('viridis'), alpha=0.1, figsize=(13, 5)):
 	"""
 	TODO:/ FIXME: Usage of color parameter is not yet implemented
 	(only color parameter as aux parameter here)
@@ -630,6 +624,8 @@ def animate_variable_scatter_plot(
 	:param color_parameter: name of an additional parameter of the trajectory used for coloring or a vector of manual
 		values for coloring
 	:type color_parameter: str or iterable (ndarray, list, tuple)
+	:param crange: manual color range, given as tuple. Colormap spans from c_range[0] to c_range[1]
+	:type crange: two element tuple of numeric
 	:param cmap: a matplotlib colormap for colorization of the scatter plot
 	:type cmap: matplotlib.colors.Colormap
 	:param alpha: an alpha value for the plots
@@ -644,14 +640,13 @@ def animate_variable_scatter_plot(
 
 	if trajectory.particle_attributes:
 		p_attrib = trajectory.particle_attributes
-		p_attrib_names = trajectory.particle_attribute_names
+		p_attrib_names = trajectory.particle_attributes.attribute_names
 
 	c_param = None
 	if not (color_parameter is None):
 
 		if type(color_parameter) is str:
-			cp_index = p_attrib_names.index(color_parameter)
-			c_param = [ts_ap[:, cp_index] for ts_ap in p_attrib]
+			c_param = p_attrib.get(color_parameter)
 		elif hasattr(color_parameter, "__iter__"):  # is iterable
 			raise NotImplementedError('Usage of a custom color parameter array is not yet implemented')
 			#  c_param = np.tile(color_parameter, (n_timesteps, 1)).T
@@ -675,7 +670,11 @@ def animate_variable_scatter_plot(
 			plt.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha)
 		else:
 			# ts_cp = c_param[i]
-			plt.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha)  # c=ts_cp[0], cmap=cmap)
+			if crange is None:
+				plt.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha, c=c_param[i], cmap=cmap)
+			else:
+				plt.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha,
+				            c=c_param[i], vmin = crange[0], vmax = crange[1], cmap=cmap)
 
 		plt.xlabel("x position")
 		plt.ylabel("y position")
@@ -694,7 +693,11 @@ def animate_variable_scatter_plot(
 		if color_parameter is None:
 			plt.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha)
 		else:
-			plt.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha)  # , c=c_param[:,0], cmap=cmap)
+			if crange is None:
+				plt.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha, c=c_param[i], cmap=cmap)
+			else:
+				plt.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha,
+				            c=c_param[i], vmin=crange[0], vmax=crange[1], cmap=cmap)
 		plt.xlabel("x position")
 		plt.ylabel("z position")
 
@@ -714,7 +717,7 @@ def animate_variable_scatter_plot(
 
 def render_scatter_animation(
 		project_name, result_name, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
-		color_parameter=None, cmap=plt.cm.get_cmap('viridis'), alpha=0.1, fps=20,
+		color_parameter=None, crange=None, cmap=plt.cm.get_cmap('viridis'), alpha=0.1, fps=20,
 		figsize=(13, 5), file_type='hdf5'):
 	"""
 	Reads an ion trajectory file, generates a scatter animation of the particles in an ion trajectory and
@@ -737,6 +740,8 @@ def render_scatter_animation(
 	:param color_parameter: name of an additional parameter of the trajectory used for coloring or a vector of manual
 		values for coloring
 	:type color_parameter: str or iterable (ndarray, list, tuple)
+	:param crange: manual color range, given as tuple. Colormap spans from c_range[0] to c_range[1]
+	:type crange: two element tuple of numeric
 	:param cmap: a matplotlib colormap for colorization of the scatter plot
 	:type cmap: matplotlib.colors.Colormap
 	:param alpha: an alpha value for the plots
@@ -773,6 +778,6 @@ def render_scatter_animation(
 
 	ani = plot_fct(
 		tr, xlim=xlim, ylim=ylim, zlim=zlim, n_frames=n_frames, interval=interval,
-		color_parameter=color_parameter, cmap=cmap, alpha=alpha, figsize=figsize)
+		color_parameter=color_parameter, crange=crange, cmap=cmap, alpha=alpha, figsize=figsize)
 
 	ani.save(result_name + "_scatter.mp4", fps=fps, extra_args=['-vcodec', 'libx264'])

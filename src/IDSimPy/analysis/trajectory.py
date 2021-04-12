@@ -154,7 +154,7 @@ class ParticleAttributes:
 
 	def select(self, selected_particle_indices):
 		"""
-		Select individual particles and return new ParticleAttribute containe with the selected data
+		Select individual particles and return new ParticleAttribute container with the selected data
 		"""
 
 		if type(selected_particle_indices) == np.ndarray:
@@ -183,20 +183,23 @@ class ParticleAttributes:
 			self.attr_names_float, selected_attrs_float, self.attr_names_int, selected_attrs_int
 		)
 
-	def get(self, attrib_name, timestep_index):
-
+	def get(self, attrib_name, timestep_index=None):
 		ap = self.attr_name_map[attrib_name]
+		if ap[0]:
+			attr_dat = self.attr_dat_float
+		else:
+			attr_dat = self.attr_dat_int
 
 		if self.is_static:
-			if ap[0]:
-				return self.attr_dat_float[:, ap[1], timestep_index]
+			if timestep_index is not None:
+				return attr_dat[:, ap[1], timestep_index]
 			else:
-				return self.attr_dat_int[:, ap[1], timestep_index]
+				return attr_dat[:, ap[1], :]
 		else:
-			if ap[0]:
-				return self.attr_dat_float[timestep_index][:, ap[1]]
+			if timestep_index is not None:
+				return attr_dat[timestep_index][:, ap[1]]
 			else:
-				return self.attr_dat_int[timestep_index][:, ap[1]]
+				return [attr_dat[i][:, ap[1]] for i in range(self.n_timesteps)]
 
 	def get_attribs_for_particle(self, particle_index, timestep_index):
 
@@ -552,11 +555,13 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 		timesteps_group = tra_group['timesteps']
 		times = tra_group['times']
 
+		particle_attributes_names_float = None
 		if 'attributes names' in attribs.keys():
 			particle_attributes_names_float = [
 				name.decode('UTF-8') if isinstance(name, bytes) else name for name in attribs['attributes names']
 			]
 
+		particle_attributes_names_int = None
 		if 'integer attributes names' in attribs.keys():
 			particle_attributes_names_int = [
 				name.decode('UTF-8') if isinstance(name, bytes) else name for name in attribs['integer attributes names']

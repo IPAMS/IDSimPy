@@ -10,35 +10,38 @@ class TestVisualizationAnimations(unittest.TestCase):
 	def setUpClass(cls):
 		data_base_path = os.path.join('test', 'analysis', 'data')
 		hdf5_v2_path = os.path.join(data_base_path, 'trajectory_v2')
+		hdf5_v3_path = os.path.join(data_base_path, 'trajectory_v3')
 		cls.test_json_trajectory = os.path.join(data_base_path, 'test_trajectories.json')
 		cls.test_json_projectName = os.path.join(data_base_path, 'test')
 
 		cls.test_reactive_projectName = os.path.join(
-			hdf5_v2_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_15_001')
+			hdf5_v3_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_15_001')
 
 		cls.scanning_qit_hdf5_trajectory_a = os.path.join(
-			hdf5_v2_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_001_trajectories.hd5')
+			hdf5_v3_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_001_trajectories.hd5')
 
 		cls.scanning_qit_hdf5_trajectory_b = os.path.join(
-			hdf5_v2_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_002_trajectories.hd5')
+			hdf5_v3_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_002_trajectories.hd5')
 
 		cls.legacy_hdf5_trajectory_c = os.path.join(
-			hdf5_v2_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_15_001_trajectories.hd5')
+			hdf5_v3_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_15_001_trajectories.hd5')
 
 		cls.new_hdf5_variable_projectName = os.path.join(
-			hdf5_v2_path, 'qitSim_2019_07_variableTrajectoryQIT', 'qitSim_2019_07_22_001')
+			hdf5_v3_path, 'qitSim_2019_07_variableTrajectoryQIT', 'qitSim_2019_07_22_001')
 
 		cls.new_hdf5_static_projectName = os.path.join(
-			hdf5_v2_path, 'qitSim_2019_07_variableTrajectoryQIT',  'qitSim_2019_07_22_002')
+			hdf5_v3_path, 'qitSim_2019_07_variableTrajectoryQIT',  'qitSim_2019_07_22_002')
 
 		cls.hdf5_reactive_ims_projectName = os.path.join(
-			hdf5_v2_path, 'reactive_IMS', 'IMS_HS_reactive_test_001')
+			hdf5_v3_path, 'reactive_IMS', 'IMS_HS_reactive_test_001')
 
 		cls.result_path = os.path.join('test', 'test_results')
 
 	def test_scatter_animation_variable_hdf5_trajectory(self):
 		result_name = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_1')
-		vis.render_scatter_animation(self.new_hdf5_variable_projectName, result_name, interval=1, alpha=0.5)
+		vis.render_scatter_animation(self.new_hdf5_variable_projectName, result_name,
+		                             interval=1, alpha=0.5, crange=(0, 100), cmap='coolwarm',
+		                             color_parameter='global index')
 
 	def test_scatter_animation_static_hdf5_trajectory(self):
 		result_name = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_2')
@@ -83,7 +86,7 @@ class TestVisualizationAnimations(unittest.TestCase):
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 
 		# test with manual coloring:
-		c_id = np.array([0 if i< 200 else 1 for i in range(400)])
+		c_id = np.array([0 if i < 200 else 1 for i in range(400)])
 		anim = vis.animate_scatter_plot(
 			tra_b, xlim=(-0.001, 0.001), ylim=(-0.0015, 0.0015), zlim=(-0.005, 0.005),
 			color_parameter=c_id, crange=(0, 2), alpha=0.4)
