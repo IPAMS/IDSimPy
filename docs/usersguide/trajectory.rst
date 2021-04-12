@@ -233,7 +233,7 @@ The number of particles varies between time steps in variable trajectories. Thus
 Optional trajectory attributes
 ------------------------------
 
-Trajectory objects can have an arbitrary set of optional attributes, which are not commonly set by all IDSimF simulation applications. Typical examples are the masses of simulated particles or the charges of simulated particles. The optional trajectory attributes are technically stored as key-value pairs in a ``dict`` which can be accessed with the :py:attr:`optional_attributes` attribute of the Trajectory class. 
+Trajectory objects can have an arbitrary set of optional attributes, which are not commonly set by all IDSimF simulation applications. Typical examples are the masses of simulated particles or the charges of simulated particles. The optional trajectory attributes are technically stored as key-value pairs in a ``dict`` which can be accessed with the :py:attr:`optional_attributes` attribute of the :py:class:`Trajectory` class. 
 
 To allow structured access to the optional trajectory attributes, an extensible set of semantic keys is provided by the :py:class:`.OptionalAttribute` enum class. 
 
@@ -250,6 +250,32 @@ For example, the retrieval of the particle masses from a trajectory ``tra`` is d
 * :py:attr:`.OptionalAttribute.PARTICLE_MASSES` masses of the simulated particles
 * :py:attr:`.OptionalAttribute.PARTICLE_CHARGES` charges of the simulated particles
 
+
+----------------------------------
+Particle start / splat information
+----------------------------------
+
+Besides the tabular optional parameters described above, some simulation apps record detailed information about particle start and splat (termination) times and locations to the trajectory files. 
+
+This information, if existing, is stored in an additional container class :py:class:`.StartSplatTrackingData` in the ``start_splat_data`` attribute of the trajectory object. 
+
+Currently this object is a simple container for five data vectors: 
+
+  * ``start_times`` Start times of the particles
+  * ``splat_times`` Splat / termination times of the particles 
+  * ``start_positions`` Start positions of the particles 
+  * ``splat_states`` Particle status, encoded as integer number. Details should (hopefully) be found in the IDSimF documentation, but currently the states mean: 
+
+    * STARTED = 1,
+    * SPLATTED = 2,
+    * RESTARTED = 3,
+    * SPLATTED_AND_RESTARTED = 4
+
+The time vectors are numpy arrays with dimensions ``[number of particles, 1]``, the position vectors are numpy arrays with dimensions ``[number of particles, 3]`` with x,y,z components of the start or splat positions. 
+
+
+.. note::
+    Since simulations can have start time distributions and can restart particles, the indices of the data vectors in ``start_splat_data`` are *global indices* which are unique along all time steps. To allow assingnment of start / splat information to the particles in the trajectory, the global index of the individual particles in the trajectory is stored in the ``global index`` particle attribute. 
 
 Reading trajectory data files
 =============================
