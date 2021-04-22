@@ -72,7 +72,7 @@ class ParticleAttributes:
 			elif type(self.attr_dat_float) == list:
 				float_static = False
 				float_n_ts = len(self.attr_dat_float)
-				n_columns_float = np.shape(self.attr_dat_float[0])[1]
+				n_columns_float = [np.shape(i)[1] for i in self.attr_dat_float if np.size(np.shape(i)) == 2][0]
 			else:
 				raise TypeError('Wrong type for float particle attributes, has to be an numpy.ndarray or a list of numpy.ndarrays')
 
@@ -92,7 +92,7 @@ class ParticleAttributes:
 			elif type(self.attr_dat_int) == list:
 				int_static = False
 				int_n_ts = len(self.attr_dat_int)
-				n_columns_int = np.shape(self.attr_dat_int[0])[1]
+				n_columns_int = [np.shape(i)[1] for i in self.attr_dat_int if np.size(np.shape(i)) == 2][0]
 			else:
 				raise TypeError('Wrong type for int particle attributes, has to be an numpy.ndarray or a list of numpy.ndarrays')
 
@@ -582,16 +582,15 @@ def _read_hdf5_v2_trajectory(tra_group):
 
 def read_hdf5_trajectory_file(trajectory_file_name):
 	"""
-	Reads a version 2 hdf5 trajectory file (which allows also exported simulation frames
-	with variable number of particles.
+    Reads a version 2 hdf5 trajectory file (which allows also exported simulation frames
+    with variable number of particles.
 
-	:param trajectory_file_name: Name of the file to read
-	:type trajectory_file_name: str
-	:return: Trajectory object with trajectory data
-	:rtype: Trajectory
-	"""
-	with h5py.File(trajectory_file_name, 'r') as hdf5file:
-
+    :param trajectory_file_name: Name of the file to read
+    :type trajectory_file_name: str
+    :return: Trajectory object with trajectory data
+    :rtype: Trajectory
+    """
+	with h5py.File(f, 'r') as hdf5file:
 		tra_group = hdf5file['particle_trajectory']
 		attribs = tra_group.attrs
 		file_version_id = attribs['file version'][0]
@@ -613,7 +612,8 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 		particle_attributes_names_int = None
 		if 'integer attributes names' in attribs.keys():
 			particle_attributes_names_int = [
-				name.decode('UTF-8') if isinstance(name, bytes) else name for name in attribs['integer attributes names']
+				name.decode('UTF-8') if isinstance(name, bytes) else name for name in
+				attribs['integer attributes names']
 			]
 
 		positions = []
@@ -625,15 +625,24 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 		for ts_i in range(n_timesteps):
 			ts_group = timesteps_group[str(ts_i)]
 
-			ion_positions = np.array(ts_group['positions'])
-
+			if 'positions' in ts_group.keys():
+				ion_positions = np.array(ts_group['positions'])
+			else:
+				ion_positions = np.array([])
 			n_ion_per_frame.append(np.shape(ion_positions)[0])
+
 			positions.append(ion_positions)
 
 			if particle_attributes_names_float:
-				particle_attributes_float.append(np.array(ts_group['particle_attributes_float']))
+				if n_ion_per_frame[ts_i] == 0:
+					particle_attributes_float.append(np.array([]))
+				else:
+					particle_attributes_float.append(np.array(ts_group['particle_attributes_float']))
 			if particle_attributes_names_int:
-				particle_attributes_int.append(np.array(ts_group['particle_attributes_integer'], dtype=int))
+				if n_ion_per_frame[ts_i] == 0:
+					particle_attributes_int.append(np.array([], dtype=int))
+				else:
+					particle_attributes_int.append(np.array(ts_group['particle_attributes_integer'], dtype=int))
 
 		unique_n_ions = len(set(n_ion_per_frame))
 
@@ -659,9 +668,11 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 			if static_trajectory:
 				p_attr_final_int = np.dstack(np.array(p_attr_final_int, dtype=int))
 
+		print(np.shape(p_attr_final_float))
+
 		p_attribs = ParticleAttributes(
-				particle_attributes_names_float, p_attr_final_float,
-				particle_attributes_names_int, p_attr_final_int)
+			particle_attributes_names_float, p_attr_final_float,
+			particle_attributes_names_int, p_attr_final_int)
 
 		start_splat_data = None
 		if 'start_splat' in tra_group.keys():
