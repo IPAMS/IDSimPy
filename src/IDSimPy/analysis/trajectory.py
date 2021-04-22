@@ -590,7 +590,7 @@ def read_hdf5_trajectory_file(trajectory_file_name):
     :return: Trajectory object with trajectory data
     :rtype: Trajectory
     """
-	with h5py.File(f, 'r') as hdf5file:
+	with h5py.File(trajectory_file_name, 'r') as hdf5file:
 		tra_group = hdf5file['particle_trajectory']
 		attribs = tra_group.attrs
 		file_version_id = attribs['file version'][0]
@@ -667,8 +667,6 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 			p_attr_final_int = particle_attributes_int
 			if static_trajectory:
 				p_attr_final_int = np.dstack(np.array(p_attr_final_int, dtype=int))
-
-		print(np.shape(p_attr_final_float))
 
 		p_attribs = ParticleAttributes(
 			particle_attributes_names_float, p_attr_final_float,
