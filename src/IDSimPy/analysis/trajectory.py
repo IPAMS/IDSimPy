@@ -252,7 +252,9 @@ class ParticleAttributes:
 			if timestep_index is not None:
 				return attr_dat[timestep_index][:, ap[1]]
 			else:
-				return [attr_dat[i][:, ap[1]] for i in range(self.n_timesteps)]
+				return [ attr_dat[i][:, ap[1]]
+				         if attr_dat[i].ndim == 2 else attr_dat[i]
+				         for i in range(self.n_timesteps) ]
 
 	def get_attribs_for_particle(self, particle_index, timestep_index):
 		"""
@@ -582,7 +584,7 @@ def _read_hdf5_v2_trajectory(tra_group):
 
 def read_hdf5_trajectory_file(trajectory_file_name):
 	"""
-    Reads a version 2 hdf5 trajectory file (which allows also exported simulation frames
+    Reads a version 2 or 3 hdf5 trajectory file (which allows also exported simulation frames
     with variable number of particles.
 
     :param trajectory_file_name: Name of the file to read
@@ -628,19 +630,19 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 			if 'positions' in ts_group.keys():
 				ion_positions = np.array(ts_group['positions'])
 			else:
-				ion_positions = np.array([])
+				ion_positions = np.empty([0, 3])  # maintain correct dimensionality even in empty array
 			n_ion_per_frame.append(np.shape(ion_positions)[0])
 
 			positions.append(ion_positions)
 
 			if particle_attributes_names_float:
 				if n_ion_per_frame[ts_i] == 0:
-					particle_attributes_float.append(np.array([]))
+					particle_attributes_float.append(np.empty([0, len(particle_attributes_names_float)]))
 				else:
 					particle_attributes_float.append(np.array(ts_group['particle_attributes_float']))
 			if particle_attributes_names_int:
 				if n_ion_per_frame[ts_i] == 0:
-					particle_attributes_int.append(np.array([], dtype=int))
+					particle_attributes_int.append(np.empty([0, len(particle_attributes_names_int)], dtype=int))
 				else:
 					particle_attributes_int.append(np.array(ts_group['particle_attributes_integer'], dtype=int))
 

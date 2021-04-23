@@ -165,8 +165,8 @@ class TestTrajectory(unittest.TestCase):
 
 		self.assertEqual(tra.file_version_id, 3)
 		self.assertEqual(tra.is_static_trajectory, False)
-		self.assertEqual(np.shape(tra[3]), (208, 3))
-		self.assertAlmostEqual(tra[3][200, 2], 0.0029616614)
+		self.assertEqual(np.shape(tra[3]), (144, 3))
+		self.assertAlmostEqual(tra[3][140, 2], 0.0027527006)
 
 		# test reading of particle attributes:
 		self.assertEqual(tra.particle_attributes.attribute_names,
@@ -177,26 +177,35 @@ class TestTrajectory(unittest.TestCase):
 
 		particle_dat = tra.particle_attributes.get_attribs_for_particle(2, 10)
 		np.testing.assert_allclose(particle_dat,
-		                 [55.42161178588867, 104.02095031738281, -1889.0555419921875,
-		                  8.80931635937336e-19, 1.6636390896516032e-18, -2.4106855463877907e-17,
-		                  -7.758995343219314e-21, -5.56383587364702e-20, -8.009149139180841e-20,
-		                  2])
+		                           [17.736734, 23.286898, -2014.0177,
+		                            2.7090779E-17, 3.572873E-17, -7.157211E-16,
+		                            1.0849945E-21, -2.89312E-21, -7.8152134E-20,
+		                            2])
+
 		self.assertEqual(type(particle_dat[8]), float)
 		self.assertEqual(type(particle_dat[9]), int)
 
 		global_index = tra.particle_attributes.get('global index', 5)
 		self.assertEqual(global_index[0], 0)
 		self.assertEqual(global_index[10], 10)
-		self.assertEqual(len(global_index), 311)
+		self.assertEqual(len(global_index), 214)
+
+		# test reading empty frame:
+		velo_attribute = tra.particle_attributes.get('velocity x')
+		self.assertEqual(np.shape(tra[0]), (0, 3))
+		self.assertEqual(np.shape(velo_attribute[0]), (0,))
+		self.assertEqual(np.shape(velo_attribute[1]), (48,))
+
+
 
 		# test reading of start / splat data:
 		ss_data = tra.start_splat_data
-		np.testing.assert_allclose(ss_data.start_positions[9, :], [2.8199155E-4, 6.4962376E-5, 0.0027087391])
+		np.testing.assert_allclose(ss_data.start_positions[9, :], [-2.8438022E-4, -1.1745411E-4, 0.0025111847])
 		np.testing.assert_allclose(ss_data.splat_positions[9, :], [0.0, 0.0, 0.0])
 		self.assertEqual(ss_data.splat_states[9, 0], 1)
 
-		np.testing.assert_allclose(ss_data.splat_positions[42, :], [-2.484479E-4, -1.4296286E-4, 0.004989132])
-		self.assertEqual(ss_data.splat_states[42, 0], 2)
+		np.testing.assert_allclose(ss_data.splat_positions[35, :], [-9.886785E-5, -3.7777616E-5, 0.0049760267])
+		self.assertEqual(ss_data.splat_states[35, 0], 2)
 
 	def test_hdf5_v2_trajectory_reading_variable_timesteps(self):
 		tra = ia.read_hdf5_trajectory_file(self.hdf5_v2_variable_fname)

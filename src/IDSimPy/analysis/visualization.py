@@ -663,6 +663,12 @@ def animate_variable_scatter_plot(
 		plt.clf()  # clear figure for a fresh plot
 
 		ts_pos = pos[i]
+
+		if ts_pos.shape[0] == 0:
+			empty_frame = True
+		else:
+			empty_frame = False
+
 		# ts_ap = ap[i]
 
 		plt.subplot(1, 2, 1)
@@ -674,20 +680,24 @@ def animate_variable_scatter_plot(
 				plt.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha, c=c_param[i], cmap=cmap)
 			else:
 				plt.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha,
-				            c=c_param[i], vmin = crange[0], vmax = crange[1], cmap=cmap)
+				            c=c_param[i], vmin=crange[0], vmax=crange[1], cmap=cmap)
 
 		plt.xlabel("x position")
 		plt.ylabel("y position")
 
 		if ylim:
 			plt.ylim(ylim)
-		else:
+		elif not empty_frame:
 			plt.ylim((np.min(ts_pos[:, 1]), np.max(ts_pos[:, 1])))
+		else:
+			plt.ylim(0, 1)
 
 		if xlim:
 			plt.xlim(xlim)
-		else:
+		elif not empty_frame:
 			plt.xlim((np.min(ts_pos[:, 0]), np.max(ts_pos[:, 0])))
+		else:
+			plt.xlim(0, 1)
 
 		plt.subplot(1, 2, 2)
 		if color_parameter is None:
@@ -703,13 +713,18 @@ def animate_variable_scatter_plot(
 
 		if zlim:
 			plt.ylim(zlim)
-		else:
+		elif not empty_frame:
 			plt.ylim((np.min(ts_pos[:, 2]), np.max(ts_pos[:, 2])))
+		else:
+			plt.ylim(0, 1)
+
 
 		if xlim:
 			plt.xlim(xlim)
-		else:
+		elif not empty_frame:
 			plt.xlim((np.min(ts_pos[:, 0]), np.max(ts_pos[:, 0])))
+		else:
+			plt.xlim(0, 1)
 
 	ani = animation.FuncAnimation(fig, render_scatter_plot, frames=range(n_frames))
 	return ani
