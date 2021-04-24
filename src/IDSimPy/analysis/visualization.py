@@ -571,6 +571,7 @@ def animate_scatter_plot(
 		else:
 			plt.xlim((np.min(positions[:, xindex, :]), np.max(positions[:, xindex, :])))
 
+
 		return scatterplot
 
 	plt.subplot(1, 2, 1)
@@ -583,8 +584,14 @@ def animate_scatter_plot(
 	plt.xlabel("x position")
 	plt.ylabel("z position")
 
-	def update_scatter_plot(i, pos, scat1, scat2):
+	text_time = plt.annotate(
+		"t=xxx", xy=(0.02, 0.96), xycoords="figure fraction",
+		horizontalalignment="left", verticalalignment="top",
+		fontsize=13);
+
+	def update_scatter_plot(i, pos, scat1, scat2, text_time):
 		ts = i * interval
+		time = trajectory.times[ts]
 		scat1.set_offsets(np.transpose(np.vstack([pos[:, 0, ts], pos[:, 1, ts]])))
 		scat2.set_offsets(np.transpose(np.vstack([pos[:, 0, ts], pos[:, 2, ts]])))
 
@@ -592,11 +599,13 @@ def animate_scatter_plot(
 			scat1.set_array(c_param[:, ts])
 			scat2.set_array(c_param[:, ts])
 
-		return scat1, scat2
+		text_time.set_text(u"t= {: .2e} µs".format(time))
+
+		return scat1, scat2, text_time
 
 	ani = animation.FuncAnimation(
 		fig, update_scatter_plot, frames=range(n_frames),
-		fargs=(positions, scat_xy, scat_xz))
+		fargs=(positions, scat_xy, scat_xz, text_time))
 	return ani
 
 def animate_variable_scatter_plot(
@@ -725,6 +734,11 @@ def animate_variable_scatter_plot(
 			plt.xlim((np.min(ts_pos[:, 0]), np.max(ts_pos[:, 0])))
 		else:
 			plt.xlim(0, 1)
+
+		text_time = plt.annotate(
+			u"t= {: .2e} µs".format(trajectory.times[i]), xy=(0.02, 0.96), xycoords="figure fraction",
+			horizontalalignment="left", verticalalignment="top",
+			fontsize=13);
 
 	ani = animation.FuncAnimation(fig, render_scatter_plot, frames=range(n_frames))
 	return ani
