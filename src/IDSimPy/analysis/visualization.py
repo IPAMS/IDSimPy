@@ -413,7 +413,7 @@ def animate_xz_density_comparison_plot(
 			img_data_rgb[:, :, 3] = abs_dens_log * alpha
 
 		im1.set_array(img_data_rgb)
-		text_time.set_text("t=" + str(times_a[ts_number]) + u"µs" + " " + annotate_string)
+		text_time.set_text("t=" + str(times_a[ts_number]) + u"s" + " " + annotate_string)
 
 		return im1
 
@@ -599,7 +599,7 @@ def animate_scatter_plot(
 			scat1.set_array(c_param[:, ts])
 			scat2.set_array(c_param[:, ts])
 
-		text_time.set_text(u"t= {: .2e} µs".format(time))
+		text_time.set_text(u"t= {: .2e} s".format(time))
 
 		return scat1, scat2, text_time
 
@@ -736,7 +736,7 @@ def animate_variable_scatter_plot(
 			plt.xlim(0, 1)
 
 		text_time = plt.annotate(
-			u"t= {: .2e} µs".format(trajectory.times[i]), xy=(0.02, 0.96), xycoords="figure fraction",
+			u"t= {: .2e} s".format(trajectory.times[i]), xy=(0.02, 0.96), xycoords="figure fraction",
 			horizontalalignment="left", verticalalignment="top",
 			fontsize=13);
 
