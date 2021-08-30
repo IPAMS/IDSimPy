@@ -230,7 +230,7 @@ class ParticleAttributes:
 		For non static particle attributes this is a list of vectors (arrays with one column) with the length of
 		[n particles].
 
-		If the time step index is specified, a vector (arrays with one column) with length of [n particles] is retuned.
+		If the time step index is specified, a vector (arrays with one column) with length of [n particles] is returned.
 
 		:param attrib_name: Name of the particle attribute to return.
 		:type attrib_name: str
