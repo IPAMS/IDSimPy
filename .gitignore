@@ -92,4 +92,5 @@ ENV/
 
 # Test result files
 test/test_results
+test/analysis/integration/sim_results
 #demo/results/*
