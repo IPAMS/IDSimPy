@@ -81,7 +81,7 @@ def define_xy_grid(n_x, n_y, w_x, w_y, o_x, o_y, mass):
 	i = 0
 	for x in X:
 		for y in Y:
-			result[i, :] = np.array([x, y, 0, 0, 0, 0, 1, mass, 0])
+			result[i, :] = np.array([x, y, 0, 0, 0, 0, 1, mass, 0.0, 0])
 			i += 1
 
 	return result
@@ -102,13 +102,14 @@ def define_origin_centered_block(n_ions, w_x, w_y, w_z, mass):
 	V = np.zeros([n_ions, 3])
 	M = np.zeros([n_ions, 1]) + mass
 	C = np.zeros([n_ions, 1]) + 1
+	DIAM= np.zeros([n_ions, 1])
 	TOB = np.zeros([n_ions, 1])
 
 	X[:, 0] = (X[:, 0] * (2 * w_x)) - w_x
 	X[:, 1] = (X[:, 1] * (2 * w_y)) - w_y
 	X[:, 2] = (X[:, 2] * (2 * w_z)) - w_z
 
-	result = np.hstack([X, V, C, M, TOB])
+	result = np.hstack([X, V, C, M, DIAM, TOB])
 	return result
 
 
@@ -139,9 +140,10 @@ def define_cylinder_z_dir(n_ions, r, z, charge, mass):
 	V = np.zeros([n_ions, 3])
 	C = np.zeros([n_ions, 1]) + charge
 	M = np.zeros([n_ions, 1]) + mass
+	DIAM = np.zeros([n_ions, 1])
 	TOB = np.zeros([n_ions, 1])
 
-	result = np.hstack([X, Y, Z, V, C, M, TOB])
+	result = np.hstack([X, Y, Z, V, C, M, DIAM, TOB])
 	return result
 
 def define_cylinder_x_dir(n_ions, r, x, charge, mass):
@@ -171,9 +173,10 @@ def define_cylinder_x_dir(n_ions, r, x, charge, mass):
 	V = np.zeros([n_ions, 3])
 	C = np.zeros([n_ions, 1]) + charge
 	M = np.zeros([n_ions, 1]) + mass
+	DIAM = np.zeros([n_ions, 1])
 	TOB = np.zeros([n_ions, 1])
 
-	result = np.hstack([X, Y, Z, V, C, M, TOB])
+	result = np.hstack([X, Y, Z, V, C, M, DIAM, TOB])
 	return result
 
 
