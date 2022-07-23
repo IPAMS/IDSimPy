@@ -15,8 +15,8 @@ class TestQitSimAnalysis(unittest.TestCase):
 		cls.result_path = os.path.join('test', 'test_results')
 
 	def test_qit_stability_parameters(self):
-		sparams = qa.qit_stability_parameters(100,200,0.5e6)
-		self.assertAlmostEqual(sparams['lmco'],86.126419,places=5)
+		sparams = qa.qit_stability_parameters(100, 200, 0.5e6)
+		self.assertAlmostEqual(sparams['lmco'], 86.126419, places=5)
 
 	def test_simple_simulation_readers(self):
 		conf = qa.read_QIT_conf(self.sim_name_scanned + '_conf.json')
