@@ -14,16 +14,14 @@ def read_md_collisions_trajectory_file(trajectory_filename):
 	:return: List with individual MD collisions
 	:rtype: list of numpy arrays
 	"""
-	count = 0
 	prefixes = ['###']
-	limit = 15e-10 / 1e-10
 
-	if trajectory_filename[-8:] == ".txt.gz":
+	if trajectory_filename[-7:] == ".txt.gz":
 		file_open_fct = gzip.open
 	else:
 		file_open_fct = open
 
-	with file_open_fct(trajectory_filename) as tf:
+	with file_open_fct(trajectory_filename, 'rt') as tf:
 		result = []
 		for key, group in itertools.groupby(tf, lambda line: line.startswith(tuple(prefixes))):
 			if not key:
