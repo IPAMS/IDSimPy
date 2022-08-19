@@ -30,9 +30,14 @@ def generate_input_files_from_template(template_filename, parameter_values, resu
 
             buf = template
             for vi, value in enumerate(pv):
-                buf = buf.replace('%%-{:d}-%%'.format(vi), str(value))
+                if type(value) is str:
+                    value_string = '\"'+str(value)+'\"'
+                else:
+                    value_string = str(value)
+
+                buf = buf.replace('%%-{:d}-%%'.format(vi), value_string)
 
             result_str = buf
-            result_filename = result_basename + '{:03d}.json'.format(i)
+            result_filename = result_basename + '{:02d}.json'.format(i)
             with open(result_filename, 'w') as result_file:
                 result_file.write(result_str)
