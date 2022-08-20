@@ -60,20 +60,20 @@ The parameter values to set are providet to :py:func:`.generate_run_configuratio
 
 .. code-block:: python
 
-        import os
-        import IDSimPy.preprocessing as ip
+    import os
+    import IDSimPy.preprocessing as ip
 
 
-    	parameters = (
-			(0.5, 'square', 1000),
-			(0.1, 'sin', 2500),
-			(0.2, 'bisin', 4500)
-		)
+    parameters = (
+        (0.5, 'square', 1000),
+        (0.1, 'sin', 2500),
+        (0.2, 'bisin', 4500)
+    )
 
-		template_file = 'configuration_template.tmpl')
-		result_basename = 'sim_run_')
+    template_file = 'configuration_template.tmpl')
+    result_basename = 'sim_run_')
 
-		ip.generate_run_configurations_from_template(template_file, parameters, result_basename)
+    ip.generate_run_configurations_from_template(template_file, parameters, result_basename)
 
 This generates three simulation run configuration files (`sim_run_00.json`, `sim_run_01.json`, `sim_run_02.json`), one per row of the provided `parameters``. An individual row defines the parameter values to be set in one individual result file. For example `sim_run_01.json` of the example would be
 
