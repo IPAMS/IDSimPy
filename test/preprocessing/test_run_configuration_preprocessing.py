@@ -20,7 +20,7 @@ class TestInputFilePreprocessing(unittest.TestCase):
 
 		template_file = os.path.join(self.input_path, 'simulation_template_1.tmpl')
 		result_basename = os.path.join(self.result_path, 'preprocess_test_1_')
-		ip.generate_input_files_from_template(template_file, params, result_basename)
+		ip.generate_run_configurations_from_template(template_file, params, result_basename)
 
 		result_file_1 = os.path.join(self.result_path, 'preprocess_test_1_01.json')
 		result_file_2 = os.path.join(self.result_path, 'preprocess_test_1_02.json')

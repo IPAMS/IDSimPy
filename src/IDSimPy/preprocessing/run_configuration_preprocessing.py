@@ -1,5 +1,5 @@
 
-def generate_input_files_from_template(template_filename, parameter_values, result_basename):
+def generate_run_configurations_from_template(template_filename, parameter_values, result_basename):
     """
     Generates simulation input files from a simple template file,
     a vector of parameter values and a basename for the resulting input files

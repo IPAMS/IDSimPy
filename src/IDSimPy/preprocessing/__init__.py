@@ -10,7 +10,7 @@ Modules:
 
 from . import comsol_import
 from . import field_generation
-from . import input_file_preprocessing
-from .input_file_preprocessing import generate_input_files_from_template
+from . import run_configuration_preprocessing
+from .run_configuration_preprocessing import generate_run_configurations_from_template
 
 from . import ion_cloud_generation
