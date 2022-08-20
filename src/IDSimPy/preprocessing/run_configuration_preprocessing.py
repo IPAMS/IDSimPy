@@ -11,11 +11,13 @@ def generate_run_configurations_from_template(template_filename, parameter_value
 
     Example:
 
-    parameters = (
-        (result_file_1_parameter_1, result_file_1_parameter_2,),
-        (result_file_2_parameter_1, result_file_2_parameter_2),
-        (result_file_2_parameter_1, result_file_2_parameter_2)
-    )
+    .. code-block:: python
+
+        parameters = (
+            (result_file_1_parameter_1, result_file_1_parameter_2),
+            (result_file_2_parameter_1, result_file_2_parameter_2),
+            (result_file_2_parameter_1, result_file_2_parameter_2)
+        )
 
     :param template_filename: Name of the template file
     :param parameter_values: list List of parameter values
