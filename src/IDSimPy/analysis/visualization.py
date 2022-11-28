@@ -205,6 +205,7 @@ def animate_xz_density(
 
 	if output_mode == 'animation':
 		anim = animation.FuncAnimation(fig, animate, frames=n_frames, blit=False)
+		plt.close(fig)
 		return anim
 	elif output_mode == 'singleFrame':
 		animate(n_frames)
@@ -420,6 +421,7 @@ def animate_xz_density_comparison_plot(
 	# call the animator.  blit=True means only re-draw the parts that have changed.
 	if output_mode == 'video':
 		anim = animation.FuncAnimation(fig, animate, frames=n_frames, blit=False)
+		plt.close(fig)
 		return anim
 	elif output_mode == 'singleFrame':
 		animate(n_frames)
@@ -606,6 +608,8 @@ def animate_scatter_plot(
 	ani = animation.FuncAnimation(
 		fig, update_scatter_plot, frames=range(n_frames),
 		fargs=(positions, scat_xy, scat_xz, text_time))
+
+	plt.close(fig)
 	return ani
 
 def animate_variable_scatter_plot(
@@ -741,6 +745,7 @@ def animate_variable_scatter_plot(
 			fontsize=13);
 
 	ani = animation.FuncAnimation(fig, render_scatter_plot, frames=range(n_frames))
+	plt.close(fig)
 	return ani
 
 
