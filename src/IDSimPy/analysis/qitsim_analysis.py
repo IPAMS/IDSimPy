@@ -111,8 +111,8 @@ def read_and_analyze_stability_scan(project_path, t_range=(0, 1)):
 	with open(project_path + "_conf.json") as jsonFile:
 		conf_json = commentjson.load(jsonFile)
 
-	V_rf_start = conf_json["rf_ramp_start_V"]
-	V_rf_end = conf_json["rf_ramp_stop_V"]
+	V_rf_start = conf_json["V_rf_start"]
+	V_rf_end = conf_json["V_rf_end"]
 	V_rf = np.linspace(V_rf_start, V_rf_end, len(time))
 
 	n_samples = len(time)
