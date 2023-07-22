@@ -170,7 +170,8 @@ def calculate_FFT_spectrum(t, z):
 ################## High Level Simulation Project Processing Methods ######################
 
 def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
-                    load_mode="fft_record", title=None, result_path=None, plot_result=True):
+                    load_mode="fft_record", title=None, result_path=None, plot_result=True,
+                    figsize=(20, 5), titlepos=(0.1, 0.94)):
 	"""
 	Analyses a transient of a QIT simulation and calculates/plots the spectrum from it
 
@@ -208,16 +209,16 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 	freqsPl= range(int(len(frq) * freq_start), int((len(frq) * freq_stop)))
 
 	if plot_result:
-		fig, ax = plt.subplots(1, 2, figsize=[20,5],dpi=50)
-		ax[0].plot(t,z)
+		fig, ax = plt.subplots(1, 2, figsize=figsize, dpi=50)
+		ax[0].plot(t, z, 'C1')
 		ax[0].set_xlabel('Time (s)')
 		ax[0].set_ylabel('Amplitude (arb.)')
 
 		#ax[1].semilogy(frq[freqsPl],abs(Y[freqsPl]),'r') # plotting the spectrum
 		if amp_mode == "lin":
-			ax[1].plot(frq[freqsPl]/1000,abs(Y[freqsPl]),'r') # plotting the spectrum
+			ax[1].plot(frq[freqsPl]/1000,abs(Y[freqsPl]), 'C0') # plotting the spectrum
 		elif amp_mode == "log":
-			ax[1].semilogy(frq[freqsPl]/1000, abs(Y[freqsPl]), 'r')  # plotting the spectrum logarithmic
+			ax[1].semilogy(frq[freqsPl]/1000, abs(Y[freqsPl]), 'C0')  # plotting the spectrum logarithmic
 		ax[1].set_xlabel('Freq (kHz)')
 		ax[1].set_ylabel('Amplitude (arb.)')
 
@@ -240,15 +241,17 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 			if "space_charge_factor" in confJson:
 				titlestring = titlestring + ", space charge factor:"+'%6g' % (confJson["space_charge_factor"])
 
-			plt.figtext(0.1, 0.94, titlestring, fontsize=17)
+			plt.suptitle(titlestring, x=titlepos[0], y=titlepos[1],  fontsize=17, horizontalalignment='left')
 		else:
-			plt.suptitle(title)
+			plt.suptitle(title, x=titlepos[0], y=titlepos[1],  fontsize=17, horizontalalignment='left')
+			#plt.suptitle(title)
 
 		if result_path:
 			result_project_path = os.path.join(result_path, projectName)
 		else:
 			result_project_path = projectName
 
+		plt.tight_layout()
 		plt.savefig(result_project_path + "_fftAnalysis.pdf", format="pdf")
 		plt.savefig(result_project_path + "_fftAnalysis.png", format="png", dpi=180)
 
