@@ -229,7 +229,7 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 			if "partial_pressures_Pa" in confJson:
 				background_pressure_str = str(confJson["partial_pressures_Pa"])
 			else:
-				background_pressure_str = str(confJson["background_pressure_Pa"])
+				background_pressure_str = str(confJson["background_gas_pressure_Pa"])
 
 			if "collision_gas_masses_amu" in confJson:
 				collision_gas_mass_str = str(confJson["collision_gas_masses_amu"])
