@@ -19,6 +19,7 @@ The current main features are:
     * Reading of IDSimF trajectory and chemistry data
     * Filtering / statistical analysis of trajectory data
     * Visualization of IDSimF results (plotting and animation rendering)
+    * Generation of sets simulation run configuration files from configuration templates
     * Preparation of ion cloud files
     * Transformation of field data (electric fields / flow fields) from other codes (Comsol / OpenFOAM) to IDSimF input files
 

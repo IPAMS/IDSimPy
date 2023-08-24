@@ -4,12 +4,92 @@
 Preprocessing and generating input data for IDSimF 
 ==================================================
 
-IDSimPy provides also functionality to generate some types of input data for IDSimF simulations. There are currently two main types of input data for IDSimF simulations: 
+IDSimPy provides functionality to generate simulation run configurations and other input data for IDSimF simulations. There are currently three main types of input and run configuration data for IDSimF simulations: 
 
++ **Simulation run configuration files**, which define the parameters / configuration of a simulation run. 
 * **Ion cloud files**, which define a custom set of particles. They are primarily used for initialization of the simulated particle ensemble at the begin of the IDSimF simulation run. 
 * **Field data files**, which define scalar or vector fields on a regular spatial grid. They are commonly used to transfer spatially resolved input data, e.g. electric fields or gas flow data from other numerical solvers to IDSimF simulations. 
 
-Both file types can be generated with IDSimPy. 
+All three file types can be generated with IDSimPy. 
+
+Simulation run configurations
+=============================
+
+Simulation run configurations are JSON files which can also contain C-style comments. The details of the individual configuration options and the detailed format are described in the IDSimF documentation. 
+
+----------------------------------------------------------
+Generation of simulation run configurations from templates
+----------------------------------------------------------
+
+Since it is common to variate individual simulation parameters in series of simulation runs, IDSimPy allows to generate series of simulation run configurations from template files and a set of parameter values with :py:func:`.generate_run_configurations_from_template`. This process replaces indexed place holders in the template files with parameter values to generate the run configuration files. 
+
+.. note::
+    The place holder replacement is done purely on text level, currently there is no semantic checking of the templates or the results
+
+
+Templates are text files with replacement tags / place holders. The replacement tags have the form 
+
+.. code-block:: none
+
+    %%-i-%%
+
+with an index number ``i``. Therefore the place holder for the first replacement location would be 
+
+.. code-block:: none
+
+    %%-0-%%
+
+while the second replacement location would be indicated by 
+
+.. code-block:: none
+
+    %%-1-%%
+
+A simple example template with three parameters to set would be 
+
+.. code-block:: none
+
+    {
+        "sim_time_steps":40000,
+        "cv_phase_shift": %%-0-%%,
+        "simulation_mode": %%-1-%%,
+        "sv":%%-2-%%
+    }
+
+The parameter values to set are providet to :py:func:`.generate_run_configurations_from_template` as two dimensional list / tuple structure. For example, if the template from above is available in a file with the name ``configuration_template.tmpl``, the generation of three simulation run configuration files would be 
+
+.. code-block:: python
+
+    import os
+    import IDSimPy.preprocessing as ip
+
+
+    parameters = (
+        (0.5, 'square', 1000),
+        (0.1, 'sin', 2500),
+        (0.2, 'bisin', 4500)
+    )
+
+    template_file = 'configuration_template.tmpl')
+    result_basename = 'sim_run_')
+
+    ip.generate_run_configurations_from_template(template_file, parameters, result_basename)
+
+This generates three simulation run configuration files (`sim_run_00.json`, `sim_run_01.json`, `sim_run_02.json`), one per row of the provided `parameters``. An individual row defines the parameter values to be set in one individual result file. For example `sim_run_01.json` of the example would be
+
+.. code-block:: none
+
+    {
+        "sim_time_steps":40000,
+        "cv_phase_shift": 0.1,
+        "simulation_mode": "sin",
+        "sv": 2500
+    }
+
+.. note::
+    Since there is no semantic interpretation of the template files, the simple replacement mechanism of :py:func:`.generate_run_configurations_from_template` is applicable for other input file types, e.g. RS chemical configuration files, too.
+
+
 
 Particle ensemble (ion cloud) files
 ===================================

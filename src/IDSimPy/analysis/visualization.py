@@ -205,6 +205,7 @@ def animate_xz_density(
 
 	if output_mode == 'animation':
 		anim = animation.FuncAnimation(fig, animate, frames=n_frames, blit=False)
+		plt.close(fig)
 		return anim
 	elif output_mode == 'singleFrame':
 		animate(n_frames)
@@ -420,6 +421,7 @@ def animate_xz_density_comparison_plot(
 	# call the animator.  blit=True means only re-draw the parts that have changed.
 	if output_mode == 'video':
 		anim = animation.FuncAnimation(fig, animate, frames=n_frames, blit=False)
+		plt.close(fig)
 		return anim
 	elif output_mode == 'singleFrame':
 		animate(n_frames)
@@ -606,6 +608,8 @@ def animate_scatter_plot(
 	ani = animation.FuncAnimation(
 		fig, update_scatter_plot, frames=range(n_frames),
 		fargs=(positions, scat_xy, scat_xz, text_time))
+
+	plt.close(fig)
 	return ani
 
 def animate_variable_scatter_plot(
@@ -669,7 +673,7 @@ def animate_variable_scatter_plot(
 			') is longer than trajectory (' + str(n_timesteps) + ')')
 
 	def render_scatter_plot(i):
-		plt.clf()  # clear figure for a fresh plot
+		fig.clear()  # clear figure for a fresh plot
 
 		ts_pos = pos[i]
 
@@ -680,67 +684,68 @@ def animate_variable_scatter_plot(
 
 		# ts_ap = ap[i]
 
-		plt.subplot(1, 2, 1)
+		ax_transient = fig.add_subplot(1, 2, 1)
 		if color_parameter is None:
-			plt.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha)
+			ax_transient.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha)
 		else:
 			# ts_cp = c_param[i]
 			if crange is None:
-				plt.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha, c=c_param[i], cmap=cmap)
+				ax_transient.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha, c=c_param[i], cmap=cmap)
 			else:
-				plt.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha,
+				ax_transient.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha,
 				            c=c_param[i], vmin=crange[0], vmax=crange[1], cmap=cmap)
 
-		plt.xlabel("x position")
-		plt.ylabel("y position")
+		ax_transient.set_xlabel("x position")
+		ax_transient.set_ylabel("y position")
 
 		if ylim:
-			plt.ylim(ylim)
+			ax_transient.set_ylim(ylim)
 		elif not empty_frame:
-			plt.ylim((np.min(ts_pos[:, 1]), np.max(ts_pos[:, 1])))
+			ax_transient.set_ylim((np.min(ts_pos[:, 1]), np.max(ts_pos[:, 1])))
 		else:
-			plt.ylim(0, 1)
+			ax_transient.set_ylim(0, 1)
 
 		if xlim:
-			plt.xlim(xlim)
+			ax_transient.set_xlim(xlim)
 		elif not empty_frame:
-			plt.xlim((np.min(ts_pos[:, 0]), np.max(ts_pos[:, 0])))
+			ax_transient.set_xlim((np.min(ts_pos[:, 0]), np.max(ts_pos[:, 0])))
 		else:
-			plt.xlim(0, 1)
+			ax_transient.set_xlim(0, 1)
 
-		plt.subplot(1, 2, 2)
+		ax_spectrum = fig.add_subplot(1, 2, 2)
 		if color_parameter is None:
-			plt.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha)
+			ax_spectrum.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha)
 		else:
 			if crange is None:
-				plt.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha, c=c_param[i], cmap=cmap)
+				ax_spectrum.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha, c=c_param[i], cmap=cmap)
 			else:
-				plt.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha,
+				ax_spectrum.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha,
 				            c=c_param[i], vmin=crange[0], vmax=crange[1], cmap=cmap)
-		plt.xlabel("x position")
-		plt.ylabel("z position")
+		ax_spectrum.set_xlabel("x position")
+		ax_spectrum.set_ylabel("z position")
 
 		if zlim:
-			plt.ylim(zlim)
+			ax_spectrum.set_ylim(zlim)
 		elif not empty_frame:
-			plt.ylim((np.min(ts_pos[:, 2]), np.max(ts_pos[:, 2])))
+			ax_spectrum.set_ylim((np.min(ts_pos[:, 2]), np.max(ts_pos[:, 2])))
 		else:
-			plt.ylim(0, 1)
+			ax_spectrum.set_ylim(0, 1)
 
 
 		if xlim:
-			plt.xlim(xlim)
+			ax_spectrum.set_xlim(xlim)
 		elif not empty_frame:
-			plt.xlim((np.min(ts_pos[:, 0]), np.max(ts_pos[:, 0])))
+			ax_spectrum.set_xlim((np.min(ts_pos[:, 0]), np.max(ts_pos[:, 0])))
 		else:
-			plt.xlim(0, 1)
+			ax_spectrum.set_xlim(0, 1)
 
-		text_time = plt.annotate(
+		text_time = ax_spectrum.annotate(
 			u"t= {: .2e} s".format(trajectory.times[i]), xy=(0.02, 0.96), xycoords="figure fraction",
 			horizontalalignment="left", verticalalignment="top",
-			fontsize=13);
+			fontsize=13)
 
 	ani = animation.FuncAnimation(fig, render_scatter_plot, frames=range(n_frames))
+	plt.close(fig)
 	return ani
 
 
