@@ -32,7 +32,8 @@ author = 'Institute for Pure and Applied Mass Spectrometry, University of Wupper
 extensions = [
     "sphinx_rtd_theme",
     'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode'
+    'sphinx.ext.viewcode',
+    'sphinx.ext.imgconverter'
 ]
 
 master_doc = 'index'
