@@ -14,14 +14,14 @@ class TestQitSimAnalysis(unittest.TestCase):
 		cls.result_path = os.path.join('test', 'test_results')
 
 	def test_md_read_txt(self):
-		md_dat = md_analysis.read_md_collisions_trajectory_file(self.md_trajectory_file_txt)
+		md_dat = md_analysis.read_md_collisions_trajectory_file(self.md_trajectory_file_txt, 'IDSIMF')
 		self.assertEqual(len(md_dat), 10)
 		np_test.assert_array_almost_equal(
 			md_dat[1][1, :],
 			[-1.11633e-09, -1.60196e-09, -1.56016e-09, 2.49931e-09, 1.17182e-15])
 
 	def test_md_read_gzip(self):
-		md_dat = md_analysis.read_md_collisions_trajectory_file(self.md_trajectory_file_gzip)
+		md_dat = md_analysis.read_md_collisions_trajectory_file(self.md_trajectory_file_gzip, 'IDSIMF')
 		self.assertEqual(len(md_dat), 82)
 		np_test.assert_array_almost_equal(
 			md_dat[1][1, :],
