@@ -262,8 +262,8 @@ def analyze_stability_scan(project_path, window_width=0, t_range=[0, 1], result_
 	with open(project_path + "_conf.json") as jsonFile:
 		confJson = commentjson.load(jsonFile)
 
-	V_rf_start = confJson["rf_ramp_start_V"]
-	V_rf_end = confJson["rf_ramp_stop_V"]
+	V_rf_start = confJson["V_rf_start"]
+	V_rf_end = confJson["V_rf_end"]
 
 	projectName = project_path.split("/")[-1]
 

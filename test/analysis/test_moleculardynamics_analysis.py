@@ -1,7 +1,7 @@
 import unittest
 import os
 import numpy.testing as np_test
-import IDSimPy.analysis.moleculardynamics_analysis as md_analysis
+import IDSimPy as md_analysis
 
 
 class TestQitSimAnalysis(unittest.TestCase):

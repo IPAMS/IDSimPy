@@ -2,8 +2,9 @@ import unittest
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import IDSimPy.analysis.trajectory as tra
-import IDSimPy.analysis.visualization as vis
+import IDSimPy as tra
+import IDSimPy as vis
+
 
 class TestVisualization_images(unittest.TestCase):
 

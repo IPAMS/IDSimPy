@@ -11,10 +11,10 @@ Modules:
   * qitsim_analysis: Analysis of QIT and FT-QIT simulations with IDsimF
   * spacecharge_analysis: Detailed analysis of space charge dynamics in simulations with IDSimF
 """
+
 from .trajectory import *
 from .visualization import *
-
-from . import visualization
-from . import chemistry
-from . import qitsim_analysis
-from . import spacecharge_analysis
+from .chemistry import *
+from .qitsim_analysis import *
+from .spacecharge_analysis import *
+from .moleculardynamics_analysis import *

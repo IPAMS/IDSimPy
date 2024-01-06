@@ -7,6 +7,9 @@ Sub packages:
   * analysis: Analysis of ion dynamics simulations with IDSimF
   * preprocessing: Preprocessing of simulation input for ion dynamics simulations with IDSimF
 """
+import IDSimPy.analysis
+import IDSimPy.preprocessing
 
-from . import analysis
-from . import preprocessing
+from IDSimPy.analysis import *
+from IDSimPy.preprocessing import *
+
