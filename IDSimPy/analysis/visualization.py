@@ -190,7 +190,7 @@ def animate_xz_density(
 	xcenters = xed[:-1] + 0.5 * (xed[1:] - xed[:-1])
 	zcenters = zed[:-1] + 0.5 * (zed[1:] - zed[:-1])
 	im.set_data(xcenters, zcenters, hist_vals)
-	ax.images.append(im)
+	ax.add_artist(im)
 	im.set_extent(im.get_extent())  # workaround for minor issue in matplotlib ocurring in jupyter lab
 	ax.set_xlim(xed[0], xed[-1])
 	ax.set_ylim(zed[0], zed[-1])
