@@ -36,6 +36,9 @@ class TestVisualizationAnimations(unittest.TestCase):
 		cls.hdf5_reactive_ims_projectName = os.path.join(
 			hdf5_v3_path, 'reactive_IMS', 'IMS_HS_reactive_test_001')
 
+		cls.hdf5_capacitor_all_splat_projectName = os.path.join(
+			hdf5_v3_path, 'capacitor_all_splat', 'capacitor_all_splat')
+
 		cls.result_path = os.path.join('test', 'test_results')
 
 	def test_scatter_animation_variable_hdf5_trajectory(self):
@@ -70,10 +73,18 @@ class TestVisualizationAnimations(unittest.TestCase):
 			self.test_reactive_projectName, result_name, interval=5, alpha=0.5,
 			color_parameter="velocity x", file_type='hdf5')
 
+	def test_scatter_animation_only_active_ions(self):
+		result_name = os.path.join(self.result_path, 'scatter_animation_test_3')
+
+		# should raise because the number of frames is too high:
+		vis.render_scatter_animation(
+			self.hdf5_capacitor_all_splat_projectName, result_name, xlim=(0.0, 0.1), only_active_particles=True,
+				interval=1, alpha=0.5, file_type='hdf5')
+
 	def test_basic_scatter_animation_low_level(self):
 		tra_b = tra.read_hdf5_trajectory_file(self.scanning_qit_hdf5_trajectory_b)
 		anim = vis.animate_scatter_plot(tra_b)
-		result_name = os.path.join(self.result_path, 'scatter_animation_test_3.mp4')
+		result_name = os.path.join(self.result_path, 'scatter_animation_test_4.mp4')
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 
 	def test_complex_scatter_animation_low_level(self):
@@ -83,7 +94,7 @@ class TestVisualizationAnimations(unittest.TestCase):
 			tra_b, xlim=(-0.001, 0.001), ylim=(-0.0015, 0.0015), zlim=(-0.005, 0.005),
 			color_parameter="chemical id", alpha=0.4)
 
-		result_name = os.path.join(self.result_path, 'scatter_animation_test_4.mp4')
+		result_name = os.path.join(self.result_path, 'scatter_animation_test_5.mp4')
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 
 		# test with manual coloring:
@@ -92,7 +103,7 @@ class TestVisualizationAnimations(unittest.TestCase):
 			tra_b, xlim=(-0.001, 0.001), ylim=(-0.0015, 0.0015), zlim=(-0.005, 0.005),
 			color_parameter=c_id, crange=(0, 2), alpha=0.4)
 
-		result_name = os.path.join(self.result_path, 'scatter_animation_test_5.mp4')
+		result_name = os.path.join(self.result_path, 'scatter_animation_test_6.mp4')
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 
 		# test with manual coloring and an array:
@@ -101,7 +112,7 @@ class TestVisualizationAnimations(unittest.TestCase):
 			tra_b, xlim=(-0.001, 0.001), ylim=(-0.0015, 0.0015), zlim=(-0.005, 0.005),
 			color_parameter=c_id, alpha=0.4)
 
-		result_name = os.path.join(self.result_path, 'scatter_animation_test_6.mp4')
+		result_name = os.path.join(self.result_path, 'scatter_animation_test_7.mp4')
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 
 	def test_density_animation_low_level(self):

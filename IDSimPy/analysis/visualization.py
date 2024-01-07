@@ -752,7 +752,7 @@ def animate_variable_scatter_plot(
 def render_scatter_animation(
 		project_name, result_name, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
 		color_parameter=None, crange=None, cmap=plt.cm.get_cmap('viridis'), alpha=0.1, fps=20,
-		figsize=(13, 5), file_type='hdf5'):
+		figsize=(13, 5), file_type='hdf5', only_active_particles=False):
 	"""
 	Reads an ion trajectory file, generates a scatter animation of the particles in an ion trajectory and
 	writes a video file with the animation
@@ -789,6 +789,8 @@ def render_scatter_animation(
 		'compressed' for compressed json
 		'hdf5' for compressed hdf5
 	:type file_type: str
+	:param only_active_particles: Render only currently active particles
+	:type only_active_particles: bool
 	"""
 	if file_type == 'hdf5':
 		file_ext = "_trajectories.hd5"
@@ -804,6 +806,9 @@ def render_scatter_animation(
 		tr = tra.read_json_trajectory_file(project_name + file_ext)
 	else:
 		raise ValueError('illegal file type flag (not legacy_hdf5, hdf5, json or compressed)')
+
+	if only_active_particles:
+		tr = tra.filter_for_active_particles(tr)
 
 	if tr.is_static_trajectory:
 		plot_fct = animate_scatter_plot

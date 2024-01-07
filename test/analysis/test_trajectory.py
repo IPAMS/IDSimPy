@@ -30,6 +30,9 @@ class TestTrajectory(unittest.TestCase):
 		cls.hdf5_v3_static_fname = os.path.join(hdf_v3_path, 'qitSim_2019_07_variableTrajectoryQIT',
 		                                         'qitSim_2019_07_22_002_trajectories.hd5')
 
+		cls.hdf5_capacitor_all_splat = os.path.join(hdf_v3_path, 'capacitor_all_splat',
+		                                         'capacitor_all_splat_trajectories.hd5')
+
 		cls.test_json_fname = os.path.join(data_base_path, 'test_trajectories.json')
 		cls.result_path = os.path.join('test', 'test_results')
 
@@ -289,6 +292,13 @@ class TestTrajectory(unittest.TestCase):
 		particle_selected_variable = tra_selected_variable.get_particle(2, 6)
 		np.testing.assert_almost_equal(particle_selected_variable[0], (12.0, 0.6, 0.0))
 		np.testing.assert_almost_equal(particle_selected_variable[1], (6.0, 6.0, 0.0, 0.0))
+
+	def test_active_particle_trajectory_filtering(self):
+		tra = ia.read_hdf5_trajectory_file(self.hdf5_capacitor_all_splat)
+		trajectory_filtered = ia.filter_for_active_particles(tra)
+
+		self.assertEqual(len(trajectory_filtered.get_positions(61)), 21)
+		self.assertEqual(len(trajectory_filtered.get_positions(65)), 7)
 
 	def test_trajectory_selection_with_variable_synthetic_trajectory(self):
 		n_particles = 20

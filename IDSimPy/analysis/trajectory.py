@@ -7,6 +7,8 @@ import h5py
 import numpy as np
 from enum import Enum
 
+import IDSimPy
+
 
 class OptionalAttribute(Enum):
 	"""
@@ -862,6 +864,28 @@ def select(trajectory, selector_data, value):
 		start_splat_data=trajectory.start_splat_data
 	)
 	return result
+
+
+def filter_for_active_particles(trajectory):
+	"""
+	Select only active (non splatted) particles from a trajectory and constructs a new trajectory from it
+
+	:param trajectory: Input trajectory
+	"""
+
+	splat_times = trajectory.start_splat_data.splat_times
+	attrib_names = trajectory.particle_attributes.attribute_names
+	global_index = trajectory.particle_attributes.get('global index')
+	times = trajectory.times
+
+	# create boolean array for selection
+	is_active = [
+			np.array([times[frame_number] < splat_times[gi][0] for gi in global_index[frame_number]])
+		for frame_number in range(len(times))]
+
+	filtered_trajectory = select(trajectory, is_active, True)
+
+	return filtered_trajectory
 
 
 def center_of_charge(trajectory):
