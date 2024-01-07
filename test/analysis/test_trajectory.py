@@ -33,6 +33,9 @@ class TestTrajectory(unittest.TestCase):
 		cls.hdf5_capacitor_all_splat = os.path.join(hdf_v3_path, 'capacitor_all_splat',
 		                                         'capacitor_all_splat_trajectories.hd5')
 
+		cls.hdf5_capacitor_all_splat_static = os.path.join(hdf_v3_path, 'capacitor_all_splat',
+		                                         'capacitor_all_splat_static_trajectories.hd5')
+
 		cls.test_json_fname = os.path.join(data_base_path, 'test_trajectories.json')
 		cls.result_path = os.path.join('test', 'test_results')
 
@@ -299,6 +302,12 @@ class TestTrajectory(unittest.TestCase):
 
 		self.assertEqual(len(trajectory_filtered.get_positions(61)), 21)
 		self.assertEqual(len(trajectory_filtered.get_positions(65)), 7)
+
+		tra_static = ia.read_hdf5_trajectory_file(self.hdf5_capacitor_all_splat_static)
+		trajectory_filtered_static = ia.filter_for_active_particles(tra_static)
+
+		#self.assertEqual(len(trajectory_filtered_static.get_positions(61)), 21)
+		#self.assertEqual(len(trajectory_filtered_static.get_positions(65)), 7)
 
 	def test_trajectory_selection_with_variable_synthetic_trajectory(self):
 		n_particles = 20
