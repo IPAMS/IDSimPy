@@ -12,7 +12,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../src'))
+sys.path.insert(0, os.path.abspath('..'))
 
 import sphinx_rtd_theme
 
@@ -20,7 +20,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'IDSimPy'
-copyright = '2021, Institute for Pure and Applied Mass Spectrometry, University of Wuppertal, Germany'
+copyright = '2024, Institute for Pure and Applied Mass Spectrometry, University of Wuppertal, Germany'
 author = 'Institute for Pure and Applied Mass Spectrometry, University of Wuppertal, Germany'
 
 
