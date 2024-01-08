@@ -86,6 +86,7 @@ Scatter plots draw individual symbols for the simulated particles in a particle 
 
 There is a high level plot function, which allows to generate generic scatter plot animations quickly and comparably conveniently. The high level functions are wrapper functions around the actual scatter plot rendering functions. The wrapper functions open the trajectory, generate the scatter animation and write it to a video file. The actual scatter plot rendering functions can also be used directly, e.g. if the resulting scatter animation should be processed further or reading a trajectory multiple times is inefficient. 
 
+------------------------------------------
 High level scatter plot animation function
 ------------------------------------------
 
@@ -134,7 +135,7 @@ Parameters like spatial limits of the plotted region and the transparency of the
 
     result_name = os.path.join('scatter_animation_custom_limits')
 
-    vis.render_scatter_animation(project_name, result_name, xlim=(-5e-3, 5e-3), ylim=(-8e-4, 8e-4), alpha=0.9)
+    vis.render_scatter_animation(project_name, result_name, xlim=(-0.005, 0.005), ylim=(-0.005, 0.005), zlim=(-0.006, 0.006), alpha=0.9)
 
 
 .. raw:: html
@@ -147,7 +148,7 @@ Parameters like spatial limits of the plotted region and the transparency of the
 
 
 Using colorization in scatter plots
-...................................
+-----------------------------------
 
 
 The color of the rendered particle symbols can be used to display additional information, which is typically contained in particle attributes. If a name of a particle attribute is specified in the :py:data:`color_parameter` argument, this particle attribute is used for colorization, as shown in the following example: 
@@ -187,7 +188,7 @@ The chemical identity of the particles are discernible and it becomes visible, t
 
 It is possible to use a fully custom colorization for static trajectories: The :py:data:`color_parameter` argument in :py:func:`.render_scatter_animation` can also be a vector of custom numeric values, one per simulated particle, which is then used for colorization. The first example in the next section shows this with the low level scatter plot function. 
 
-
+--------------------------------
 Low level scatter plot functions
 --------------------------------
 

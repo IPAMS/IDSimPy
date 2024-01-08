@@ -6,7 +6,7 @@ Preprocessing and generating input data for IDSimF
 
 IDSimPy provides functionality to generate simulation run configurations and other input data for IDSimF simulations. There are currently three main types of input and run configuration data for IDSimF simulations:
 
-+ **Simulation run configuration files**, which define the parameters / configuration of a simulation run.
+* **Simulation run configuration files**, which define the parameters / configuration of a simulation run.
 * **Ion cloud files**, which define a custom set of particles. They are primarily used for initialization of the simulated particle ensemble at the begin of the IDSimF simulation run.
 * **Field data files**, which define scalar or vector fields on a regular spatial grid. They are commonly used to transfer spatially resolved input data, e.g. electric fields or gas flow data from other numerical solvers to IDSimF simulations.
 
