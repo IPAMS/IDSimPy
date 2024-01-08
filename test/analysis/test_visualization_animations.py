@@ -42,20 +42,32 @@ class TestVisualizationAnimations(unittest.TestCase):
 		cls.result_path = os.path.join('test', 'test_results')
 
 	def test_scatter_animation_variable_hdf5_trajectory(self):
-		result_name = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_1')
-		vis.render_scatter_animation(self.new_hdf5_variable_projectName, result_name,
+		result_name_xy_xz = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_1_xy_xz')
+		vis.render_scatter_animation(self.new_hdf5_variable_projectName, result_name_xy_xz,
+		                             xlim=(-1e-3,1e-3), ylim=(-1e-3,1e-3), zlim=(-1e-2,1e-2),
 		                             interval=1, alpha=0.5, crange=(0, 100), cmap='coolwarm',
-		                             color_parameter='global index')
+		                             color_parameter='global index', projection='xy_xz')
+
+		result_name_xy_yz = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_1_xy_yz')
+		vis.render_scatter_animation(self.new_hdf5_variable_projectName, result_name_xy_yz,
+		                             xlim=(-1e-3,1e-3), ylim=(-1e-3,1e-3), zlim=(-1e-2,1e-2),
+		                             interval=1, alpha=0.5, crange=(0, 100), cmap='coolwarm',
+		                             color_parameter='global index', projection='xy_yz')
 
 	def test_scatter_animation_static_hdf5_trajectory(self):
-		result_name = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_2')
 
 		cl_param = np.zeros(1000)
 		cl_param[500:] = 1
 
+		result_name_xy_xz = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_2_xy_xz')
 		vis.render_scatter_animation(
-			self.new_hdf5_static_projectName, result_name,
-			interval=1, alpha=0.5, color_parameter=cl_param)
+			self.new_hdf5_static_projectName, result_name_xy_xz,
+			interval=1, projection='xy_xz', alpha=0.5, color_parameter=cl_param)
+
+		result_name_xy_yz = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_2_xy_yz')
+		vis.render_scatter_animation(
+			self.new_hdf5_static_projectName, result_name_xy_yz,
+			interval=1, projection='xy_yz', alpha=0.5, color_parameter=cl_param)
 
 	def test_scatter_animation_json_trajectory(self):
 		result_name = os.path.join(self.result_path, 'scatter_animation_test_1')
