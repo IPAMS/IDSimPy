@@ -774,7 +774,7 @@ def animate_variable_scatter_plot(
 def render_scatter_animation(
 		project_name, result_name, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
 		color_parameter=None, crange=None, cmap=plt.cm.get_cmap('viridis'),
-		projection='xy_yz', alpha=0.1, fps=20,
+		projection='xy_xz', alpha=0.1, fps=20,
 		figsize=(13, 5), file_type='hdf5', only_active_particles=False):
 	"""
 	Reads an ion trajectory file, generates a scatter animation of the particles in an ion trajectory and
