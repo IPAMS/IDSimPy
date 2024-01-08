@@ -306,8 +306,13 @@ class TestTrajectory(unittest.TestCase):
 		tra_static = ia.read_hdf5_trajectory_file(self.hdf5_capacitor_all_splat_static)
 		trajectory_filtered_static = ia.filter_for_active_particles(tra_static)
 
-		#self.assertEqual(len(trajectory_filtered_static.get_positions(61)), 21)
-		#self.assertEqual(len(trajectory_filtered_static.get_positions(65)), 7)
+		self.assertEqual(len(trajectory_filtered_static.get_positions(69)), 23)
+		self.assertEqual(len(trajectory_filtered_static.get_positions(75)), 6)
+
+		is_active = ia.is_active_particle(tra_static, true_val=1, false_val=0)
+
+		self.assertEqual(is_active[58][1], 1)
+		self.assertEqual(is_active[59][1], 0)
 
 	def test_trajectory_selection_with_variable_synthetic_trajectory(self):
 		n_particles = 20
