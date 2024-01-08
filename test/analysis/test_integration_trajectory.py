@@ -1,7 +1,7 @@
 import unittest
 import os
 import numpy as np
-import IDSimPy.analysis as ia
+import IDSimPy as ia
 
 
 class IntegrationTestTrajectory(unittest.TestCase):

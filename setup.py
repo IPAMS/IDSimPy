@@ -13,8 +13,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/IPAMS/IDSimPy",
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
+    packages=['IDSimPy'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",

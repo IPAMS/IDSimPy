@@ -11,6 +11,8 @@ def read_md_collisions_trajectory_file(trajectory_filename, framework):
 
 	:param trajectory_filename: File name of the file to read
 	:type trajectory_filename: str
+	:param framework: Framework which generated the collisions file ("IDSIMF" for an IDSimF result)
+	:type framework: str
 	:return: List with individual MD collisions
 	:rtype: list of numpy arrays
 	"""

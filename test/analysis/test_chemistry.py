@@ -1,7 +1,8 @@
 import unittest
 import os
 import matplotlib.pyplot as plt
-import IDSimPy.analysis.chemistry as chem
+import IDSimPy as chem
+
 
 class TestChemistry(unittest.TestCase):
 
@@ -16,7 +17,7 @@ class TestChemistry(unittest.TestCase):
 		cls.result_path = os.path.join('test', 'test_results')
 
 	def test_basic_concentration_plotting(self):
-		chem.plot_concentration_file(self.test_concentrations_a)
+		chem.analysis.chemistry.plot_concentration_file(self.test_concentrations_a)
 		plt.savefig(os.path.join(self.result_path,'qitSim_2019_04_10_001_concentrations.pdf'))
 		plt.figure()
 		chem.plot_concentration_file(self.test_concentrations_b)

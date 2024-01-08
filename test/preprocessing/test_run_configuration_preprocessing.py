@@ -1,6 +1,6 @@
 import unittest
 import os
-import IDSimPy.preprocessing as ip
+import IDSimPy as ip
 import json
 
 class TestInputFilePreprocessing(unittest.TestCase):

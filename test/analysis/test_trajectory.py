@@ -1,7 +1,7 @@
 import unittest
 import os
 import numpy as np
-import IDSimPy.analysis as ia
+import IDSimPy as ia
 
 
 class TestTrajectory(unittest.TestCase):
@@ -29,6 +29,12 @@ class TestTrajectory(unittest.TestCase):
 
 		cls.hdf5_v3_static_fname = os.path.join(hdf_v3_path, 'qitSim_2019_07_variableTrajectoryQIT',
 		                                         'qitSim_2019_07_22_002_trajectories.hd5')
+
+		cls.hdf5_capacitor_all_splat = os.path.join(hdf_v3_path, 'capacitor_all_splat',
+		                                         'capacitor_all_splat_trajectories.hd5')
+
+		cls.hdf5_capacitor_all_splat_static = os.path.join(hdf_v3_path, 'capacitor_all_splat',
+		                                         'capacitor_all_splat_static_trajectories.hd5')
 
 		cls.test_json_fname = os.path.join(data_base_path, 'test_trajectories.json')
 		cls.result_path = os.path.join('test', 'test_results')
@@ -289,6 +295,24 @@ class TestTrajectory(unittest.TestCase):
 		particle_selected_variable = tra_selected_variable.get_particle(2, 6)
 		np.testing.assert_almost_equal(particle_selected_variable[0], (12.0, 0.6, 0.0))
 		np.testing.assert_almost_equal(particle_selected_variable[1], (6.0, 6.0, 0.0, 0.0))
+
+	def test_active_particle_trajectory_filtering(self):
+		tra = ia.read_hdf5_trajectory_file(self.hdf5_capacitor_all_splat)
+		trajectory_filtered = ia.filter_for_active_particles(tra)
+
+		self.assertEqual(len(trajectory_filtered.get_positions(61)), 21)
+		self.assertEqual(len(trajectory_filtered.get_positions(65)), 7)
+
+		tra_static = ia.read_hdf5_trajectory_file(self.hdf5_capacitor_all_splat_static)
+		trajectory_filtered_static = ia.filter_for_active_particles(tra_static)
+
+		self.assertEqual(len(trajectory_filtered_static.get_positions(69)), 23)
+		self.assertEqual(len(trajectory_filtered_static.get_positions(75)), 6)
+
+		is_active = ia.is_active_particle(tra_static, true_val=1, false_val=0)
+
+		self.assertEqual(is_active[58][1], 1)
+		self.assertEqual(is_active[59][1], 0)
 
 	def test_trajectory_selection_with_variable_synthetic_trajectory(self):
 		n_particles = 20

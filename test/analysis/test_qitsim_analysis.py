@@ -1,7 +1,7 @@
 import unittest
 import os
 import numpy as np
-import IDSimPy.analysis.qitsim_analysis as qa
+import IDSimPy as qa
 
 
 class TestQitSimAnalysis(unittest.TestCase):

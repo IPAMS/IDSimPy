@@ -1,7 +1,7 @@
 import unittest
 import os
 import numpy as np
-import IDSimPy.preprocessing.field_generation as fg
+import IDSimPy as fg
 
 
 class TestFieldGeneration(unittest.TestCase):

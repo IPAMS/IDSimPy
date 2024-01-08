@@ -1,8 +1,9 @@
 import unittest
 import os
 import numpy as np
-import IDSimPy.analysis.trajectory as tra
-import IDSimPy.analysis.visualization as vis
+import IDSimPy as tra
+import IDSimPy as vis
+
 
 class TestVisualizationAnimations(unittest.TestCase):
 
@@ -35,23 +36,38 @@ class TestVisualizationAnimations(unittest.TestCase):
 		cls.hdf5_reactive_ims_projectName = os.path.join(
 			hdf5_v3_path, 'reactive_IMS', 'IMS_HS_reactive_test_001')
 
+		cls.hdf5_capacitor_all_splat_projectName = os.path.join(
+			hdf5_v3_path, 'capacitor_all_splat', 'capacitor_all_splat')
+
 		cls.result_path = os.path.join('test', 'test_results')
 
 	def test_scatter_animation_variable_hdf5_trajectory(self):
-		result_name = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_1')
-		vis.render_scatter_animation(self.new_hdf5_variable_projectName, result_name,
+		result_name_xy_xz = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_1_xy_xz')
+		vis.render_scatter_animation(self.new_hdf5_variable_projectName, result_name_xy_xz,
+		                             xlim=(-1e-3,1e-3), ylim=(-1e-3,1e-3), zlim=(-1e-2,1e-2),
 		                             interval=1, alpha=0.5, crange=(0, 100), cmap='coolwarm',
-		                             color_parameter='global index')
+		                             color_parameter='global index', projection='xy_xz')
+
+		result_name_xy_yz = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_1_xy_yz')
+		vis.render_scatter_animation(self.new_hdf5_variable_projectName, result_name_xy_yz,
+		                             xlim=(-1e-3,1e-3), ylim=(-1e-3,1e-3), zlim=(-1e-2,1e-2),
+		                             interval=1, alpha=0.5, crange=(0, 100), cmap='coolwarm',
+		                             color_parameter='global index', projection='xy_yz')
 
 	def test_scatter_animation_static_hdf5_trajectory(self):
-		result_name = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_2')
 
 		cl_param = np.zeros(1000)
 		cl_param[500:] = 1
 
+		result_name_xy_xz = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_2_xy_xz')
 		vis.render_scatter_animation(
-			self.new_hdf5_static_projectName, result_name,
-			interval=1, alpha=0.5, color_parameter=cl_param)
+			self.new_hdf5_static_projectName, result_name_xy_xz,
+			interval=1, projection='xy_xz', alpha=0.5, color_parameter=cl_param)
+
+		result_name_xy_yz = os.path.join(self.result_path, 'hdf5_trajectory_animation_test_2_xy_yz')
+		vis.render_scatter_animation(
+			self.new_hdf5_static_projectName, result_name_xy_yz,
+			interval=1, projection='xy_yz', alpha=0.5, color_parameter=cl_param)
 
 	def test_scatter_animation_json_trajectory(self):
 		result_name = os.path.join(self.result_path, 'scatter_animation_test_1')
@@ -69,10 +85,18 @@ class TestVisualizationAnimations(unittest.TestCase):
 			self.test_reactive_projectName, result_name, interval=5, alpha=0.5,
 			color_parameter="velocity x", file_type='hdf5')
 
+	def test_scatter_animation_only_active_ions(self):
+		result_name = os.path.join(self.result_path, 'scatter_animation_test_3')
+
+		# should raise because the number of frames is too high:
+		vis.render_scatter_animation(
+			self.hdf5_capacitor_all_splat_projectName, result_name, xlim=(0.0, 0.1), only_active_particles=True,
+				interval=1, alpha=0.5, file_type='hdf5')
+
 	def test_basic_scatter_animation_low_level(self):
 		tra_b = tra.read_hdf5_trajectory_file(self.scanning_qit_hdf5_trajectory_b)
 		anim = vis.animate_scatter_plot(tra_b)
-		result_name = os.path.join(self.result_path, 'scatter_animation_test_3.mp4')
+		result_name = os.path.join(self.result_path, 'scatter_animation_test_4.mp4')
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 
 	def test_complex_scatter_animation_low_level(self):
@@ -82,7 +106,7 @@ class TestVisualizationAnimations(unittest.TestCase):
 			tra_b, xlim=(-0.001, 0.001), ylim=(-0.0015, 0.0015), zlim=(-0.005, 0.005),
 			color_parameter="chemical id", alpha=0.4)
 
-		result_name = os.path.join(self.result_path, 'scatter_animation_test_4.mp4')
+		result_name = os.path.join(self.result_path, 'scatter_animation_test_5.mp4')
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 
 		# test with manual coloring:
@@ -91,7 +115,7 @@ class TestVisualizationAnimations(unittest.TestCase):
 			tra_b, xlim=(-0.001, 0.001), ylim=(-0.0015, 0.0015), zlim=(-0.005, 0.005),
 			color_parameter=c_id, crange=(0, 2), alpha=0.4)
 
-		result_name = os.path.join(self.result_path, 'scatter_animation_test_5.mp4')
+		result_name = os.path.join(self.result_path, 'scatter_animation_test_6.mp4')
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 
 		# test with manual coloring and an array:
@@ -100,7 +124,7 @@ class TestVisualizationAnimations(unittest.TestCase):
 			tra_b, xlim=(-0.001, 0.001), ylim=(-0.0015, 0.0015), zlim=(-0.005, 0.005),
 			color_parameter=c_id, alpha=0.4)
 
-		result_name = os.path.join(self.result_path, 'scatter_animation_test_6.mp4')
+		result_name = os.path.join(self.result_path, 'scatter_animation_test_7.mp4')
 		anim.save(result_name, fps=20, extra_args=['-vcodec', 'libx264'])
 
 	def test_density_animation_low_level(self):

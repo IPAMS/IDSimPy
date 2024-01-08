@@ -190,7 +190,7 @@ def animate_xz_density(
 	xcenters = xed[:-1] + 0.5 * (xed[1:] - xed[:-1])
 	zcenters = zed[:-1] + 0.5 * (zed[1:] - zed[:-1])
 	im.set_data(xcenters, zcenters, hist_vals)
-	ax.images.append(im)
+	ax.add_artist(im)
 	im.set_extent(im.get_extent())  # workaround for minor issue in matplotlib ocurring in jupyter lab
 	ax.set_xlim(xed[0], xed[-1])
 	ax.set_ylim(zed[0], zed[-1])
@@ -497,7 +497,7 @@ def animate_scatter_plot(
 		trajectory, xlim=None, ylim=None, zlim=None,
 		n_frames=None, interval=1,
 		color_parameter=None, crange=None, cmap=plt.cm.get_cmap('viridis'),
-		alpha=0.1, figsize=(13, 5)):
+		projection='xy_xz', alpha=0.1, figsize=(13, 5)):
 	"""
 	Generates a scatter animation of the particles in a static ion trajectory.
 
@@ -520,6 +520,10 @@ def animate_scatter_plot(
 	:type crange: two element tuple of numeric
 	:param cmap: a matplotlib colormap for colorization of the scatter plot
 	:type cmap: matplotlib.colors.Colormap
+	:param projection: Projection for the two plot panels,
+		'xy_xz' means xy on the left, xz on the right panel,
+		'xy_yz' means xy on the left, yz on the right panel
+	:type projection: str
 	:param alpha: an alpha value for the plots
 	:type alpha: float
 	:return: an animation object with the animation
@@ -576,45 +580,57 @@ def animate_scatter_plot(
 
 		return scatterplot
 
+
 	plt.subplot(1, 2, 1)
-	scat_xy = create_plot(0, 1, xlim, ylim)
+	scatterplot_left = create_plot(0, 1, xlim, ylim)
 	plt.xlabel("x position")
 	plt.ylabel("y position")
 
 	plt.subplot(1, 2, 2)
-	scat_xz = create_plot(0, 2, xlim, zlim)
-	plt.xlabel("x position")
-	plt.ylabel("z position")
+	if projection == 'xy_xz':
+		scatterplot_right = create_plot(0, 2, xlim, zlim)
+		plt.xlabel("x position")
+		plt.ylabel("z position")
+		index_right_x = 0
+		index_right_y = 2
+	elif projection == 'xy_yz':
+		scatterplot_right = create_plot(1, 2, ylim, zlim)
+		plt.xlabel("y position")
+		plt.ylabel("z position")
+		index_right_x = 1
+		index_right_y = 2
+
 
 	text_time = plt.annotate(
 		"t=xxx", xy=(0.02, 0.96), xycoords="figure fraction",
 		horizontalalignment="left", verticalalignment="top",
 		fontsize=13);
 
-	def update_scatter_plot(i, pos, scat1, scat2, text_time):
+	def update_scatter_plot(i, pos, scatter_plot_left, scatter_plot_right, _index_right_x, _index_right_y, text_time):
 		ts = i * interval
 		time = trajectory.times[ts]
-		scat1.set_offsets(np.transpose(np.vstack([pos[:, 0, ts], pos[:, 1, ts]])))
-		scat2.set_offsets(np.transpose(np.vstack([pos[:, 0, ts], pos[:, 2, ts]])))
+		scatter_plot_left.set_offsets(np.transpose(np.vstack([pos[:, 0, ts], pos[:, 1, ts]])))
+		scatter_plot_right.set_offsets(np.transpose(np.vstack([pos[:, _index_right_x, ts], pos[:, _index_right_y, ts]])))
 
 		if not (c_param is None):
-			scat1.set_array(c_param[:, ts])
-			scat2.set_array(c_param[:, ts])
+			scatter_plot_left.set_array(c_param[:, ts])
+			scatter_plot_right.set_array(c_param[:, ts])
 
 		text_time.set_text(u"t= {: .2e} s".format(time))
 
-		return scat1, scat2, text_time
+		return scatter_plot_left, scatter_plot_right, text_time
 
 	ani = animation.FuncAnimation(
 		fig, update_scatter_plot, frames=range(n_frames),
-		fargs=(positions, scat_xy, scat_xz, text_time))
+		fargs=(positions, scatterplot_left, scatterplot_right, index_right_x, index_right_y, text_time))
 
 	plt.close(fig)
 	return ani
 
 def animate_variable_scatter_plot(
 		trajectory, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
-		color_parameter=None, crange=None, cmap=plt.cm.get_cmap('viridis'), alpha=0.1, figsize=(13, 5)):
+		color_parameter=None, crange=None, cmap=plt.cm.get_cmap('viridis'),
+		projection='xy_xz', alpha=0.1, figsize=(13, 5)):
 	"""
 	TODO:/ FIXME: Usage of color parameter is not yet implemented
 	(only color parameter as aux parameter here)
@@ -641,6 +657,10 @@ def animate_variable_scatter_plot(
 	:type crange: two element tuple of numeric
 	:param cmap: a matplotlib colormap for colorization of the scatter plot
 	:type cmap: matplotlib.colors.Colormap
+	:param projection: Projection for the two plot panels,
+		'xy_xz' means xy on the left, xz on the right panel,
+		'xy_yz' means xy on the left, yz on the right panel
+	:type projection: str
 	:param alpha: an alpha value for the plots
 	:type alpha: float
 	:return: an animation object with the animation
@@ -672,6 +692,14 @@ def animate_variable_scatter_plot(
 			'number of frames * interval (' + str(n_frames * interval) +
 			') is longer than trajectory (' + str(n_timesteps) + ')')
 
+	def _set_limits(ax_lim_fct, lims, ts_pos, dim_index, empty_frame):
+		if lims:
+			ax_lim_fct(lims)
+		elif not empty_frame:
+			ax_lim_fct((np.min(ts_pos[:, dim_index]), np.max(ts_pos[:, dim_index])))
+		else:
+			ax_lim_fct(0, 1)
+
 	def render_scatter_plot(i):
 		fig.clear()  # clear figure for a fresh plot
 
@@ -682,64 +710,58 @@ def animate_variable_scatter_plot(
 		else:
 			empty_frame = False
 
-		# ts_ap = ap[i]
-
-		ax_transient = fig.add_subplot(1, 2, 1)
+		ax_left = fig.add_subplot(1, 2, 1)
 		if color_parameter is None:
-			ax_transient.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha)
+			ax_left.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha)
 		else:
 			# ts_cp = c_param[i]
 			if crange is None:
-				ax_transient.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha, c=c_param[i], cmap=cmap)
+				ax_left.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha, c=c_param[i], cmap=cmap)
 			else:
-				ax_transient.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha,
+				ax_left.scatter(ts_pos[:, 0], ts_pos[:, 1], s=10, alpha=alpha,
 				            c=c_param[i], vmin=crange[0], vmax=crange[1], cmap=cmap)
 
-		ax_transient.set_xlabel("x position")
-		ax_transient.set_ylabel("y position")
+		ax_left.set_xlabel("x position")
+		ax_left.set_ylabel("y position")
 
-		if ylim:
-			ax_transient.set_ylim(ylim)
-		elif not empty_frame:
-			ax_transient.set_ylim((np.min(ts_pos[:, 1]), np.max(ts_pos[:, 1])))
+		_set_limits(ax_left.set_ylim, ylim, ts_pos, 1, empty_frame)
+		_set_limits(ax_left.set_xlim, xlim, ts_pos, 0, empty_frame)
+
+
+		ax_right = fig.add_subplot(1, 2, 2)
+
+		if projection == 'xy_xz':
+			x_index = 0
+			y_index = 2
+			x_label = 'x position'
+			y_label = 'z position'
+			plt_xlim = xlim
+			plt_ylim = zlim
+		elif projection == 'xy_yz':
+			x_index = 1
+			y_index = 2
+			x_label = 'y position'
+			y_label = 'z position'
+			plt_xlim = ylim
+			plt_ylim = zlim
 		else:
-			ax_transient.set_ylim(0, 1)
+			raise ValueError('Unknown projection')
 
-		if xlim:
-			ax_transient.set_xlim(xlim)
-		elif not empty_frame:
-			ax_transient.set_xlim((np.min(ts_pos[:, 0]), np.max(ts_pos[:, 0])))
-		else:
-			ax_transient.set_xlim(0, 1)
-
-		ax_spectrum = fig.add_subplot(1, 2, 2)
 		if color_parameter is None:
-			ax_spectrum.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha)
+			ax_right.scatter(ts_pos[:, x_index], ts_pos[:, y_index], s=10, alpha=alpha)
 		else:
 			if crange is None:
-				ax_spectrum.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha, c=c_param[i], cmap=cmap)
+				ax_right.scatter(ts_pos[:, x_index], ts_pos[:, y_index], s=10, alpha=alpha, c=c_param[i], cmap=cmap)
 			else:
-				ax_spectrum.scatter(ts_pos[:, 0], ts_pos[:, 2], s=10, alpha=alpha,
+				ax_right.scatter(ts_pos[:, x_index], ts_pos[:, y_index], s=10, alpha=alpha,
 				            c=c_param[i], vmin=crange[0], vmax=crange[1], cmap=cmap)
-		ax_spectrum.set_xlabel("x position")
-		ax_spectrum.set_ylabel("z position")
+		ax_right.set_xlabel(x_label)
+		ax_right.set_ylabel(y_label)
 
-		if zlim:
-			ax_spectrum.set_ylim(zlim)
-		elif not empty_frame:
-			ax_spectrum.set_ylim((np.min(ts_pos[:, 2]), np.max(ts_pos[:, 2])))
-		else:
-			ax_spectrum.set_ylim(0, 1)
+		_set_limits(ax_right.set_xlim, plt_xlim, ts_pos, x_index, empty_frame)
+		_set_limits(ax_right.set_ylim, plt_ylim, ts_pos, y_index, empty_frame)
 
-
-		if xlim:
-			ax_spectrum.set_xlim(xlim)
-		elif not empty_frame:
-			ax_spectrum.set_xlim((np.min(ts_pos[:, 0]), np.max(ts_pos[:, 0])))
-		else:
-			ax_spectrum.set_xlim(0, 1)
-
-		text_time = ax_spectrum.annotate(
+		text_time = ax_right.annotate(
 			u"t= {: .2e} s".format(trajectory.times[i]), xy=(0.02, 0.96), xycoords="figure fraction",
 			horizontalalignment="left", verticalalignment="top",
 			fontsize=13)
@@ -751,8 +773,9 @@ def animate_variable_scatter_plot(
 
 def render_scatter_animation(
 		project_name, result_name, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
-		color_parameter=None, crange=None, cmap=plt.cm.get_cmap('viridis'), alpha=0.1, fps=20,
-		figsize=(13, 5), file_type='hdf5'):
+		color_parameter=None, crange=None, cmap=plt.cm.get_cmap('viridis'),
+		projection='xy_yz', alpha=0.1, fps=20,
+		figsize=(13, 5), file_type='hdf5', only_active_particles=False):
 	"""
 	Reads an ion trajectory file, generates a scatter animation of the particles in an ion trajectory and
 	writes a video file with the animation
@@ -778,6 +801,10 @@ def render_scatter_animation(
 	:type crange: two element tuple of numeric
 	:param cmap: a matplotlib colormap for colorization of the scatter plot
 	:type cmap: matplotlib.colors.Colormap
+	:param projection: Projection for the two plot panels,
+		'xy_xz' means xy on the left, xz on the right panel,
+		'xy_yz' means xy on the left, yz on the right panel
+	:type projection: str
 	:param alpha: an alpha value for the plots
 	:type alpha: float
 	:param fps: frames per second in the rendered video
@@ -789,6 +816,8 @@ def render_scatter_animation(
 		'compressed' for compressed json
 		'hdf5' for compressed hdf5
 	:type file_type: str
+	:param only_active_particles: Render only currently active particles
+	:type only_active_particles: bool
 	"""
 	if file_type == 'hdf5':
 		file_ext = "_trajectories.hd5"
@@ -805,6 +834,9 @@ def render_scatter_animation(
 	else:
 		raise ValueError('illegal file type flag (not legacy_hdf5, hdf5, json or compressed)')
 
+	if only_active_particles:
+		tr = tra.filter_for_active_particles(tr)
+
 	if tr.is_static_trajectory:
 		plot_fct = animate_scatter_plot
 	else:
@@ -812,6 +844,7 @@ def render_scatter_animation(
 
 	ani = plot_fct(
 		tr, xlim=xlim, ylim=ylim, zlim=zlim, n_frames=n_frames, interval=interval,
-		color_parameter=color_parameter, crange=crange, cmap=cmap, alpha=alpha, figsize=figsize)
+		color_parameter=color_parameter, crange=crange, cmap=cmap,
+		projection=projection, alpha=alpha, figsize=figsize)
 
 	ani.save(result_name + "_scatter.mp4", fps=fps, extra_args=['-vcodec', 'libx264'])
