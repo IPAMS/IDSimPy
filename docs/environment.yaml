@@ -4,4 +4,5 @@ channels:
   - defaults
 dependencies:
   - python=3.11
-  - sphinx-rtd-theme=1.0.0
+  - pip:
+      - sphinx-rtd-theme=1.0.0
