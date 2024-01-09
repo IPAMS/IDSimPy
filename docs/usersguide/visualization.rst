@@ -119,8 +119,40 @@ This example yields an animation similar to:
         Your browser does not support the video tag.
     </video>
 
+Particle Transparency
+---------------------
 
-Parameters like spatial limits of the plotted region and the transparency of the particle symbols (alpha value) can be set easily by optional arguments to :py:func:`.render_scatter_animation`: 
+The transparency of the rendered particles can be controlled with the :py:data:`alpha` parameter to :py:func:`.render_scatter_animation`. Values closer to 1 means less transparent. 
+
+.. code-block:: python
+
+    import os
+    import IDSimPy.analysis.visualization as vis
+
+    data_base_path = os.path.join('..','test','analysis','data')
+    project_name = os.path.join(
+        data_base_path, 
+        'qitSim_2019_07_variableTrajectoryQIT', 
+        'qitSim_2019_07_22_001')
+
+    result_name = os.path.join('scatter_animation_alpha')
+    vis.render_scatter_animation(
+        hdf5_variable_projectname, result_name, 
+        alpha=0.9)
+
+
+.. raw:: html
+
+    <video width="650" height="350" controls>
+        <source src="../_static/scatter_animation_alpha_scatter.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+
+Spatial Limits and Projection
+-----------------------------
+
+The spatial limits of the plotted region in the spatial dimensions can be set easily with the :py:data:`xlim`, :py:data:`ylim` and :py:data:`zlim` arguments to :py:func:`.render_scatter_animation`: 
 
 .. code-block:: python 
 
@@ -135,7 +167,9 @@ Parameters like spatial limits of the plotted region and the transparency of the
 
     result_name = os.path.join('scatter_animation_custom_limits')
 
-    vis.render_scatter_animation(project_name, result_name, xlim=(-0.005, 0.005), ylim=(-0.005, 0.005), zlim=(-0.006, 0.006), alpha=0.9)
+    vis.render_scatter_animation(
+        project_name, result_name, 
+        xlim=(-0.005, 0.005), ylim=(-0.005, 0.005), zlim=(-0.006, 0.006))
 
 
 .. raw:: html
@@ -145,6 +179,76 @@ Parameters like spatial limits of the plotted region and the transparency of the
         Your browser does not support the video tag.
     </video>
 
+The projection of the right plot panel can be switched from **x-z** to **y-z** projection with the :py:data:`projection` parameter. Currently the possible values for this parameter are 
+
+*  ``xy_xz`` for **x-z** projection on the right panel 
+*  ``xy_yz`` for **y-z** projection on the right panel 
+
+.. code-block:: python
+    
+    hdf5_name = os.path.join('..','..','test','analysis','data', 
+                    'trajectory_v3','capacitor_all_splat', 'capacitor_all_splat_static')
+
+    result_name = os.path.join('scatter_animation_projection_xy_xz')
+    vis.render_scatter_animation(
+        hdf5_name, result_name, 
+        projection='xy_xz')
+
+generates a plot with **x-z** projection on the right plot (which is the default)
+
+.. raw:: html
+
+    <video width="650" height="350" controls>
+        <source src="../_static/scatter_animation_projection_xy_xz_scatter.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+while 
+
+.. code-block:: python
+    
+    result_name = os.path.join('scatter_animation_projection_xy_yz')
+    vis.render_scatter_animation(
+        hdf5_name, result_name,
+        projection='xy_yz')
+
+generates a **y-z** projection 
+
+.. raw:: html
+
+    <video width="650" height="350" controls>
+        <source src="../_static/scatter_animation_projection_xy_yz_scatter.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+
+Rendering only of non terminated (active) particles
+---------------------------------------------------
+
+Only the active (non terminated) particles can be rendered by setting the :py:data:`only_active_particles` parameter to ``True``: 
+
+.. code-block:: python
+
+    import os
+    import IDSimPy.analysis.visualization as vis
+
+    # rendering of active particles:
+    hdf5_name = os.path.join('..','..','test','analysis','data', 
+                    'trajectory_v3','capacitor_all_splat', 'capacitor_all_splat_static')
+
+    result_name = os.path.join('scatter_animation_active_only')
+    vis.render_scatter_animation(
+        hdf5_name, result_name, 
+        only_active_particles=True, 
+        xlim=(0.0, 0.1), ylim=(-0.02, 0.02), zlim=(-0.02, 0.02),
+        interval=1, alpha=0.9)
+
+.. raw:: html
+
+    <video width="650" height="350" controls>
+        <source src="../_static/scatter_animation_active_only_scatter.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
 
 
 Using colorization in scatter plots
@@ -192,7 +296,13 @@ It is possible to use a fully custom colorization for static trajectories: The :
 Low level scatter plot functions
 --------------------------------
 
-Technically, the "high level" plot function is a wrapper function around the actual scatter plot rendering functions :py:func:`.animate_scatter_plot` and :py:func:`.animate_variable_scatter_plot`. Both functions take a :py:class:`.Trajectory` object and a set of rendering / style options and generate an animation object. The function :py:func:`.animate_scatter_plot` generates scatter plots from static trajectories, while :py:func:`.animate_variable_scatter_plot` generates scatter plots from variable trajectory objects. The resulting animation objects can be saved to a video file, as shown in the following example: 
+Technically, the "high level" plot function is a wrapper function around the actual scatter plot rendering functions :py:func:`.animate_scatter_plot` and :py:func:`.animate_variable_scatter_plot`. Both functions take a :py:class:`.Trajectory` object and a set of rendering / style options and generate an animation object. The function :py:func:`.animate_scatter_plot` generates scatter plots from static trajectories, while :py:func:`.animate_variable_scatter_plot` generates scatter plots from variable trajectory objects. The resulting animation objects can be saved to a video file.
+
+
+Example: Coloring according to x start position
+-----------------------------------------------
+
+The principle is shown in the following example, which colors the particles according to their start position in x direction: 
 
 .. code-block:: python 
 
@@ -234,6 +344,39 @@ The example yields an animation similar to:
     </video>
 
 The colorization makes the axial diffusion of the particles discernible. 
+
+Example: Coloring of active (non terminated) particles 
+------------------------------------------------------
+
+A second, slightly more sophisticated, example shows how the active, non terminated, particles can be marked with a custom color. This example uses a helping function :py:func:`.is_active_particle`, which generates an array which marks active particles. Custom arbitrary marker values can be specified in this array for the active and terminated state With the :py:data:`true_val` and :py:data:`false_val` parameters for :py:func:`.is_active_particle`. 
+
+.. code-block:: python 
+
+    # coloring of active particles:
+    import os
+    import IDSimPy.analysis.visualization as vis
+    import IDSimPy.analysis.trajectory as tr
+
+    # read trajectory:
+    hdf5_name = os.path.join('..','..','test','analysis','data', 
+                    'trajectory_v3','capacitor_all_splat','capacitor_all_splat_static_trajectories.hd5')
+
+    tra = tr.read_hdf5_trajectory_file(hdf5_name)
+
+    # generate array with termination / active state with custom values:
+    is_active = tr.is_active_particle(tra, true_val=0.4, false_val=0.9)
+
+    # use array for marking: (note the custom colormap specified with 'cmap' and the custom color range specified with 'crange'):
+    anim = vis.animate_scatter_plot(tra, color_parameter=is_active, cmap='plasma', crange=(0, 1), projection='xy_yz', xlim=(0.0,0.11), alpha=0.6)
+    anim.save('scatter_animation_active_marked.mp4', fps=20, extra_args=['-vcodec', 'libx264'])
+
+.. raw:: html
+
+    <video width="650" height="350" controls>
+        <source src="../_static/scatter_animation_active_marked.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
 
 Particle density plots and animations
 =====================================
