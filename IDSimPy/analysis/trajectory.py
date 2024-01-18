@@ -471,6 +471,25 @@ class Trajectory:
 # -------------- Trajectory input -------------- #
 
 
+def read_trajectory_file_for_project(project_name, file_type):
+
+	if file_type == 'hdf5':
+		file_ext = "_trajectories.hd5"
+		tr = read_hdf5_trajectory_file(project_name + file_ext)
+	elif file_type == 'legacy_hdf5':
+		file_ext = "_trajectories.hd5"
+		tr = read_legacy_hdf5_trajectory_file(project_name + file_ext)
+	elif file_type == 'compressed':
+		file_ext = "_trajectories.json.gz"
+		tr = read_json_trajectory_file(project_name + file_ext)
+	elif file_type == 'json':
+		file_ext = "_trajectories.json"
+		tr = read_json_trajectory_file(project_name + file_ext)
+	else:
+		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
+
+	return tr
+
 def read_json_trajectory_file(trajectory_filename):
 	"""
 	Reads a json trajectory file and returns a trajectory object
