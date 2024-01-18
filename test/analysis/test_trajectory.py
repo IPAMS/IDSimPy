@@ -30,6 +30,9 @@ class TestTrajectory(unittest.TestCase):
 		cls.hdf5_v3_static_fname = os.path.join(hdf_v3_path, 'qitSim_2019_07_variableTrajectoryQIT',
 		                                         'qitSim_2019_07_22_002_trajectories.hd5')
 
+		cls.hdf5_v3_additional_attribute_fname = os.path.join(hdf_v3_path, 'qitSim_2024_01_FTQIT_2',
+		                                                'QIT_fixedRF_trajectories.hd5')
+
 		cls.hdf5_capacitor_all_splat = os.path.join(hdf_v3_path, 'capacitor_all_splat',
 		                                         'capacitor_all_splat_trajectories.hd5')
 
@@ -165,6 +168,17 @@ class TestTrajectory(unittest.TestCase):
 		np.testing.assert_almost_equal(particle[1], (10, 300))
 
 	#  --------------- test Trajectory reading from files ---------------
+
+
+	def test_hdf5_v3_optional_trajectory_datasets(self):
+		tra = ia.read_hdf5_trajectory_file(self.hdf5_v3_additional_attribute_fname)
+		self.assertEqual(tra.file_version_id, 3)
+		self.assertEqual(len(tra.optional_attributes), 1)
+
+		p_masses = tra.optional_attributes['Particle Masses']
+		self.assertEqual(len(p_masses), 600)
+		self.assertEqual(p_masses[0,0], 35)
+		self.assertEqual(p_masses[310,0], 37)
 
 	def test_hdf5_v3_trajectory_reading_variable_timesteps(self):
 		tra = ia.read_hdf5_trajectory_file(self.hdf5_v3_variable_fname)
