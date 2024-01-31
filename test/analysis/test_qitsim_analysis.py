@@ -63,7 +63,8 @@ class TestQitSimAnalysis(unittest.TestCase):
 
 	def test_fft_analysis_of_massresolved_reactive_qit_sim(self):
 		"""At least the mass resolved fft analysis should not produce an exception and should produce a basic plot"""
-		fft_dat = qa.analyse_FFT_sim(self.sim_staticrf, result_path=self.result_path, title="Custom Title")
+		fft_dat = qa.analyse_FFT_sim(self.sim_staticrf, result_path=self.result_path,
+		                             title="Custom Title", figsize=(25,6), title_font_size=10)
 		n_freqs = 500
 		n_ftsamples = 1001
 		self.assertEqual(np.shape(fft_dat['amplitude']), (n_freqs, 3))
