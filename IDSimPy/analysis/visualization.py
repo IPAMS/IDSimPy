@@ -246,20 +246,8 @@ def render_xz_density_animation(
 		'hdf5' for compressed hdf5
 	:type file_type: str
 	"""
-	if file_type == 'hdf5':
-		file_ext = "_trajectories.hd5"
-		tr = tra.read_hdf5_trajectory_file(project_name + file_ext)
-	elif file_type == 'legacy_hdf5':
-		file_ext = "_trajectories.hd5"
-		tr = tra.read_legacy_hdf5_trajectory_file(project_name + file_ext)
-	elif file_type == 'compressed':
-		file_ext = "_trajectories.json.gz"
-		tr = tra.read_json_trajectory_file(project_name + file_ext)
-	elif file_type == 'json':
-		file_ext = "_trajectories.json"
-		tr = tra.read_json_trajectory_file(project_name + file_ext)
-	else:
-		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
+
+	tr = tra.read_trajectory_file_for_project(project_name, file_type)
 
 	if not n_frames:
 		n_frames = tr.n_timesteps
@@ -466,24 +454,8 @@ def render_xz_density_comparison_animation(
 
 	"""
 
-	if file_type == 'hdf5':
-		file_ext = "_trajectories.hd5"
-		tj0 = tra.read_hdf5_trajectory_file(project_names[0] + file_ext)
-		tj1 = tra.read_hdf5_trajectory_file(project_names[1] + file_ext)
-	elif file_type == 'legacy_hdf5':
-		file_ext = "_trajectories.hd5"
-		tj0 = tra.read_legacy_hdf5_trajectory_file(project_names[0] + file_ext)
-		tj1 = tra.read_legacy_hdf5_trajectory_file(project_names[1] + file_ext)
-	elif file_type == 'compressed':
-		file_ext = "_trajectories.json.gz"
-		tj0 = tra.read_json_trajectory_file(project_names[0] + file_ext)
-		tj1 = tra.read_json_trajectory_file(project_names[1] + file_ext)
-	elif file_type == 'json':
-		file_ext = "_trajectories.json"
-		tj0 = tra.read_json_trajectory_file(project_names[0] + file_ext)
-		tj1 = tra.read_json_trajectory_file(project_names[1] + file_ext)
-	else:
-		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
+	tj0 = tra.read_trajectory_file_for_project(project_names[0], file_type)
+	tj1 = tra.read_trajectory_file_for_project(project_names[1], file_type)
 
 	anim = animate_xz_density_comparison_plot(
 		(tj0, tj1), selected, n_frames, interval,
@@ -819,20 +791,8 @@ def render_scatter_animation(
 	:param only_active_particles: Render only currently active particles
 	:type only_active_particles: bool
 	"""
-	if file_type == 'hdf5':
-		file_ext = "_trajectories.hd5"
-		tr = tra.read_hdf5_trajectory_file(project_name + file_ext)
-	elif file_type == 'legacy_hdf5':
-		file_ext = "_trajectories.hd5"
-		tr = tra.read_legacy_hdf5_trajectory_file(project_name + file_ext)
-	elif file_type == 'compressed':
-		file_ext = "_trajectories.json.gz"
-		tr = tra.read_json_trajectory_file(project_name + file_ext)
-	elif file_type == 'json':
-		file_ext = "_trajectories.json"
-		tr = tra.read_json_trajectory_file(project_name + file_ext)
-	else:
-		raise ValueError('illegal file type flag (not legacy_hdf5, hdf5, json or compressed)')
+
+	tr = tra.read_trajectory_file_for_project(project_name, file_type)
 
 	if only_active_particles:
 		tr = tra.filter_for_active_particles(tr)

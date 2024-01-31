@@ -471,6 +471,25 @@ class Trajectory:
 # -------------- Trajectory input -------------- #
 
 
+def read_trajectory_file_for_project(project_name, file_type):
+
+	if file_type == 'hdf5':
+		file_ext = "_trajectories.hd5"
+		tr = read_hdf5_trajectory_file(project_name + file_ext)
+	elif file_type == 'legacy_hdf5':
+		file_ext = "_trajectories.hd5"
+		tr = read_legacy_hdf5_trajectory_file(project_name + file_ext)
+	elif file_type == 'compressed':
+		file_ext = "_trajectories.json.gz"
+		tr = read_json_trajectory_file(project_name + file_ext)
+	elif file_type == 'json':
+		file_ext = "_trajectories.json"
+		tr = read_json_trajectory_file(project_name + file_ext)
+	else:
+		raise ValueError('illegal file type flag (not hdf5, json or compressed)')
+
+	return tr
+
 def read_json_trajectory_file(trajectory_filename):
 	"""
 	Reads a json trajectory file and returns a trajectory object
@@ -660,6 +679,13 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 			static_trajectory = True
 			positions = np.dstack(positions)
 
+		# read auxiliary trajectory datasets
+		optional_data_sets = None
+		if 'optional_datasets' in tra_group.keys():
+			op_ds_group = tra_group['optional_datasets']
+			optional_data_sets = {ds_key: np.array(op_ds_group[ds_key]) for ds_key in op_ds_group.keys()}
+
+		# read particle attributes
 		p_attr_final_float = None
 		if particle_attributes_names_float:
 			p_attr_final_float = particle_attributes_float
@@ -676,6 +702,7 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 			particle_attributes_names_float, p_attr_final_float,
 			particle_attributes_names_int, p_attr_final_int)
 
+		# read start / splat data
 		start_splat_data = None
 		if 'start_splat' in tra_group.keys():
 			ss_grp = tra_group['start_splat']
@@ -692,6 +719,7 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 		result = Trajectory(
 			positions=positions,
 			times=np.array(times),
+			optional_attributes=optional_data_sets,
 			particle_attributes=p_attribs,
 			start_splat_data=start_splat_data,
 			file_version_id=file_version_id)
