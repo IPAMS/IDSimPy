@@ -205,7 +205,6 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 		tr = tra.read_trajectory_file(project_path + "_trajectories.json.gz")
 		t, z = reconstruct_transient_from_trajectories(tr)
 		t = t*1e-6
-		print(t)
 
 	frq, Y = calculate_FFT_spectrum(t, z)
 
@@ -228,7 +227,6 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 
 		projectName = project_path.split("/")[-1]
 
-		print(f'Title {title}')
 		if title is None:
 			if "partial_pressures_Pa" in confJson:
 				background_pressure_str = str(confJson["partial_pressures_Pa"])
