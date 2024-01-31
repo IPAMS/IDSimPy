@@ -169,9 +169,10 @@ def calculate_FFT_spectrum(t, z):
 
 ################## High Level Simulation Project Processing Methods ######################
 
+
 def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
                     load_mode="fft_record", title=None, result_path=None, plot_result='export',
-                    figsize=(20, 5), titlepos=(0.1, 0.94)):
+                    figsize=(20, 5), titlepos=(0.1, 0.94), title_font_size=15):
 	"""
 	Analyses a transient of a QIT simulation and calculates/plots the spectrum from it
 
@@ -244,9 +245,9 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 			if "space_charge_factor" in confJson:
 				titlestring = titlestring + ", space charge factor:"+'%6g' % (confJson["space_charge_factor"])
 
-			fig.suptitle(titlestring, x=titlepos[0], y=titlepos[1],  fontsize=17, horizontalalignment='left')
+			fig.suptitle(titlestring, x=titlepos[0], y=titlepos[1],  fontsize=title_font_size, horizontalalignment='left')
 		else:
-			fig.suptitle(title, x=titlepos[0], y=titlepos[1],  fontsize=17, horizontalalignment='left')
+			fig.suptitle(title, x=titlepos[0], y=titlepos[1],  fontsize=title_font_size, horizontalalignment='left')
 
 		if plot_result == 'export':
 			if result_path:
@@ -259,7 +260,6 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 			plt.savefig(result_project_path + "_fftAnalysis.png", format="png", dpi=180)
 
 	return{"freqs":frq[freqsPl], "amplitude":abs(Y[freqsPl]), "time":t, "transient":z, "figure":fig}
-
 
 def analyze_stability_scan(project_path, window_width=0, t_range=[0, 1], result_path=None):
 	with open(project_path + "_conf.json") as jsonFile:
@@ -476,7 +476,9 @@ def plot_phase_space_trajectory(tr, pdef):
 		plt.scatter(pos[pi, 0, :], ap[pi, 0, :], s=10, alpha=1)
 
 
-def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, alpha=1.0, mode="radial"):
+def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, alpha=1.0, analysis_mode="radial",
+                        export_mode="animation"):
+
 	fig = plt.figure(figsize=(13, 5))
 	pos = tr.positions
 	ap = tr.particle_attributes
@@ -492,32 +494,30 @@ def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, a
 
 	scat1 = ax1.scatter(pos[:, 0, 0], velocity_x[:, 0], s=10, alpha=alpha, c=masses)
 
-	if mode == "radial":
+	if analysis_mode == "radial":
 		ax1.set_xlabel("radial position")
 		ax1.set_ylabel("radial velocity")
-	elif mode == "cartesian":
+	elif analysis_mode == "cartesian":
 		ax1.set_xlabel("x position")
 		ax1.set_ylabel("x velocity")
 
 	if ylim:
 		ax1.set_ylim(ylim[0])
 	else:
-		if mode == "radial":
+		if analysis_mode == "radial":
 			r_velo = np.sqrt(velocity_x ** 2.0 + velocity_y ** 2.0)
 			ax1.set_ylim((np.min(r_velo), np.max(r_velo)))
-		elif mode == "cartesian":
+		elif analysis_mode == "cartesian":
 			ax1.set_ylim((np.min(velocity_x), np.max(velocity_x)))
-
 
 	if xlim:
 		ax1.set_xlim(xlim[0])
 	else:
-		if mode == "radial":
+		if analysis_mode == "radial":
 			r_dist = np.sqrt(pos[:, 0, :] ** 2.0 + pos[:, 1, :] ** 2.0)
 			ax1.set_xlim((np.min(r_dist), np.max(r_dist)))
-		elif mode == "cartesian":
+		elif analysis_mode == "cartesian":
 			ax1.set_xlim((np.min(pos[:, 0, :]), np.max(pos[:, 0, :])))
-
 
 	scat2 = ax2.scatter(pos[:, 2, 0], velocity_z[:, 0], s=10, alpha=alpha, c=masses)
 	ax2.set_xlabel("z position")
@@ -533,25 +533,30 @@ def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, a
 	else:
 		plt.xlim((np.min(pos[:, 2, :]), np.max(pos[:, 2, :])))
 
-	ani = animation.FuncAnimation(fig, update_phase_space_plot, frames=range(numframes),
-	                              fargs=(pos, velocity_x, velocity_y, velocity_z, scat1, scat2, mode))
-	ani.save(result_name + "_phaseSpace.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
+	if export_mode == 'animation':
+		ani = animation.FuncAnimation(fig, update_phase_space_plot, frames=range(numframes),
+		                              fargs=(pos, velocity_x, velocity_y, velocity_z, scat1, scat2, analysis_mode))
+		ani.save(result_name + "_phaseSpace.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
+	elif export_mode == 'single_frames':
+		pass
+	else:
+		raise ValueError('Illegal Export Mode')
 
+def update_phase_space_plot(i, pos, velocity_x, velocity_y, velocity_z, scat1, scat2, analysis_mode):
 
-def update_phase_space_plot(i, pos, velocity_x, velocity_y, velocity_z, scat1, scat2, mode):
-
-	if mode == "radial":
+	if analysis_mode == "radial":
 		r_dist = np.sqrt(pos[:, 0, i] ** 2.0 + pos[:, 1, i] ** 2.0)
 		r_velo = np.sqrt(velocity_x[:, i] ** 2.0 + velocity_y[:, i] ** 2.0)
 		scat1.set_offsets(np.transpose(np.vstack([r_dist, r_velo])))
-	elif mode == "cartesian":
+	elif analysis_mode == "cartesian":
 		scat1.set_offsets(np.transpose(np.vstack([pos[:, 0, i], velocity_x[:, i]])))
 
 	scat2.set_offsets(np.transpose(np.vstack([pos[:, 2, i], velocity_z[:, i]])))
 	return scat1, scat2
 
-
-def render_phase_space_animation(pname, result_name, file_type='hdf5', ylim=None, xlim=None, numframes=None, alpha=1.0, mode="cartesian"):
+def render_phase_space_animation(pname, result_name, file_type='hdf5', ylim=None, xlim=None, numframes=None, alpha=1.0,
+                                 analysis_mode="cartesian"):
 
 	tr = tra.read_trajectory_file_for_project(pname, file_type)
-	animate_phase_space(tr, result_name, ylim=ylim, xlim=xlim,alpha=alpha,numframes=numframes,mode=mode)
+	animate_phase_space(tr, result_name, ylim=ylim, xlim=xlim,
+	                    alpha=alpha, numframes=numframes, analysis_mode=analysis_mode)
