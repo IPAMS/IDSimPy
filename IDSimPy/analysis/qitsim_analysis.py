@@ -4,7 +4,7 @@
 # TODO: Update QIT simulation analysis
 
 import numpy as np
-import pylab as plt
+import matplotlib.pyplot as plt
 import pandas as pd
 import commentjson
 import os
@@ -478,53 +478,55 @@ def plot_phase_space_trajectory(tr, pdef):
 
 def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, alpha=1.0, mode="radial"):
 	fig = plt.figure(figsize=(13, 5))
-	pos = tr['positions']
-	ap = tr['particle_attributes']
-	masses = tr['masses']
+	pos = tr.positions
+	ap = tr.particle_attributes
+	velocity_x = ap.get('velocity x')
+	velocity_y = ap.get('velocity y')
+	velocity_z = ap.get('velocity z')
+	masses = tr.optional_attributes['Particle Masses']
 
 	if not numframes:
-		numframes = len(tr['times'])
+		numframes = tr.n_timesteps
 
-	plt.subplot(1, 2, 1)
-	scat1 = plt.scatter(pos[:, 0, 0], ap[:, 0, 0], s=10, alpha=alpha, c=masses)
+	fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
 
+	scat1 = ax1.scatter(pos[:, 0, 0], velocity_x[:, 0], s=10, alpha=alpha, c=masses)
 
 	if mode == "radial":
-		plt.xlabel("radial position")
-		plt.ylabel("radial velocity")
+		ax1.set_xlabel("radial position")
+		ax1.set_ylabel("radial velocity")
 	elif mode == "cartesian":
-		plt.xlabel("x position")
-		plt.ylabel("x velocity")
-
+		ax1.set_xlabel("x position")
+		ax1.set_ylabel("x velocity")
 
 	if ylim:
-		plt.ylim(ylim[0])
+		ax1.set_ylim(ylim[0])
 	else:
 		if mode == "radial":
-			r_dist = np.sqrt(pos[:, 0, :] ** 2.0 + pos[:, 1, :] ** 2.0)
-			plt.ylim((np.min(r_dist), np.max(r_dist)))
+			r_velo = np.sqrt(velocity_x ** 2.0 + velocity_y ** 2.0)
+			ax1.set_ylim((np.min(r_velo), np.max(r_velo)))
 		elif mode == "cartesian":
-			plt.ylim((np.min(ap[:, 0, :]), np.max(ap[:, 0, :])))
+			ax1.set_ylim((np.min(velocity_x), np.max(velocity_x)))
 
 
 	if xlim:
-		plt.xlim(xlim[0])
+		ax1.set_xlim(xlim[0])
 	else:
 		if mode == "radial":
-			r_velo = np.sqrt(ap[:, 0, :] ** 2.0 + ap[:, 1, :] ** 2.0)
-			plt.xlim((np.min(r_velo), np.max(r_velo)))
+			r_dist = np.sqrt(pos[:, 0, :] ** 2.0 + pos[:, 1, :] ** 2.0)
+			ax1.set_xlim((np.min(r_dist), np.max(r_dist)))
 		elif mode == "cartesian":
-			plt.xlim((np.min(pos[:, 0, :]), np.max(pos[:, 0, :])))
+			ax1.set_xlim((np.min(pos[:, 0, :]), np.max(pos[:, 0, :])))
 
-	plt.subplot(1, 2, 2)
-	scat2 = plt.scatter(pos[:, 2, 0], ap[:, 2, 0], s=10, alpha=alpha, c=masses)
-	plt.xlabel("z position")
-	plt.ylabel("z velocity")
+
+	scat2 = ax2.scatter(pos[:, 2, 0], velocity_z[:, 0], s=10, alpha=alpha, c=masses)
+	ax2.set_xlabel("z position")
+	ax2.set_ylabel("z velocity")
 
 	if ylim:
-		plt.ylim(ylim[1])
+		ax2.set_ylim(ylim[1])
 	else:
-		plt.ylim((np.min(ap[:, 2, :]), np.max(ap[:, 2, :])))
+		ax2.set_ylim((np.min(velocity_z), np.max(velocity_z)))
 
 	if xlim:
 		plt.xlim(xlim[1])
@@ -532,27 +534,24 @@ def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, a
 		plt.xlim((np.min(pos[:, 2, :]), np.max(pos[:, 2, :])))
 
 	ani = animation.FuncAnimation(fig, update_phase_space_plot, frames=range(numframes),
-	                              fargs=(pos, ap, scat1, scat2,mode))
+	                              fargs=(pos, velocity_x, velocity_y, velocity_z, scat1, scat2, mode))
 	ani.save(result_name + "_phaseSpace.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 
 
-def update_phase_space_plot(i, pos, ap, scat1, scat2, mode):
+def update_phase_space_plot(i, pos, velocity_x, velocity_y, velocity_z, scat1, scat2, mode):
 
 	if mode == "radial":
 		r_dist = np.sqrt(pos[:, 0, i] ** 2.0 + pos[:, 1, i] ** 2.0)
-		r_velo = np.sqrt(ap[:, 0, i] ** 2.0 + ap[:, 1, i] ** 2.0)
+		r_velo = np.sqrt(velocity_x[:, i] ** 2.0 + velocity_y[:, i] ** 2.0)
 		scat1.set_offsets(np.transpose(np.vstack([r_dist, r_velo])))
 	elif mode == "cartesian":
-		scat1.set_offsets(np.transpose(np.vstack([pos[:, 0, i], ap[:, 0, i]])))
+		scat1.set_offsets(np.transpose(np.vstack([pos[:, 0, i], velocity_x[:, i]])))
 
-	scat2.set_offsets(np.transpose(np.vstack([pos[:, 2, i], ap[:, 2, i]])))
+	scat2.set_offsets(np.transpose(np.vstack([pos[:, 2, i], velocity_z[:, i]])))
 	return scat1, scat2
 
 
-def render_phase_space_animation(pname,ylim=None,xlim=None,numframes=None,alpha=1.0, compressed=True, mode="cartesian"):
+def render_phase_space_animation(pname, result_name, file_type='hdf5', ylim=None, xlim=None, numframes=None, alpha=1.0, mode="cartesian"):
 
-	if compressed:
-		tr = tra.read_trajectory_file(pname + "_trajectories.json.gz")
-	else:
-		tr = tra.read_trajectory_file(pname + "_trajectories.json")
-	animate_phase_space(tr, pname, ylim=ylim, xlim=xlim,alpha=alpha,numframes=numframes,mode=mode)
+	tr = tra.read_trajectory_file_for_project(pname, file_type)
+	animate_phase_space(tr, result_name, ylim=ylim, xlim=xlim,alpha=alpha,numframes=numframes,mode=mode)

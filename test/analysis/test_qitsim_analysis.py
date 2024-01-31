@@ -1,5 +1,7 @@
 import unittest
 import os
+
+import matplotlib.figure
 import numpy as np
 import IDSimPy as qa
 
@@ -14,6 +16,7 @@ class TestQitSimAnalysis(unittest.TestCase):
 		cls.sim_staticrf = os.path.join(hdf5_v2_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_001')
 		cls.sim_scanned = os.path.join(hdf5_v2_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_002')
 		cls.sim_ft_qit = os.path.join(hdf5_v3_path, 'qitSim_2023_04_FTQIT', 'qitSim_2023_04_03_001')
+		cls.sim_ft_qit_2 = os.path.join(hdf5_v3_path, 'qitSim_2024_01_FTQIT_2', 'QIT_fixedRF')
 		cls.result_path = os.path.join('test', 'test_results')
 
 	def test_qit_stability_parameters(self):
@@ -69,6 +72,8 @@ class TestQitSimAnalysis(unittest.TestCase):
 		self.assertEqual(np.shape(fft_dat['amplitude']), (n_freqs, 3))
 		self.assertEqual(len(fft_dat['transient']), n_ftsamples)
 
+		self.assertIsInstance(fft_dat['figure'], matplotlib.figure.Figure)
+
 	def test_fft_analysis_of_unresolved_reactive_qit_sim(self):
 		fft_dat = qa.analyse_FFT_sim(self.sim_scanned, result_path=self.result_path)
 
@@ -90,3 +95,9 @@ class TestQitSimAnalysis(unittest.TestCase):
 		self.assertEqual(np.shape(fft_dat['amplitude']), (n_freqs, 1))
 		self.assertEqual(len(fft_dat['transient']), n_ftsamples)
 
+	def test_phase_space_analysis(self):
+		result_name = os.path.join(self.result_path, 'phase_space_animation_01_cartesian')
+		qa.render_phase_space_animation(self.sim_ft_qit_2, result_name)
+
+		result_name_radial = os.path.join(self.result_path, 'phase_space_animation_02_radial')
+		qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_radial, mode='radial')
