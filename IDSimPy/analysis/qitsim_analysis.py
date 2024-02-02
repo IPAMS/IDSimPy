@@ -475,9 +475,8 @@ def plot_phase_space_trajectory(tr, pdef):
 
 
 def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, alpha=1.0, analysis_mode="radial",
-                        export_mode="animation"):
+                        figsize=(13,5), export_mode="animation"):
 
-	fig = plt.figure(figsize=(13, 5))
 	pos = tr.positions
 	ap = tr.particle_attributes
 	velocity_x = ap.get('velocity x')
@@ -492,7 +491,7 @@ def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, a
 	elif isinstance(numframes, range):
 		selected_frames = numframes
 
-	fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+	fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
 
 	scat1 = ax1.scatter(pos[:, 0, 0], velocity_x[:, 0], s=10, alpha=alpha, c=masses)
 
@@ -531,9 +530,11 @@ def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, a
 		ax2.set_ylim((np.min(velocity_z), np.max(velocity_z)))
 
 	if xlim:
-		plt.xlim(xlim[1])
+		ax2.set_xlim(xlim[1])
 	else:
-		plt.xlim((np.min(pos[:, 2, :]), np.max(pos[:, 2, :])))
+		ax2.set_xlim((np.min(pos[:, 2, :]), np.max(pos[:, 2, :])))
+
+	plt.tight_layout()
 
 	if export_mode == 'animation':
 		ani = animation.FuncAnimation(fig, update_phase_space_plot, frames=selected_frames,
@@ -560,8 +561,10 @@ def update_phase_space_plot(i, pos, velocity_x, velocity_y, velocity_z, scat1, s
 	return scat1, scat2
 
 def render_phase_space_animation(pname, result_name, file_type='hdf5', ylim=None, xlim=None, numframes=None, alpha=1.0,
-                                 export_mode="animation", analysis_mode="cartesian"):
+                                 figsize=(13,5), export_mode="animation", analysis_mode="cartesian"):
 
 	tr = tra.read_trajectory_file_for_project(pname, file_type)
 	animate_phase_space(tr, result_name, ylim=ylim, xlim=xlim,
-	                    alpha=alpha, numframes=numframes, export_mode=export_mode, analysis_mode=analysis_mode)
+	                    alpha=alpha, numframes=numframes,
+	                    figsize=figsize,
+	                    export_mode=export_mode, analysis_mode=analysis_mode)
