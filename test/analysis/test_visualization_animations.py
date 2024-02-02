@@ -76,7 +76,7 @@ class TestVisualizationAnimations(unittest.TestCase):
 	def test_scatter_animation_hdf5_trajectory(self):
 		result_name = os.path.join(self.result_path, 'scatter_animation_test_2')
 
-		# should raise because the number of frames is too high:
+		# should raise because the number of selected_frames is too high:
 		self.assertRaises(
 			ValueError, vis.render_scatter_animation, self.test_reactive_projectName,
 			result_name, n_frames=100, interval=5, file_type='hdf5')
@@ -88,7 +88,7 @@ class TestVisualizationAnimations(unittest.TestCase):
 	def test_scatter_animation_only_active_ions(self):
 		result_name = os.path.join(self.result_path, 'scatter_animation_test_3')
 
-		# should raise because the number of frames is too high:
+		# should raise because the number of selected_frames is too high:
 		vis.render_scatter_animation(
 			self.hdf5_capacitor_all_splat_projectName, result_name, xlim=(0.0, 0.1), only_active_particles=True,
 				interval=1, alpha=0.5, file_type='hdf5')
@@ -183,7 +183,7 @@ class TestVisualizationAnimations(unittest.TestCase):
 		tra_b = tra.read_hdf5_trajectory_file(self.scanning_qit_hdf5_trajectory_b)
 		tra_c = tra.read_hdf5_trajectory_file(self.legacy_hdf5_trajectory_c)
 
-		self.assertRaises(  # too many frames: n_frames*interval > trajectory length
+		self.assertRaises(  # too many selected_frames: n_frames*interval > trajectory length
 			ValueError,
 			vis.animate_xz_density_comparison_plot, [tra_c, tra_c], [0, 1], 71, 1)
 

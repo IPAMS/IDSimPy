@@ -474,7 +474,7 @@ def plot_phase_space_trajectory(tr, pdef):
 		plt.scatter(pos[pi, 0, :], ap[pi, 0, :], s=10, alpha=1)
 
 
-def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, alpha=1.0, analysis_mode="radial",
+def animate_phase_space(tr, result_name, xlim=None, ylim=None, selected_frames=None, alpha=1.0, analysis_mode="radial",
                         figsize=(13,5), export_mode="animation"):
 
 	pos = tr.positions
@@ -484,12 +484,12 @@ def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, a
 	velocity_z = ap.get('velocity z')
 	masses = tr.optional_attributes['Particle Masses']
 
-	if not numframes:
-		selected_frames = range(tr.n_timesteps)
-	elif isinstance(numframes, int):
-		selected_frames = range(numframes)
-	elif isinstance(numframes, range):
-		selected_frames = numframes
+	if not selected_frames:
+		selected_frames_range = range(tr.n_timesteps)
+	elif isinstance(selected_frames, int):
+		selected_frames_range = range(selected_frames)
+	elif isinstance(selected_frames, (range, list)):
+		selected_frames_range = selected_frames
 
 	fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
 
@@ -537,12 +537,12 @@ def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, a
 	plt.tight_layout()
 
 	if export_mode == 'animation':
-		ani = animation.FuncAnimation(fig, update_phase_space_plot, frames=selected_frames,
+		ani = animation.FuncAnimation(fig, update_phase_space_plot, frames=selected_frames_range,
 		                              fargs=(pos, velocity_x, velocity_y, velocity_z, scat1, scat2, analysis_mode))
 		ani.save(result_name + "_phaseSpace.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 	elif export_mode == 'single_frames':
 
-		for i_frame in selected_frames:
+		for i_frame in selected_frames_range:
 			update_phase_space_plot(i_frame, pos, velocity_x, velocity_y, velocity_z, scat1, scat2, analysis_mode)
 			fig.savefig(result_name + f'_{i_frame:03d}.png')
 	else:
@@ -560,11 +560,11 @@ def update_phase_space_plot(i, pos, velocity_x, velocity_y, velocity_z, scat1, s
 	scat2.set_offsets(np.transpose(np.vstack([pos[:, 2, i], velocity_z[:, i]])))
 	return scat1, scat2
 
-def render_phase_space_animation(pname, result_name, file_type='hdf5', ylim=None, xlim=None, numframes=None, alpha=1.0,
+def render_phase_space_animation(pname, result_name, file_type='hdf5', ylim=None, xlim=None, selected_frames=None, alpha=1.0,
                                  figsize=(13,5), export_mode="animation", analysis_mode="cartesian"):
 
 	tr = tra.read_trajectory_file_for_project(pname, file_type)
 	animate_phase_space(tr, result_name, ylim=ylim, xlim=xlim,
-	                    alpha=alpha, numframes=numframes,
+	                    alpha=alpha, selected_frames=selected_frames,
 	                    figsize=figsize,
 	                    export_mode=export_mode, analysis_mode=analysis_mode)

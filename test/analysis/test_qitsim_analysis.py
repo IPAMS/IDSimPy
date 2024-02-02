@@ -104,10 +104,13 @@ class TestQitSimAnalysis(unittest.TestCase):
 		#qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_radial, analysis_mode='radial')
 
 		result_name_radial_2 = os.path.join(self.result_path, 'phase_space_animation_03_radial')
-		qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_radial_2, numframes=5,
+		qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_radial_2, selected_frames=5,
 		                                figsize=(12, 3), export_mode='single_frames', analysis_mode='radial')
 
 		result_name_radial_3 = os.path.join(self.result_path, 'phase_space_animation_04_radial')
-		qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_radial_3, numframes=range(40,41),
+		qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_radial_3, selected_frames=range(40, 41),
 		                                export_mode='single_frames', analysis_mode='radial')
 
+		result_name_radial_4 = os.path.join(self.result_path, 'phase_space_animation_05_radial')
+		qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_radial_4, selected_frames=[10, 20, 40],
+		                                export_mode='single_frames', analysis_mode='radial')
