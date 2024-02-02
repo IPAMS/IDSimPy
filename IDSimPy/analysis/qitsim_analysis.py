@@ -486,7 +486,11 @@ def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, a
 	masses = tr.optional_attributes['Particle Masses']
 
 	if not numframes:
-		numframes = tr.n_timesteps
+		selected_frames = range(tr.n_timesteps)
+	elif isinstance(numframes, int):
+		selected_frames = range(numframes)
+	elif isinstance(numframes, range):
+		selected_frames = numframes
 
 	fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
 
@@ -532,11 +536,14 @@ def animate_phase_space(tr, result_name, xlim=None, ylim=None, numframes=None, a
 		plt.xlim((np.min(pos[:, 2, :]), np.max(pos[:, 2, :])))
 
 	if export_mode == 'animation':
-		ani = animation.FuncAnimation(fig, update_phase_space_plot, frames=range(numframes),
+		ani = animation.FuncAnimation(fig, update_phase_space_plot, frames=selected_frames,
 		                              fargs=(pos, velocity_x, velocity_y, velocity_z, scat1, scat2, analysis_mode))
 		ani.save(result_name + "_phaseSpace.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 	elif export_mode == 'single_frames':
-		pass
+
+		for i_frame in selected_frames:
+			update_phase_space_plot(i_frame, pos, velocity_x, velocity_y, velocity_z, scat1, scat2, analysis_mode)
+			fig.savefig(result_name + f'_{i_frame:03d}.png')
 	else:
 		raise ValueError('Illegal Export Mode')
 
@@ -553,8 +560,8 @@ def update_phase_space_plot(i, pos, velocity_x, velocity_y, velocity_z, scat1, s
 	return scat1, scat2
 
 def render_phase_space_animation(pname, result_name, file_type='hdf5', ylim=None, xlim=None, numframes=None, alpha=1.0,
-                                 analysis_mode="cartesian"):
+                                 export_mode="animation", analysis_mode="cartesian"):
 
 	tr = tra.read_trajectory_file_for_project(pname, file_type)
 	animate_phase_space(tr, result_name, ylim=ylim, xlim=xlim,
-	                    alpha=alpha, numframes=numframes, analysis_mode=analysis_mode)
+	                    alpha=alpha, numframes=numframes, export_mode=export_mode, analysis_mode=analysis_mode)
