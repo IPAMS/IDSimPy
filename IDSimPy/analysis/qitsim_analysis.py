@@ -172,7 +172,8 @@ def calculate_FFT_spectrum(t, z):
 
 def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
                     load_mode="fft_record", title=None, result_path=None, plot_result='export',
-                    figsize=(20, 5), titlepos=(0.1, 0.94), title_font_size=15):
+                    figsize=(20, 5), titlepos=(0.1, 0.94),
+                    title_font_size=15, axis_label_font_size=15, axis_tick_font_size=10):
 	"""
 	Analyses a transient of a QIT simulation and calculates/plots the spectrum from it
 
@@ -216,6 +217,10 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 		ax[0].plot(t, z, 'C1')
 		ax[0].set_xlabel('Time (s)')
 		ax[0].set_ylabel('Amplitude (arb.)')
+		ax[0].xaxis.label.set_size(axis_label_font_size)
+		ax[0].tick_params(axis='x', labelsize=axis_tick_font_size)
+		ax[0].yaxis.label.set_size(axis_label_font_size)
+		ax[0].tick_params(axis='y', labelsize=axis_tick_font_size)
 
 		#ax[1].semilogy(frq[freqsPl],abs(Y[freqsPl]),'r') # plotting the spectrum
 		if amp_mode == "lin":
@@ -224,6 +229,10 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 			ax[1].semilogy(frq[freqsPl]/1000, abs(Y[freqsPl]), 'C0')  # plotting the spectrum logarithmic
 		ax[1].set_xlabel('Freq (kHz)')
 		ax[1].set_ylabel('Amplitude (arb.)')
+		ax[1].xaxis.label.set_size(axis_label_font_size)
+		ax[1].tick_params(axis='x', labelsize=axis_tick_font_size)
+		ax[1].yaxis.label.set_size(axis_label_font_size)
+		ax[1].tick_params(axis='y', labelsize=axis_tick_font_size)
 
 		projectName = project_path.split("/")[-1]
 
