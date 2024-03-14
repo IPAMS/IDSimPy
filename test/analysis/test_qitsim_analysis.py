@@ -2,6 +2,7 @@ import unittest
 import os
 
 import matplotlib.figure
+import matplotlib.pyplot as plt
 import numpy as np
 import IDSimPy as qa
 
@@ -115,3 +116,12 @@ class TestQitSimAnalysis(unittest.TestCase):
 		result_name_radial_4 = os.path.join(self.result_path, 'phase_space_animation_05_radial')
 		qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_radial_4, selected_frames=[10, 20, 40],
 		                                export_mode='single_frames', analysis_mode='radial')
+
+	def test_phase_space_trajectories(self):
+
+		tra = qa.read_trajectory_file_for_project(self.sim_ft_qit_2, 'hdf5')
+
+		pdef = [10, 20]
+		fig = qa.plot_phase_space_trajectory(tra, pdef, xlim=(-0.001, 0.001))
+
+		fig.show()

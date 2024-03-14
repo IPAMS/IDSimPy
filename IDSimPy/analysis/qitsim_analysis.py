@@ -474,13 +474,25 @@ def plot_phase_space_frame(tr, timestep):
 	plt.scatter(pos[:, 2, timestep], ap[:, 2, timestep], s=0.5, alpha=0.5)
 
 
-def plot_phase_space_trajectory(tr, pdef):
-	print(len(tr['times']))
-	pos = tr['positions']
-	ap = tr['particle_attributes']
+def plot_phase_space_trajectory(tr, pdef, ylim=None, xlim=None):
+	pos = tr.positions
+	ap = tr.particle_attributes
+	velocity_x = ap.get('velocity x')
+	velocity_y = ap.get('velocity y')
+	velocity_z = ap.get('velocity z')
 	print(np.shape(pos))
+
+	fig, ax = plt.subplots(1, 1)
 	for pi in pdef:
-		plt.scatter(pos[pi, 0, :], ap[pi, 0, :], s=10, alpha=1)
+		ax.plot(pos[pi, 0, :], velocity_z[pi, :], alpha=1)
+
+	if xlim:
+		ax.set_xlim(xlim)
+
+	if ylim:
+		ax.set_ylim(ylim)
+
+	return fig
 
 
 def animate_phase_space(tr, result_name, xlim=None, ylim=None, selected_frames=None, alpha=1.0, analysis_mode="radial",
