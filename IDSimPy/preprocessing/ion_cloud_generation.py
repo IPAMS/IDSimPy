@@ -5,6 +5,7 @@ ion_cloud_generation: Generation of ion cloud initialization files
 """
 
 import numpy as np
+from IDSimPy.analysis.constants import *
 
 
 def write_cloud_file(ion_cloud, filename):
@@ -18,6 +19,7 @@ def write_cloud_file(ion_cloud, filename):
 	:type filename: str
 	"""
 	with open(filename, 'w') as file:
+		file.write('#pos x; pos y; pos z; vx; vy; vz; charge; mass_amu; collision diameter (angstroem); TOB\n')
 		for i_ion in range(np.shape(ion_cloud)[0]):
 			line = ion_cloud[i_ion, :]
 			for v in line:
@@ -73,14 +75,14 @@ def define_xy_grid(n_x, n_y, w_x, w_y, o_x, o_y, mass):
 	:param float mass: the mass of the ions in the grid
 	:return: the ion cloud in an np.array with the structure as expected by write_cloud_file
 	"""
-	X = np.linspace(-w_x, w_x, n_x) + o_x
-	Y = np.linspace(-w_y, w_y, n_y) + o_y
+	x_vec = np.linspace(-w_x, w_x, n_x) + o_x
+	y_vec = np.linspace(-w_y, w_y, n_y) + o_y
 
-	result = np.zeros([n_x * n_y, 8])
+	result = np.zeros([n_x * n_y, 10])
 
 	i = 0
-	for x in X:
-		for y in Y:
+	for x in x_vec:
+		for y in y_vec:
 			result[i, :] = np.array([x, y, 0, 0, 0, 0, 1, mass, 0.0, 0])
 			i += 1
 
@@ -98,18 +100,18 @@ def define_origin_centered_block(n_ions, w_x, w_y, w_z, mass):
 	:param float mass: the mass of the ions (in amu)
 	:return: the ion cloud in an np.array with the structure as expected by write_cloud_file
 	"""
-	X = np.random.rand(n_ions, 3)
-	V = np.zeros([n_ions, 3])
-	M = np.zeros([n_ions, 1]) + mass
-	C = np.zeros([n_ions, 1]) + 1
-	DIAM= np.zeros([n_ions, 1])
-	TOB = np.zeros([n_ions, 1])
+	positions = np.random.rand(n_ions, 3)
+	velocity = np.zeros([n_ions, 3])
+	ion_masses = np.zeros([n_ions, 1]) + mass
+	charges = np.zeros([n_ions, 1]) + 1
+	diameters= np.zeros([n_ions, 1])
+	time_of_birts = np.zeros([n_ions, 1])
 
-	X[:, 0] = (X[:, 0] * (2 * w_x)) - w_x
-	X[:, 1] = (X[:, 1] * (2 * w_y)) - w_y
-	X[:, 2] = (X[:, 2] * (2 * w_z)) - w_z
+	positions[:, 0] = (positions[:, 0] * (2 * w_x)) - w_x
+	positions[:, 1] = (positions[:, 1] * (2 * w_y)) - w_y
+	positions[:, 2] = (positions[:, 2] * (2 * w_z)) - w_z
 
-	result = np.hstack([X, V, C, M, DIAM, TOB])
+	result = np.hstack([positions, velocity, charges, ion_masses, diameters, time_of_birts])
 	return result
 
 
@@ -178,28 +180,3 @@ def define_cylinder_x_dir(n_ions, r, x, charge, mass):
 
 	result = np.hstack([X, Y, Z, V, C, M, DIAM, TOB])
 	return result
-
-
-def write_xy_slice(n_ions, masses, w_x, w_y, filename):
-	"""
-	Writes a random slice of ions in xy-Direction to a file,
-
-	:param list[int] n_ions: a list of numbers of ions with ions in the slice
-	:param list[float] masses: list of masses (in amu)
-	:param float w_x: the width in x direction (in m)
-	:param float w_y: the width in y direction (in m)
-	:param str filename: the name of the file to write the resulting ion cloud to
-	"""
-	ion_cloud = []
-
-	for i_m in range(0, len(masses)):
-
-		if len(ion_cloud) == 0:
-			ion_cloud = define_origin_centered_block(n_ions[i_m], w_x, w_y, 0.1 / 1000.0, masses[i_m])
-		else:
-			ion_cloud = np.vstack([
-				ion_cloud,
-				define_origin_centered_block(n_ions[i_m], w_x, w_y, 0.1 / 1000.0, masses[i_m])
-			])
-
-	write_cloud_file(ion_cloud, filename)
