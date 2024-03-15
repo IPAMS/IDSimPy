@@ -4,6 +4,7 @@ channels:
   - defaults
 dependencies:
   - python=3.11
+  - pip>=22
   - pip:
       - sphinx-rtd-theme>=1.0.0
       - h5py>=3.9.0
