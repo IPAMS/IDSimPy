@@ -9,6 +9,7 @@ import pandas as pd
 import commentjson
 import os
 from matplotlib import animation
+from matplotlib import ticker
 from .constants import *
 from . import trajectory as tra
 
@@ -490,14 +491,25 @@ def plot_phase_space_frame(tr, timestep):
 def plot_phase_space_trajectory(tr, pdef, ylim=None, xlim=None):
 	pos = tr.positions
 	ap = tr.particle_attributes
-	velocity_x = ap.get('velocity x')
-	velocity_y = ap.get('velocity y')
+	#velocity_x = ap.get('velocity x')
+	#velocity_y = ap.get('velocity y')
 	velocity_z = ap.get('velocity z')
 	print(np.shape(pos))
 
 	fig, ax = plt.subplots(1, 1)
 	for pi in pdef:
-		ax.plot(pos[pi, 0, :], velocity_z[pi, :], alpha=1)
+		if 'alpha' in pi:
+			alpha = pi['alpha']
+		else:
+			alpha = 1.0
+		if 'cl' in pi:
+			color = pi['cl']
+		else:
+			color = None
+		ax.plot(pos[pi['i'], 2, :], velocity_z[pi['i'], :], alpha=alpha, color=color)
+		ax.xaxis.set_major_formatter(ticker.StrMethodFormatter("{x:.3f}"))
+		ax.set_xlabel('z Position (m)')
+		ax.set_ylabel('z Velocity (m/s)')
 
 	if xlim:
 		ax.set_xlim(xlim)
@@ -505,6 +517,7 @@ def plot_phase_space_trajectory(tr, pdef, ylim=None, xlim=None):
 	if ylim:
 		ax.set_ylim(ylim)
 
+	plt.tight_layout()
 	return fig
 
 
