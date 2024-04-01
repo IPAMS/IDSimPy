@@ -77,7 +77,7 @@ class TestQitSimAnalysis(unittest.TestCase):
 		self.assertIsInstance(fft_dat['figure'], matplotlib.figure.Figure)
 
 	def test_fft_analysis_of_unresolved_reactive_qit_sim(self):
-		fft_dat = qa.analyse_FFT_sim(self.sim_scanned, result_path=self.result_path)
+		fft_dat = qa.analyse_FFT_sim(self.sim_scanned, result_path=self.result_path, time_axis_unit='s')
 
 		n_freqs = 388
 		n_ftsamples = 777
