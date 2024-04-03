@@ -173,7 +173,9 @@ def calculate_FFT_spectrum(t, z):
 
 def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
                     load_mode="fft_record", title=None, result_path=None, plot_result='export',
+					time_slice=None, 
                     figsize=(20, 5), titlepos=(0.1, 0.94),
+					time_axis_unit="ms",
                     title_font_size=15, axis_label_font_size=15, axis_tick_font_size=10):
 	"""
 	Analyses a transient of a QIT simulation and calculates/plots the spectrum from it
@@ -188,7 +190,8 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 	:param result_path: Optional export path for the result plots
 	:param plot_result: Controls if a plot is generated and exported, options are
 		+ 'export' a plot is generated, exported and returned in the return dictionary
-		+ 'plot' a plot is generated and and returned in the return dictionary
+		+ 'plot' a plot is generated and returned in the return dictionary
+	:param time_axis_unit: Unit for transient time axis ('s' for seconds, 'ms' for milliseconds)
 	:return: a dictionary with the frequencies and amplitudes of the spectrum,
 	the time vector and amplitude of the transient and the Figure object of the plot (if applicable)
 	"""
@@ -208,6 +211,9 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 		t, z = reconstruct_transient_from_trajectories(tr)
 		t = t*1e-6
 
+	if time_slice:
+		t = t[time_slice]
+		z = z[time_slice]
 	frq, Y = calculate_FFT_spectrum(t, z)
 
 	freqsPl= range(int(len(frq) * freq_start), int((len(frq) * freq_stop)))
@@ -215,8 +221,15 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 	fig = None
 	if plot_result == 'export' or plot_result == 'plot':
 		fig, ax = plt.subplots(1, 2, figsize=figsize, dpi=50)
-		ax[0].plot(t, z, 'C1')
-		ax[0].set_xlabel('Time (s)')
+		if time_axis_unit == 's':
+			ax[0].plot(t, z, 'C1')
+			ax[0].set_xlabel('Time (s)')
+		elif time_axis_unit == 'ms':
+			ax[0].plot(t*1000.0, z, 'C1')
+			ax[0].set_xlabel('Time (ms)')
+		else:
+			raise ValueError('Illegal time unit for transient')
+
 		ax[0].set_ylabel('Amplitude (arb.)')
 		ax[0].xaxis.label.set_size(axis_label_font_size)
 		ax[0].tick_params(axis='x', labelsize=axis_tick_font_size)
