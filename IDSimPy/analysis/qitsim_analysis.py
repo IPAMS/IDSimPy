@@ -508,14 +508,23 @@ def plot_phase_space_trajectory(tr, pdef, ylim=None, xlim=None):
 	return fig
 
 
-def animate_phase_space(tr, result_name, xlim=None, ylim=None, selected_frames=None, alpha=1.0, analysis_mode="radial",
-                        figsize=(13,5), export_mode="animation", dpi=200, cmap='viridis', crange=(None, None)):
+def animate_phase_space(tr, result_name, xlim=None, ylim=None, selected_frames=None, analysis_mode="radial",
+                        figsize=(13,5), export_mode='animation',
+                        spatial_unit='m',
+                        alpha=1.0, dpi=200, cmap='viridis', crange=(None, None)):
 
 	pos = tr.positions
 	ap = tr.particle_attributes
 	velocity_x = ap.get('velocity x')
 	velocity_y = ap.get('velocity y')
 	velocity_z = ap.get('velocity z')
+
+	if spatial_unit == 'mm':
+		pos = pos * 1000.0
+
+	if spatial_unit not in ['mm', 'm']:
+		raise ValueError('Illegal spatial unit')
+
 	masses = tr.optional_attributes['Particle Masses']
 
 	if not selected_frames:
@@ -527,15 +536,17 @@ def animate_phase_space(tr, result_name, xlim=None, ylim=None, selected_frames=N
 
 	fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
 
+
+
 	scat1 = ax1.scatter(pos[:, 0, 0], velocity_x[:, 0], s=10, alpha=alpha, c=masses, cmap=cmap,
 	                    vmin=crange[0], vmax=crange[1])
 
 	if analysis_mode == "radial":
-		ax1.set_xlabel("radial position")
-		ax1.set_ylabel("radial velocity")
+		ax1.set_xlabel(f"radial position ({spatial_unit})")
+		ax1.set_ylabel("radial velocity (m/s)")
 	elif analysis_mode == "cartesian":
-		ax1.set_xlabel("x position")
-		ax1.set_ylabel("x velocity")
+		ax1.set_xlabel(f"x position ({spatial_unit})")
+		ax1.set_ylabel("x velocity (m/s)")
 
 	if ylim:
 		ax1.set_ylim(ylim[0])
@@ -557,8 +568,8 @@ def animate_phase_space(tr, result_name, xlim=None, ylim=None, selected_frames=N
 
 	scat2 = ax2.scatter(pos[:, 2, 0], velocity_z[:, 0], s=10, alpha=alpha, c=masses, cmap=cmap,
 	                    vmin=crange[0], vmax=crange[1])
-	ax2.set_xlabel("z position")
-	ax2.set_ylabel("z velocity")
+	ax2.set_xlabel(f"z position ({spatial_unit})")
+	ax2.set_ylabel("z velocity (m/s)")
 
 	if ylim:
 		ax2.set_ylim(ylim[1])
@@ -574,17 +585,17 @@ def animate_phase_space(tr, result_name, xlim=None, ylim=None, selected_frames=N
 
 	if export_mode == 'animation':
 		ani = animation.FuncAnimation(fig, update_phase_space_plot, frames=selected_frames_range,
-		                              fargs=(pos, velocity_x, velocity_y, velocity_z, scat1, scat2, analysis_mode))
+		                              fargs=(pos, velocity_x, velocity_y, velocity_z, scat1, scat2, analysis_mode, spatial_unit))
 		ani.save(result_name + "_phaseSpace.mp4", fps=20, extra_args=['-vcodec', 'libx264'])
 	elif export_mode == 'single_frames':
 
 		for i_frame in selected_frames_range:
-			update_phase_space_plot(i_frame, pos, velocity_x, velocity_y, velocity_z, scat1, scat2, analysis_mode)
+			update_phase_space_plot(i_frame, pos, velocity_x, velocity_y, velocity_z, scat1, scat2, analysis_mode, spatial_unit)
 			fig.savefig(result_name + f'_{i_frame:03d}.png', dpi=dpi)
 	else:
 		raise ValueError('Illegal Export Mode')
 
-def update_phase_space_plot(i, pos, velocity_x, velocity_y, velocity_z, scat1, scat2, analysis_mode):
+def update_phase_space_plot(i, pos, velocity_x, velocity_y, velocity_z, scat1, scat2, analysis_mode, spatial_unit):
 
 	if analysis_mode == "radial":
 		r_dist = np.sqrt(pos[:, 0, i] ** 2.0 + pos[:, 1, i] ** 2.0)
@@ -596,14 +607,17 @@ def update_phase_space_plot(i, pos, velocity_x, velocity_y, velocity_z, scat1, s
 	scat2.set_offsets(np.transpose(np.vstack([pos[:, 2, i], velocity_z[:, i]])))
 	return scat1, scat2
 
-def render_phase_space_animation(pname, result_name, file_type='hdf5', ylim=None, xlim=None, selected_frames=None, alpha=1.0,
-                                 figsize=(13,5), export_mode="animation", dpi=200, cmap='viridis', crange=(None, None),
+def render_phase_space_animation(pname, result_name, file_type='hdf5', ylim=None, xlim=None, selected_frames=None,
+                                 figsize=(13,5), export_mode="animation",
+                                 spatial_unit='m',
+                                 alpha=1.0,dpi=200, cmap='viridis', crange=(None, None),
                                  analysis_mode="cartesian"):
 
 	tr = tra.read_trajectory_file_for_project(pname, file_type)
 	animate_phase_space(tr, result_name, ylim=ylim, xlim=xlim,
-	                    alpha=alpha, selected_frames=selected_frames,
-	                    figsize=figsize,
-	                    export_mode=export_mode, dpi=dpi, cmap=cmap,
+	                    selected_frames=selected_frames,
+	                    figsize=figsize, export_mode=export_mode,
+	                    spatial_unit=spatial_unit,
+	                    alpha=alpha, dpi=dpi, cmap=cmap,
 	                    analysis_mode=analysis_mode,
 	                    crange=crange)

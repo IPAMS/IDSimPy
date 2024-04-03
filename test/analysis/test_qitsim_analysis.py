@@ -98,23 +98,25 @@ class TestQitSimAnalysis(unittest.TestCase):
 		self.assertEqual(len(fft_dat['transient']), n_ftsamples)
 
 	def test_phase_space_analysis(self):
-		result_name = os.path.join(self.result_path, 'phase_space_animation_01_cartesian')
-		#qa.render_phase_space_animation(self.sim_ft_qit_2, result_name)
 
-		result_name_radial = os.path.join(self.result_path, 'phase_space_animation_02_radial')
-		#qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_radial, analysis_mode='radial')
-
-		result_name_radial_2 = os.path.join(self.result_path, 'phase_space_animation_03_radial')
-		qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_radial_2, selected_frames=5,
-		                                figsize=(12, 3), export_mode='single_frames', analysis_mode='radial',
+		result_name_1 = os.path.join(self.result_path, 'phase_space_animation_01')
+		qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_1, selected_frames=[6,7,10],
+		                                figsize=(12, 3), export_mode='single_frames', analysis_mode='cartesian',
+		                                spatial_unit='mm',
 		                                crange=(20, 40))
 
-		result_name_radial_3 = os.path.join(self.result_path, 'phase_space_animation_04_radial')
-		qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_radial_3, selected_frames=range(40, 41),
+		result_name_2 = os.path.join(self.result_path, 'phase_space_animation_02')
+		qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_2, selected_frames=5,
+		                                figsize=(12, 3), export_mode='single_frames', analysis_mode='radial',
+		                                spatial_unit='mm',
+		                                crange=(20, 40))
+
+		result_name_3 = os.path.join(self.result_path, 'phase_space_animation_03')
+		qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_3, selected_frames=range(40, 41),
 		                                export_mode='single_frames', analysis_mode='radial')
 
-		result_name_radial_4 = os.path.join(self.result_path, 'phase_space_animation_05_radial')
-		qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_radial_4, selected_frames=[10, 20, 40],
+		result_name_4 = os.path.join(self.result_path, 'phase_space_animation_04')
+		qa.render_phase_space_animation(self.sim_ft_qit_2, result_name_4, selected_frames=[10, 20, 40],
 		                                export_mode='single_frames', analysis_mode='radial')
 
 	def test_phase_space_trajectories(self):
