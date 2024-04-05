@@ -474,10 +474,10 @@ class Trajectory:
 def read_trajectory_file_for_project(project_name, file_type):
 
 	if file_type == 'hdf5':
-		file_ext = "_trajectories.hd5"
+		file_ext = "_trajectories.h5"
 		tr = read_hdf5_trajectory_file(project_name + file_ext)
 	elif file_type == 'legacy_hdf5':
-		file_ext = "_trajectories.hd5"
+		file_ext = "_trajectories.h5"
 		tr = read_legacy_hdf5_trajectory_file(project_name + file_ext)
 	elif file_type == 'compressed':
 		file_ext = "_trajectories.json.gz"

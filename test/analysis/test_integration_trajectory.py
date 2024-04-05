@@ -9,7 +9,7 @@ class IntegrationTestTrajectory(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		data_base_path = os.path.join('test', 'analysis', 'integration', 'sim_results')
-		cls.qitSim_2021_08_30_001_fn = os.path.join(data_base_path, 'qitSim_2021_08_30_001_trajectories.hd5')
+		cls.qitSim_2021_08_30_001_fn = os.path.join(data_base_path, 'qitSim_2021_08_30_001_trajectories.h5')
 
 	#  --------------- test importing of freshly generated trajectories ---------------
 

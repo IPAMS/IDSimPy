@@ -19,13 +19,13 @@ class TestVisualizationAnimations(unittest.TestCase):
 			hdf5_v3_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_15_001')
 
 		cls.scanning_qit_hdf5_trajectory_a = os.path.join(
-			hdf5_v3_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_001_trajectories.hd5')
+			hdf5_v3_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_001_trajectories.h5')
 
 		cls.scanning_qit_hdf5_trajectory_b = os.path.join(
-			hdf5_v3_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_002_trajectories.hd5')
+			hdf5_v3_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_10_002_trajectories.h5')
 
 		cls.legacy_hdf5_trajectory_c = os.path.join(
-			hdf5_v3_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_15_001_trajectories.hd5')
+			hdf5_v3_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_15_001_trajectories.h5')
 
 		cls.new_hdf5_variable_projectName = os.path.join(
 			hdf5_v3_path, 'qitSim_2019_07_variableTrajectoryQIT', 'qitSim_2019_07_22_001')

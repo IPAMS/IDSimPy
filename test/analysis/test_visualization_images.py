@@ -17,11 +17,11 @@ class TestVisualization_images(unittest.TestCase):
 		cls.test_reactive_projectName = os.path.join(data_base_path, 'qitSim_2019_04_scanningTrapTest',
 		                                             'qitSim_2019_04_15_001')
 		cls.test_hdf5_trajectory_a = os.path.join(hdf5_v3_path, 'qitSim_2019_04_scanningTrapTest',
-		                                          'qitSim_2019_04_10_001_trajectories.hd5')
+		                                          'qitSim_2019_04_10_001_trajectories.h5')
 		cls.test_hdf5_trajectory_b = os.path.join(hdf5_v3_path, 'qitSim_2019_04_scanningTrapTest',
-		                                          'qitSim_2019_04_10_002_trajectories.hd5')
+		                                          'qitSim_2019_04_10_002_trajectories.h5')
 		cls.test_hdf5_trajectory_c = os.path.join(hdf5_v3_path, 'qitSim_2019_04_scanningTrapTest',
-		                                          'qitSim_2019_04_15_001_trajectories.hd5')
+		                                          'qitSim_2019_04_15_001_trajectories.h5')
 		cls.result_path = os.path.join('test', 'test_results')
 
 	def test_basic_density_plotting(self):

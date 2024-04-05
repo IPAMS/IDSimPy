@@ -11,33 +11,33 @@ class TestTrajectory(unittest.TestCase):
 		data_base_path = os.path.join('test', 'analysis', 'data')
 		hdf_v2_path = os.path.join(data_base_path, 'trajectory_v2')
 		hdf_v3_path = os.path.join(data_base_path, 'trajectory_v3')
-		cls.legacy_hdf5_bare_fname = os.path.join(data_base_path, 'QIT_test_trajectory.hd5')
-		cls.legacy_hdf5_aux_fname = os.path.join(data_base_path, 'QIT_test_trajectory_aux.hd5')
+		cls.legacy_hdf5_bare_fname = os.path.join(data_base_path, 'QIT_test_trajectory.h5')
+		cls.legacy_hdf5_aux_fname = os.path.join(data_base_path, 'QIT_test_trajectory_aux.h5')
 		cls.legacy_hdf5_reactive_fn_a = os.path.join(hdf_v2_path, 'qitSim_2019_04_scanningTrapTest',
-		                                             'qitSim_2019_04_10_002_trajectories.hd5')
+		                                             'qitSim_2019_04_10_002_trajectories.h5')
 		cls.legacy_hdf5_reactive_fn_b = os.path.join(hdf_v2_path, 'qitSim_2019_04_scanningTrapTest',
-		                                             'qitSim_2019_04_15_001_trajectories.hd5')
+		                                             'qitSim_2019_04_15_001_trajectories.h5')
 
 		cls.hdf5_v2_variable_fname = os.path.join(hdf_v2_path, 'qitSim_2019_07_variableTrajectoryQIT',
-		                                           'qitSim_2019_07_22_001_trajectories.hd5')
+		                                           'qitSim_2019_07_22_001_trajectories.h5')
 
 		cls.hdf5_v2_static_fname = os.path.join(hdf_v2_path, 'qitSim_2019_07_variableTrajectoryQIT',
-		                                         'qitSim_2019_07_22_002_trajectories.hd5')
+		                                         'qitSim_2019_07_22_002_trajectories.h5')
 
 		cls.hdf5_v3_variable_fname = os.path.join(hdf_v3_path, 'qitSim_2019_07_variableTrajectoryQIT',
-		                                           'qitSim_2019_07_22_001_trajectories.hd5')
+		                                           'qitSim_2019_07_22_001_trajectories.h5')
 
 		cls.hdf5_v3_static_fname = os.path.join(hdf_v3_path, 'qitSim_2019_07_variableTrajectoryQIT',
-		                                         'qitSim_2019_07_22_002_trajectories.hd5')
+		                                         'qitSim_2019_07_22_002_trajectories.h5')
 
 		cls.hdf5_v3_additional_attribute_fname = os.path.join(hdf_v3_path, 'qitSim_2024_01_FTQIT_2',
-		                                                'QIT_fixedRF_trajectories.hd5')
+		                                                'QIT_fixedRF_trajectories.h5')
 
 		cls.hdf5_capacitor_all_splat = os.path.join(hdf_v3_path, 'capacitor_all_splat',
-		                                         'capacitor_all_splat_trajectories.hd5')
+		                                         'capacitor_all_splat_trajectories.h5')
 
 		cls.hdf5_capacitor_all_splat_static = os.path.join(hdf_v3_path, 'capacitor_all_splat',
-		                                         'capacitor_all_splat_static_trajectories.hd5')
+		                                         'capacitor_all_splat_static_trajectories.h5')
 
 		cls.test_json_fname = os.path.join(data_base_path, 'test_trajectories.json')
 		cls.result_path = os.path.join('test', 'test_results')
