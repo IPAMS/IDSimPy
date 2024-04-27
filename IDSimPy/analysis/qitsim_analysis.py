@@ -488,7 +488,7 @@ def plot_phase_space_frame(tr, timestep):
 	plt.scatter(pos[:, 2, timestep], ap[:, 2, timestep], s=0.5, alpha=0.5)
 
 
-def plot_phase_space_trajectory(tr, pdef, ylim=None, xlim=None):
+def plot_phase_space_trajectory(tr, pdef, ylim=None, xlim=None, frame_indexes=None):
 	pos = tr.positions
 	ap = tr.particle_attributes
 	#velocity_x = ap.get('velocity x')
@@ -497,6 +497,13 @@ def plot_phase_space_trajectory(tr, pdef, ylim=None, xlim=None):
 	print(np.shape(pos))
 
 	fig, ax = plt.subplots(1, 1)
+
+	if frame_indexes is None:
+		selected_frame_idx = np.arange(tr.n_timesteps)
+	else:
+		selected_frame_idx = frame_indexes
+
+
 	for pi in pdef:
 		if 'alpha' in pi:
 			alpha = pi['alpha']
@@ -506,7 +513,7 @@ def plot_phase_space_trajectory(tr, pdef, ylim=None, xlim=None):
 			color = pi['cl']
 		else:
 			color = None
-		ax.plot(pos[pi['i'], 2, :], velocity_z[pi['i'], :], alpha=alpha, color=color)
+		ax.plot(pos[pi['i'], 2, selected_frame_idx], velocity_z[pi['i'], selected_frame_idx], alpha=alpha, color=color)
 		ax.xaxis.set_major_formatter(ticker.StrMethodFormatter("{x:.3f}"))
 		ax.set_xlabel('z Position (m)')
 		ax.set_ylabel('z Velocity (m/s)')
