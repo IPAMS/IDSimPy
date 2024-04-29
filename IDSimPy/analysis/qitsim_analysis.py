@@ -551,7 +551,7 @@ def animate_phase_space(tr, result_name, xlim=None, ylim=None, selected_frames=N
 
 
 
-	scat1 = ax1.scatter(pos[:, 0, 0], velocity_x[:, 0], s=10, alpha=alpha, c=masses, cmap=cmap,
+	scat1 = ax1.scatter(pos[:, 0, 0], velocity_x[:, 0], s=10, alpha=alpha, c=masses, cmap=cmap, edgecolors='none',
 	                    vmin=crange[0], vmax=crange[1])
 
 	if analysis_mode == "radial":
@@ -579,7 +579,7 @@ def animate_phase_space(tr, result_name, xlim=None, ylim=None, selected_frames=N
 		elif analysis_mode == "cartesian":
 			ax1.set_xlim((np.min(pos[:, 0, :]), np.max(pos[:, 0, :])))
 
-	scat2 = ax2.scatter(pos[:, 2, 0], velocity_z[:, 0], s=10, alpha=alpha, c=masses, cmap=cmap,
+	scat2 = ax2.scatter(pos[:, 2, 0], velocity_z[:, 0], s=10, alpha=alpha, c=masses, cmap=cmap, edgecolors='none',
 	                    vmin=crange[0], vmax=crange[1])
 	ax2.set_xlabel(f"z position ({spatial_unit})")
 	ax2.set_ylabel("z velocity (m/s)")
