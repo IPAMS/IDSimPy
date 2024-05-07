@@ -173,7 +173,7 @@ def calculate_FFT_spectrum(t, z):
 
 def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
                     load_mode="fft_record", title=None, result_path=None, plot_result='export',
-					time_slice=None, 
+					time_slice=None, transient_plot_time_lims=None,
                     figsize=(20, 5), titlepos=(0.1, 0.94),
 					time_axis_unit="ms",
                     title_font_size=15, axis_label_font_size=15, axis_tick_font_size=10):
@@ -235,6 +235,8 @@ def analyse_FFT_sim(project_path, freq_start=0.0, freq_stop=1.0, amp_mode="lin",
 		ax[0].tick_params(axis='x', labelsize=axis_tick_font_size)
 		ax[0].yaxis.label.set_size(axis_label_font_size)
 		ax[0].tick_params(axis='y', labelsize=axis_tick_font_size)
+		if transient_plot_time_lims is not None:
+			ax[0].set_xlim(transient_plot_time_lims)
 
 		#ax[1].semilogy(frq[freqsPl],abs(Y[freqsPl]),'r') # plotting the spectrum
 		if amp_mode == "lin":
@@ -488,7 +490,8 @@ def plot_phase_space_frame(tr, timestep):
 	plt.scatter(pos[:, 2, timestep], ap[:, 2, timestep], s=0.5, alpha=0.5)
 
 
-def plot_phase_space_trajectory(tr, pdef, ylim=None, xlim=None, frame_indexes=None):
+def plot_phase_space_trajectory(tr, pdef, ylim=None, xlim=None, frame_indexes=None,
+                                linestyle='-', marker='', markersize=1.0):
 	pos = tr.positions
 	ap = tr.particle_attributes
 	#velocity_x = ap.get('velocity x')
@@ -513,7 +516,9 @@ def plot_phase_space_trajectory(tr, pdef, ylim=None, xlim=None, frame_indexes=No
 			color = pi['cl']
 		else:
 			color = None
-		ax.plot(pos[pi['i'], 2, selected_frame_idx], velocity_z[pi['i'], selected_frame_idx], alpha=alpha, color=color)
+		ax.plot(pos[pi['i'], 2, selected_frame_idx], velocity_z[pi['i'], selected_frame_idx],
+		        linestyle=linestyle, marker=marker, markersize=markersize, markeredgecolor='none',
+				alpha=alpha, color=color)
 		ax.xaxis.set_major_formatter(ticker.StrMethodFormatter("{x:.3f}"))
 		ax.set_xlabel('z Position (m)')
 		ax.set_ylabel('z Velocity (m/s)')
