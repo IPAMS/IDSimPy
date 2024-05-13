@@ -479,7 +479,7 @@ def animate_simulation_center_of_masses_z_vs_x(dat, masses, n_frames, interval, 
 
 ### Phase Space Analysis ###
 
-def plot_phase_space_frame(tr, timestep):
+def plot_axial_phase_space_frame(tr, timestep):
 	print(len(tr['times']))
 	pos = tr['positions']
 	ap = tr['particle_attributes']
@@ -491,13 +491,13 @@ def plot_phase_space_frame(tr, timestep):
 
 
 def plot_phase_space_trajectory(tr, pdef, ylim=None, xlim=None, frame_indexes=None,
-                                linestyle='-', marker='', markersize=1.0):
+                                linestyle='-', marker='', markersize=1.0, scatter_plot_end_position=False, cmap='coolwarm'):
 	pos = tr.positions
 	ap = tr.particle_attributes
 	#velocity_x = ap.get('velocity x')
 	#velocity_y = ap.get('velocity y')
 	velocity_z = ap.get('velocity z')
-	print(np.shape(pos))
+	masses = tr.optional_attributes['Particle Masses']
 
 	fig, ax = plt.subplots(1, 1)
 
@@ -505,7 +505,6 @@ def plot_phase_space_trajectory(tr, pdef, ylim=None, xlim=None, frame_indexes=No
 		selected_frame_idx = np.arange(tr.n_timesteps)
 	else:
 		selected_frame_idx = frame_indexes
-
 
 	for pi in pdef:
 		if 'alpha' in pi:
@@ -522,6 +521,11 @@ def plot_phase_space_trajectory(tr, pdef, ylim=None, xlim=None, frame_indexes=No
 		ax.xaxis.set_major_formatter(ticker.StrMethodFormatter("{x:.3f}"))
 		ax.set_xlabel('z Position (m)')
 		ax.set_ylabel('z Velocity (m/s)')
+
+	if scatter_plot_end_position is True:
+		last_frame_idx = selected_frame_idx[-1]
+		ax.scatter(pos[:, 2, last_frame_idx], velocity_z[:, last_frame_idx], s=10, alpha=alpha, c=masses, cmap=cmap,
+		           edgecolors='none')
 
 	if xlim:
 		ax.set_xlim(xlim)

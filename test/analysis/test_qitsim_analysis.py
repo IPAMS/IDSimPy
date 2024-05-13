@@ -127,6 +127,21 @@ class TestQitSimAnalysis(unittest.TestCase):
 			{'i':10, 'alpha':0.5},
 			{'i':20, 'cl':'red'},
 			{'i':21, 'cl':'#FFAABB'}]
+
 		fig = qa.plot_phase_space_trajectory(tra, pdef, xlim=(-0.005, 0.005))
+
+		fig.show()
+
+	def test_phase_space_trajectories_with_scatter_plot(self):
+
+		tra = qa.read_trajectory_file_for_project(self.sim_ft_qit_2, 'hdf5')
+
+		pdef = [
+			{'i':10, 'alpha':0.5},
+			{'i':20, 'cl':'red'},
+			{'i':21, 'cl':'#FFAABB'}]
+
+		fig = qa.plot_phase_space_trajectory(tra, pdef, xlim=(-0.005, 0.005),
+		                                     scatter_plot_end_position=True)
 
 		fig.show()
