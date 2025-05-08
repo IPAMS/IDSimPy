@@ -716,6 +716,15 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 				start_times, start_pos, splat_times, splat_pos, p_states
 			)
 
+		# Read legacy splat data:
+		if 'splattimes' in tra_group.keys():
+			splat_times = np.array(tra_group['splattimes'])
+
+			start_splat_data = StartSplatTrackingData(
+				None, None, splat_times, None, None
+			)
+
+
 		result = Trajectory(
 			positions=positions,
 			times=np.array(times),
