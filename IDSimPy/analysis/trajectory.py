@@ -292,7 +292,10 @@ class StartSplatTrackingData:
 	Simple container class for start / splat data of simulated particles
 	"""
 
-	def __init__(self, start_times, start_positions, splat_times, splat_positions, splat_states):
+	def __init__(self,
+	             start_times, start_positions, start_velocities,
+	             splat_times, splat_positions, splat_velocities,
+	             splat_states):
 		"""
 		Constructs a new StartSplatTrackingData container
 
@@ -300,10 +303,14 @@ class StartSplatTrackingData:
 		:type start_times: np.ndarray with shape (n_ions, 1)
 		:param start_positions: A vector of start positions of the particles (numpy array with three columns)
 		:type start_times: np.ndarray with shape (n_ions, 3)
+		:param start_velocities: A vector of start velocities of the particles (numpy array with three columns)
+		:type start_velocities: np.ndarray with shape (n_ions, 3)
 		:param splat_times: A vector of splat times for the particles (1 dimensional numpy array)
 		:type splat_times: np.ndarray with shape (n_ions, 1)
 		:param splat_positions: A vector of splat positions of the particles (numpy array with three columns)
-		:type splat_times: np.ndarray with shape (n_ions, 3)
+		:type splat_positions: np.ndarray with shape (n_ions, 3)
+		:param splat_velocities: A vector of splat velocities of the particles (numpy array with three columns)
+		:type splat_velocities: np.ndarray with shape (n_ions, 3)
 		:param splat_states: A vector of splat state for the particles (1 dimensional integer numpy array)
 		:type splat_states: np.ndarray with shape (n_ions, 1)
 		"""
@@ -313,6 +320,8 @@ class StartSplatTrackingData:
 		self.splat_times: np.ndarray = splat_times
 		self.splat_positions: np.ndarray = splat_positions
 		self.splat_states: np.ndarray = splat_states
+		self.start_velocities: np.ndarray = start_velocities
+		self.splat_velocities: np.ndarray = splat_velocities
 
 
 class Trajectory:
@@ -712,8 +721,20 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 			splat_times = np.array(ss_grp['particle splat times'])
 			p_states = np.array(ss_grp['particle splat state'], dtype=int)
 
+			if 'particle start velocities' in ss_grp.keys():
+				start_velocities = np.array(ss_grp['particle start velocities'])
+			else:
+				start_velocities = None
+
+			if 'particle splat velocities' in ss_grp.keys():
+				splat_velocities = np.array(ss_grp['particle splat velocities'])
+			else:
+				splat_velocities = None
+
 			start_splat_data = StartSplatTrackingData(
-				start_times, start_pos, splat_times, splat_pos, p_states
+				start_times, start_pos, start_velocities,
+				splat_times, splat_pos, splat_velocities,
+				p_states
 			)
 
 		# Read legacy splat data:

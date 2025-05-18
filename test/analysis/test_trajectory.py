@@ -39,6 +39,9 @@ class TestTrajectory(unittest.TestCase):
 		cls.hdf5_capacitor_all_splat_static = os.path.join(hdf_v3_path, 'capacitor_all_splat',
 		                                         'capacitor_all_splat_static_trajectories.h5')
 
+		cls.hdf5_unit_test_trajectory = os.path.join(hdf_v3_path, 'synthetic_test_trajectories',
+		                                                   'test_trajectory_unit_test.h5')
+
 		cls.test_json_fname = os.path.join(data_base_path, 'test_trajectories.json')
 		cls.result_path = os.path.join('test', 'test_results')
 
@@ -169,6 +172,25 @@ class TestTrajectory(unittest.TestCase):
 
 	#  --------------- test Trajectory reading from files ---------------
 
+	def test_hdf5_v3_full_start_splat_data(self):
+		tra = ia.read_hdf5_trajectory_file(self.hdf5_unit_test_trajectory)
+		self.assertEqual(tra.file_version_id, 3)
+
+		# test reading of start / splat data:
+		ss_data = tra.start_splat_data
+		np.testing.assert_allclose(ss_data.start_positions[0, :], [0.0, 1.0, 0.0])
+		np.testing.assert_allclose(ss_data.start_positions[1, :], [0.0, 1.0, 0.0])
+
+		np.testing.assert_allclose(ss_data.splat_positions[0, :], [0.0, 1.0, 70.0])
+		np.testing.assert_allclose(ss_data.splat_positions[1, :], [0.1, 1.0, 70.0])
+
+		np.testing.assert_allclose(ss_data.start_velocities[0, :], [0.0, 0.0, 0.0])
+		np.testing.assert_allclose(ss_data.start_velocities[1, :], [0.0, 0.0, 0.0])
+
+		np.testing.assert_allclose(ss_data.splat_velocities[0, :], [0.0, 0.0, 70.0])
+		np.testing.assert_allclose(ss_data.splat_velocities[1, :], [0.01, 0.1, 70.0])
+		np.testing.assert_allclose(ss_data.splat_velocities[4, :], [0.04, 0.4, 70.0])
+
 
 	def test_hdf5_v3_optional_trajectory_datasets(self):
 		tra = ia.read_hdf5_trajectory_file(self.hdf5_v3_additional_attribute_fname)
@@ -226,6 +248,10 @@ class TestTrajectory(unittest.TestCase):
 
 		np.testing.assert_allclose(ss_data.splat_positions[35, :], [-9.886785E-5, -3.7777616E-5, 0.0049760267])
 		self.assertEqual(ss_data.splat_states[35, 0], 2)
+
+		# in this old trajectory, the start / splat velocities are None:
+		self.assertEqual(ss_data.start_velocities, None)
+		self.assertEqual(ss_data.splat_velocities, None)
 
 	def test_hdf5_v2_trajectory_reading_variable_timesteps(self):
 		tra = ia.read_hdf5_trajectory_file(self.hdf5_v2_variable_fname)
