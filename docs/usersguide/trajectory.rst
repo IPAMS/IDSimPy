@@ -259,12 +259,14 @@ Besides the tabular optional parameters described above, some simulation apps re
 
 This information, if existing, is stored in an additional container class :py:class:`.StartSplatTrackingData` in the ``start_splat_data`` attribute of the trajectory object. 
 
-Currently this object is a simple container for five data vectors: 
+Currently this object is a simple container for seven data vectors: 
 
   * ``start_times`` Start times of the particles
   * ``splat_times`` Splat / termination times of the particles 
   * ``start_positions`` Start positions of the particles 
   * ``splat_positions`` Splat positions of the particles 
+  * ``start_velocities`` Velocities of the particles when they are started
+  * ``splat_velocities`` Velocities of the particles when they splat / terminate
   * ``splat_states`` Particle status, encoded as integer number. Details should (hopefully) be found in the IDSimF documentation, but currently the states mean: 
 
     * STARTED = 1,
@@ -272,7 +274,7 @@ Currently this object is a simple container for five data vectors:
     * RESTARTED = 3,
     * SPLATTED_AND_RESTARTED = 4
 
-The time vectors are numpy arrays with dimensions ``[number of particles, 1]``, the position vectors are numpy arrays with dimensions ``[number of particles, 3]`` with x,y,z components of the start or splat positions. 
+The time vectors are numpy arrays with dimensions ``[number of particles, 1]``, the position and velocity vectors are numpy arrays with dimensions ``[number of particles, 3]`` with x,y,z components of the start and splat positions or the start and splat velocities. 
 
 
 .. note::
