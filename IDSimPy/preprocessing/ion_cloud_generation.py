@@ -45,6 +45,23 @@ def random_sphere(radius, n_samples):
 	coords = np.transpose(np.vstack([x, y, z])) * radius
 	return coords
 
+def random_filled_sphere(radius, n_samples):
+	# http://mathworld.wolfram.com/SpherePointPicking.html
+
+	u = np.random.rand(n_samples)
+	v = np.random.rand(n_samples)
+	w = np.random.rand(n_samples)
+
+	r = radius * u ** (1/3)
+	theta = np.arccos(2 * v - 1)
+	phi = 2 * np.pi * w
+
+	x = r * np.sin(theta) * np.cos(phi)
+	y = r * np.sin(theta) * np.sin(phi)
+	z = r * np.cos(theta)
+
+	coords = np.transpose(np.vstack([x, y, z]))
+	return coords
 
 def set_kinetic_energy_in_z_dir(ion_cloud, ke):
 	ion_cloud[:, 5] = velo_from_kinetic_energy(ke, ion_cloud[:, 7])
