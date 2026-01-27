@@ -742,7 +742,7 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 			splat_times = np.array(tra_group['splattimes'])
 
 			start_splat_data = StartSplatTrackingData(
-				None, None, splat_times, None, None
+				None, None, splat_times, None, None, None, None
 			)
 
 
