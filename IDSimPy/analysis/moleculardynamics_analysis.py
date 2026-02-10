@@ -3,11 +3,13 @@
 import gzip
 import itertools
 import numpy as np
+import h5py
+from dataclasses import dataclass
 
 
-def read_md_collisions_trajectory_file(trajectory_filename, framework):
+def read_legacy_md_collisions_trajectory_file(trajectory_filename, framework):
 	"""
-	Reads a molecular collisions trajectory file
+	Reads a legacy molecular collisions trajectory file (ASCII file)
 
 	:param trajectory_filename: File name of the file to read
 	:type trajectory_filename: str
@@ -41,3 +43,36 @@ def read_md_collisions_trajectory_file(trajectory_filename, framework):
 					result.append(trajectory_data)
 
 		return result
+
+@dataclass
+class MDTrajectory:
+	name: str
+	n_atoms: list[int]
+	column_names: list[str]
+	trajectory: np.ndarray
+
+def read_md_collisions_trajectory_file(trajectory_filename):
+	"""
+	Reads a fully resolved molecular collisions trajectory file (HDF5 file)
+	"""
+
+	if trajectory_filename[-3:] != ".h5":
+		raise ValueError("Only HDF5 trajectory (.h5) files are supported")
+
+
+	with h5py.File(trajectory_filename, 'r') as hdf5file:
+		trajectories_group = hdf5file['MD_trajectories']
+
+
+		result = []
+		for ds_name in trajectories_group:
+			ds = trajectories_group[ds_name]
+			attribs = ds.attrs
+			traj = MDTrajectory(ds_name, attribs['number_of_atoms'].tolist(), attribs['column_names'].tolist(), np.array(ds))
+			result.append(traj)
+
+	return result
+
+
+
+
