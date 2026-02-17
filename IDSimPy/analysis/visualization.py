@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib.image import NonUniformImage
 from . import trajectory as tra
+from . import moleculardynamics_analysis as mda
 
 __all__ = (
 	'plot_particle_traces',
@@ -808,3 +809,21 @@ def render_scatter_animation(
 		projection=projection, alpha=alpha, figsize=figsize)
 
 	ani.save(result_name + "_scatter.mp4", fps=fps, extra_args=['-vcodec', 'libx264'])
+
+## MD Trajectory visualization
+
+def render_collision_trajectory_animation(file_name, trajectory_index, t_start, t_stop, figsize = (6.0, 6.0)):
+	tr = mda.read_md_collisions_trajectory_file(file_name)[trajectory_index]
+	fig = plt.figure(figsize=figsize)
+	ax = fig.add_subplot(projection='3d')
+	n_atoms_molec = tr.n_atoms[0]
+	n_atoms_gas = tr.n_atoms[1]
+	ni = 2
+	for i in range(n_atoms_molec):
+		ax.scatter(tr.trajectory[:, ni], tr.trajectory[:, ni+1], tr.trajectory[:, ni+2], color='r')
+		ni += 3
+
+	for i in range(n_atoms_gas):
+		ax.scatter(tr.trajectory[:, ni], tr.trajectory[:, ni + 1], tr.trajectory[:, ni + 2], color='b')
+		ni += 3
+	plt.show()

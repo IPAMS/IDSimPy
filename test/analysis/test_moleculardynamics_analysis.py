@@ -1,7 +1,9 @@
 import unittest
 import os
 import numpy.testing as np_test
-import IDSimPy as md_analysis
+import IDSimPy.analysis.moleculardynamics_analysis as md_analysis
+import IDSimPy.analysis.visualization as vis
+
 
 
 class TestMDCollisionsSimAnalysis(unittest.TestCase):
@@ -12,6 +14,7 @@ class TestMDCollisionsSimAnalysis(unittest.TestCase):
 		cls.md_trajectory_file_gzip = os.path.join(data_base_path, 'position_output_Ar_2_spawn_traj.txt.gz')
 		cls.md_trajectory_file_txt = os.path.join(data_base_path, 'position_output_Ar_2_spawn_traj.txt')
 		cls.md_trajectory_file_hdf5 = os.path.join(data_base_path, 'MD_collisions_multiatom_trajectories_N2.h5')
+		cls.md_trajectory_file_hdf5_He = os.path.join(data_base_path, 'MD_collisions_multiatom_trajectories_He.h5')
 		cls.result_path = os.path.join('test', 'test_results')
 
 	def test_legacy_md_read_txt(self):
@@ -46,3 +49,8 @@ class TestMDCollisionsSimAnalysis(unittest.TestCase):
 		self.assertAlmostEqual(tra1.trajectory[0, 0], 9.9999998e-18, places=20)
 		self.assertAlmostEqual(tra1.trajectory[0, 2], 6.533315e-10, places=15)
 		self.assertAlmostEqual(tra1.trajectory[0, 3], -3.2287795e-09, places=13)
+
+
+	def test_md_trajectory_animation(self):
+		vis.render_collision_trajectory_animation(self.md_trajectory_file_hdf5_He, 0, 0, 10)
+
