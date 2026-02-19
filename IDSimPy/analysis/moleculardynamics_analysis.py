@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 def read_legacy_md_collisions_trajectory_file(trajectory_filename, framework):
 	"""
-	Reads a legacy molecular collisions trajectory file (ASCII file)
+	Reads a legacy molecular collisions tra file (ASCII file)
 
 	:param trajectory_filename: File name of the file to read
 	:type trajectory_filename: str
@@ -53,11 +53,11 @@ class MDTrajectory:
 
 def read_md_collisions_trajectory_file(trajectory_filename):
 	"""
-	Reads a fully resolved molecular collisions trajectory file (HDF5 file)
+	Reads a fully resolved molecular collisions tra file (HDF5 file)
 	"""
 
 	if trajectory_filename[-3:] != ".h5":
-		raise ValueError("Only HDF5 trajectory (.h5) files are supported")
+		raise ValueError("Only HDF5 tra (.h5) files are supported")
 
 
 	with h5py.File(trajectory_filename, 'r') as hdf5file:
@@ -72,6 +72,39 @@ def read_md_collisions_trajectory_file(trajectory_filename):
 			result.append(traj)
 
 	return result
+
+
+def export_trajectory_as_ovito_xyz(tra: MDTrajectory, file_name: str, scale= 1e10):
+	"""
+	Exports tra as an ovito xyz file.
+
+	:param tra: Trajectory object to export
+	:param file_name: File name of the ovito xyz file to write into
+	:param scale: Scaling factor between the length scale in the trajectories and the ovito XYZ file
+		(default is 1 Angström as unit in the xyz file)
+	"""
+	n_atoms_total= sum(tra.n_atoms)
+	n_timesteps = tra.trajectory.shape[0]
+	molec_names = [f'molecule_{i}' for i in range(tra.n_atoms[0])]
+	bg_names = [f'bg_{i}' for i in range(tra.n_atoms[1])]
+
+
+	with open(file_name, 'w') as xyz_file:
+		for ti in range(n_timesteps):
+			xyz_file.write(f'{n_atoms_total}\n')
+			xyz_file.write(f'time step {ti}\n')
+
+			col_i = 2
+			for ai in range(tra.n_atoms[0]):
+				xyz_file.write(f'{molec_names[ai]}    {tra.trajectory[ti, col_i]*scale}    {tra.trajectory[ti, col_i+1]*scale}    {tra.trajectory[ti, col_i+2]*scale}    {0}\n')
+				col_i += 3
+
+			for ai in range(tra.n_atoms[1]):
+				xyz_file.write(f'{bg_names[ai]}    {tra.trajectory[ti, col_i]*scale}    {tra.trajectory[ti, col_i+1]*scale}    {tra.trajectory[ti, col_i+2]*scale}    {1}\n')
+				col_i += 3
+
+
+
 
 
 

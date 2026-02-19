@@ -50,6 +50,11 @@ class TestMDCollisionsSimAnalysis(unittest.TestCase):
 		self.assertAlmostEqual(tra1.trajectory[0, 2], 6.533315e-10, places=15)
 		self.assertAlmostEqual(tra1.trajectory[0, 3], -3.2287795e-09, places=13)
 
+	def test_hdf_trajectory_XYZ_export(self):
+		md_dat = md_analysis.read_md_collisions_trajectory_file(self.md_trajectory_file_hdf5_He)
+
+		xyz_result_file = os.path.join(self.result_path, 'test_md_trajectory.xyz')
+		md_analysis.export_trajectory_as_ovito_xyz(md_dat[0], xyz_result_file)
 
 	def test_md_trajectory_animation(self):
 		vis.render_collision_trajectory_animation(self.md_trajectory_file_hdf5_He, 0, 0, 10)
