@@ -603,10 +603,19 @@ def _read_hdf5_v2_trajectory(tra_group):
 		if static_trajectory:
 			particle_attributes_dat = np.dstack(np.array(particle_attributes_dat))
 
+	# Read legacy splat data:
+	start_splat_data = None
+	if 'splattimes' in tra_group.keys():
+		splat_times = np.array(tra_group['splattimes'])
+		start_splat_data = StartSplatTrackingData(
+			None, None, None, splat_times, None, None, None
+		)
+
 	result = Trajectory(
 		positions=positions,
 		times=np.array(times),
 		particle_attributes=ParticleAttributes(particle_attributes_names, particle_attributes_dat),
+		start_splat_data=start_splat_data,
 		file_version_id=file_version_id)
 
 	return result
@@ -740,9 +749,8 @@ def read_hdf5_trajectory_file(trajectory_file_name):
 		# Read legacy splat data:
 		if 'splattimes' in tra_group.keys():
 			splat_times = np.array(tra_group['splattimes'])
-
 			start_splat_data = StartSplatTrackingData(
-				None, None, splat_times, None, None, None, None
+				None, None, None, splat_times, None, None, None
 			)
 
 
