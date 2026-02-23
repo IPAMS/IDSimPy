@@ -32,14 +32,14 @@ def read_legacy_md_collisions_trajectory_file(trajectory_filename, framework):
 				if not key:
 					group_lines = [x[:-1] for x in group]
 					group_lines_splitted = [line.split(",") for line in group_lines]
-					trajectory_data = np.asfarray(group_lines_splitted)
+					trajectory_data = np.asarray(group_lines_splitted, dtype=np.double)
 					result.append(trajectory_data)
 		else:
 			for key, group in itertools.groupby(tf, lambda line: line.startswith(prefixes[1])):
 				if not key:
 					group_lines = [x[:-1] for x in group]
 					group_lines_splitted = [line.split() for line in group_lines]
-					trajectory_data = np.asfarray(group_lines_splitted)
+					trajectory_data = np.asarray(group_lines_splitted, dtype=np.double)
 					result.append(trajectory_data)
 
 		return result
