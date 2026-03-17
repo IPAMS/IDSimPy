@@ -34,7 +34,7 @@ class TestMDCollisionsSimAnalysis(unittest.TestCase):
 	def test_hdf_trajectory_read(self):
 		md_dat = md_analysis.read_md_collisions_trajectory_file(self.md_trajectory_file_hdf5)
 
-		self.assertEqual(len(md_dat), 5)
+		self.assertEqual(len(md_dat), 4)
 
 		tra1 = md_dat[0]
 		self.assertEqual(tra1.name, 'trajectory1')
@@ -45,10 +45,14 @@ class TestMDCollisionsSimAnalysis(unittest.TestCase):
 		                  'bg_a1_pos_x', 'bg_a1_pos_y', 'bg_a1_pos_z', 'bg_a2_pos_x', 'bg_a2_pos_y',
 		                  'bg_a2_pos_z'])
 
-		self.assertEqual(tra1.trajectory.shape, (190, 17))
-		self.assertAlmostEqual(tra1.trajectory[0, 0], 9.9999998e-18, places=20)
-		self.assertAlmostEqual(tra1.trajectory[0, 2], 6.533315e-10, places=15)
-		self.assertAlmostEqual(tra1.trajectory[0, 3], -3.2287795e-09, places=13)
+		self.assertEqual(tra1.trajectory.shape, (135, 17))
+		self.assertAlmostEqual(tra1.trajectory[0, 0], 0.0, places=15)
+		self.assertAlmostEqual(tra1.trajectory[0, 2], -5.4071723e-11, places=18)
+		self.assertAlmostEqual(tra1.trajectory[0, 3], 5.8551506e-12, places=19)
+
+	def test_hdf_trajectory_com_calculation(self):
+		md_dat = md_analysis.read_md_collisions_trajectory_file(self.md_trajectory_file_hdf5)
+		md_analysis.calculate_com_trajectory(md_dat[0])
 
 	def test_hdf_trajectory_XYZ_export(self):
 		md_dat = md_analysis.read_md_collisions_trajectory_file(self.md_trajectory_file_hdf5_He)

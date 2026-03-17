@@ -48,6 +48,7 @@ def read_legacy_md_collisions_trajectory_file(trajectory_filename, framework):
 class MDTrajectory:
 	name: str
 	n_atoms: list[int]
+	mass_atoms: list[float]
 	column_names: list[str]
 	trajectory: np.ndarray
 
@@ -68,7 +69,11 @@ def read_md_collisions_trajectory_file(trajectory_filename):
 		for ds_name in trajectories_group:
 			ds = trajectories_group[ds_name]
 			attribs = ds.attrs
-			traj = MDTrajectory(ds_name, attribs['number_of_atoms'].tolist(), attribs['column_names'].tolist(), np.array(ds))
+			traj = MDTrajectory(
+				ds_name,
+				attribs['number_of_atoms'].tolist(),
+				attribs['atom_masses'].tolist(),
+				attribs['column_names'].tolist(), np.array(ds))
 			result.append(traj)
 
 	return result
@@ -88,7 +93,6 @@ def export_trajectory_as_ovito_xyz(tra: MDTrajectory, file_name: str, scale= 1e1
 	molec_names = [f'molecule_{i}' for i in range(tra.n_atoms[0])]
 	bg_names = [f'bg_{i}' for i in range(tra.n_atoms[1])]
 
-
 	with open(file_name, 'w') as xyz_file:
 		for ti in range(n_timesteps):
 			xyz_file.write(f'{n_atoms_total}\n')
@@ -104,8 +108,8 @@ def export_trajectory_as_ovito_xyz(tra: MDTrajectory, file_name: str, scale= 1e1
 				col_i += 3
 
 
-
-
-
-
+def calculate_com_trajectory(tra: MDTrajectory):
+	n_samples = np.shape(tra.trajectory)[0]
+	result_data = np.zeros((n_samples, 6))
+	print(n_samples)
 
