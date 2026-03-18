@@ -79,7 +79,7 @@ def read_md_collisions_trajectory_file(trajectory_filename):
 	return result
 
 
-def export_trajectory_as_ovito_xyz(tra: MDTrajectory, file_name: str, scale= 1e10):
+def export_trajectory_as_ovito_xyz(tra: MDTrajectory, file_name: str, scale= 1e10, mode='full'):
 	"""
 	Exports tra as an ovito xyz file.
 
@@ -87,29 +87,61 @@ def export_trajectory_as_ovito_xyz(tra: MDTrajectory, file_name: str, scale= 1e1
 	:param file_name: File name of the ovito xyz file to write into
 	:param scale: Scaling factor between the length scale in the trajectories and the ovito XYZ file
 		(default is 1 Angström as unit in the xyz file)
+	:param mode: 'full' or 'com' (default is 'full'), if 'com' the center of mass is used as the
+		position of a single representative particle
 	"""
-	n_atoms_total= sum(tra.n_atoms)
-	n_timesteps = tra.trajectory.shape[0]
-	molec_names = [f'molecule_{i}' for i in range(tra.n_atoms[0])]
-	bg_names = [f'bg_{i}' for i in range(tra.n_atoms[1])]
-
 	with open(file_name, 'w') as xyz_file:
-		for ti in range(n_timesteps):
-			xyz_file.write(f'{n_atoms_total}\n')
-			xyz_file.write(f'time step {ti}\n')
+		if mode == 'full':
+			n_atoms_total = sum(tra.n_atoms)
+			n_timesteps = tra.trajectory.shape[0]
+			molec_names = [f'molecule_{i}' for i in range(tra.n_atoms[0])]
+			bg_names = [f'bg_{i}' for i in range(tra.n_atoms[1])]
 
-			col_i = 2
-			for ai in range(tra.n_atoms[0]):
-				xyz_file.write(f'{molec_names[ai]}    {tra.trajectory[ti, col_i]*scale}    {tra.trajectory[ti, col_i+1]*scale}    {tra.trajectory[ti, col_i+2]*scale}    {0}\n')
-				col_i += 3
+			for ti in range(n_timesteps):
+				xyz_file.write(f'{n_atoms_total}\n')
+				xyz_file.write(f'time step {ti}\n')
 
-			for ai in range(tra.n_atoms[1]):
-				xyz_file.write(f'{bg_names[ai]}    {tra.trajectory[ti, col_i]*scale}    {tra.trajectory[ti, col_i+1]*scale}    {tra.trajectory[ti, col_i+2]*scale}    {1}\n')
-				col_i += 3
+				col_i = 2
+				for ai in range(tra.n_atoms[0]):
+					xyz_file.write(f'{molec_names[ai]}    {tra.trajectory[ti, col_i]*scale}    {tra.trajectory[ti, col_i+1]*scale}    {tra.trajectory[ti, col_i+2]*scale}    {0}\n')
+					col_i += 3
+
+				for ai in range(tra.n_atoms[1]):
+					xyz_file.write(f'{bg_names[ai]}    {tra.trajectory[ti, col_i]*scale}    {tra.trajectory[ti, col_i+1]*scale}    {tra.trajectory[ti, col_i+2]*scale}    {1}\n')
+					col_i += 3
+
+		elif mode == 'com':
+			com_trajectory = calculate_com_trajectory(tra)
+			for ti in range(com_trajectory.shape[0]):
+				xyz_file.write('2\n')
+				xyz_file.write(f'time step {ti}\n')
+				xyz_file.write(f'com_1    {com_trajectory[ti, 0]*scale}    {com_trajectory[ti, 1]*scale}    {com_trajectory[ti, 2]*scale}    {0}\n')
+				xyz_file.write(f'com_2    {com_trajectory[ti, 3]*scale}    {com_trajectory[ti, 4]*scale}    {com_trajectory[ti, 5]*scale}    {1}\n')
+		else:
+			raise ValueError(f"Unknown mode {mode}")
+
 
 
 def calculate_com_trajectory(tra: MDTrajectory):
 	n_samples = np.shape(tra.trajectory)[0]
-	result_data = np.zeros((n_samples, 6))
-	print(n_samples)
+	masses = np.array(tra.mass_atoms)
+	n_atoms_molecule = tra.n_atoms[0]
+	n_atoms_bg = tra.n_atoms[1]
+
+	masses_molecule = masses[0:n_atoms_molecule]
+	masses_bg = masses[n_atoms_molecule:]
+
+	weights_molecule = masses_molecule / np.sum(masses_molecule)
+	weights_bg = masses_bg / np.sum(masses_bg)
+
+	result = np.empty([n_samples, 6])
+	indices = np.arange(n_atoms_molecule)
+	for i in range(3):
+		result[:, i] = np.sum(tra.trajectory[:, 2 + i + indices * 3] * weights_molecule, axis=1)
+
+	indices = np.arange(n_atoms_molecule, n_atoms_bg + n_atoms_molecule)
+	for i in range(3):
+		result[:, 3+i] = np.sum(tra.trajectory[:, 2 + i + indices * 3] * weights_bg, axis=1)
+
+	return result
 

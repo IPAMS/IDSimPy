@@ -50,15 +50,24 @@ class TestMDCollisionsSimAnalysis(unittest.TestCase):
 		self.assertAlmostEqual(tra1.trajectory[0, 2], -5.4071723e-11, places=18)
 		self.assertAlmostEqual(tra1.trajectory[0, 3], 5.8551506e-12, places=19)
 
+
 	def test_hdf_trajectory_com_calculation(self):
 		md_dat = md_analysis.read_md_collisions_trajectory_file(self.md_trajectory_file_hdf5)
-		md_analysis.calculate_com_trajectory(md_dat[0])
+		com_tra = md_analysis.calculate_com_trajectory(md_dat[0])
+		self.assertEqual(com_tra.shape, (135, 6))
+		np_test.assert_array_almost_equal(
+			com_tra[100, :],
+			[-2.128831486092331e-11,  7.300356846817735e-11, -9.805217401903654e-12,
+			 -5.386161829046276e-11, -2.706321139411827e-10, -1.398452187384436e-10], decimal=15)
 
 	def test_hdf_trajectory_XYZ_export(self):
 		md_dat = md_analysis.read_md_collisions_trajectory_file(self.md_trajectory_file_hdf5_He)
 
 		xyz_result_file = os.path.join(self.result_path, 'test_md_trajectory.xyz')
 		md_analysis.export_trajectory_as_ovito_xyz(md_dat[0], xyz_result_file)
+
+		xyz_result_file = os.path.join(self.result_path, 'test_md_trajectory_com.xyz')
+		md_analysis.export_trajectory_as_ovito_xyz(md_dat[0], xyz_result_file, mode='com')
 
 	def test_md_trajectory_animation(self):
 		vis.render_collision_trajectory_animation(self.md_trajectory_file_hdf5_He, 0, 0, 10)
