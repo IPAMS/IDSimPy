@@ -1,5 +1,5 @@
 
-def generate_run_configurations_from_template(template_filename, parameter_values, result_basename):
+def generate_run_configurations_from_template(template_filename, parameter_values, result_basename, ext='json'):
     """
     Generates simulation input files from a simple template file,
     a vector of parameter values and a basename for the resulting input files
@@ -22,6 +22,7 @@ def generate_run_configurations_from_template(template_filename, parameter_value
     :param template_filename: Name of the template file
     :param parameter_values: list List of parameter values
     :param result_basename: Basename of the resulting generated input files
+    :param ext: Extension of the resulting input files
     """
     with open(template_filename) as template_file:
         template = template_file.read()
@@ -40,6 +41,6 @@ def generate_run_configurations_from_template(template_filename, parameter_value
                 buf = buf.replace('%%-{:d}-%%'.format(vi), value_string)
 
             result_str = buf
-            result_filename = result_basename + '{:02d}.json'.format(i)
+            result_filename = result_basename + f'{i:02d}.{ext}'
             with open(result_filename, 'w') as result_file:
                 result_file.write(result_str)
