@@ -499,60 +499,6 @@ def read_trajectory_file_for_project(project_name, file_type):
 
 	return tr
 
-def read_json_trajectory_file(trajectory_filename):
-	"""
-	Reads a json trajectory file and returns a trajectory object
-
-	:param trajectory_filename: File name of the file to read
-	:type trajectory_filename: str
-	:return: Trajectory object with trajectory data
-	:rtype: Trajectory
-	"""
-	if trajectory_filename[-8:] == ".json.gz":
-		with gzip.open(trajectory_filename) as tf:
-			tj = json.load(io.TextIOWrapper(tf))
-	else:
-		with open(trajectory_filename) as tf:
-			tj = json.load(tf)
-
-	steps = tj["steps"]
-	n_timesteps = len(steps)
-	nIons = len(steps[0]["ions"])
-
-	times = np.zeros(len(steps))
-	positions = np.zeros([nIons, 3, len(steps)])
-
-	n_additional_parameters = len(steps[0]["ions"][0]) - 1
-	additional_parameters = np.zeros([nIons, n_additional_parameters, n_timesteps])
-	additional_parameters_names = ['attribute '+str(i+1) for i in range(n_additional_parameters)]
-
-	for i in range(n_timesteps):
-		for j in range(nIons):
-			positions[j, :, i] = np.array(steps[i]["ions"][j][0])
-			additional_parameters[j, :, i] = np.array(steps[i]["ions"][j][1:])
-
-		times[i] = float(steps[i]["time"])
-
-	masses = np.zeros([nIons])
-	masses_json = tj["ionMasses"]
-	for i in range(len(masses_json)):
-		masses[i] = float(masses_json[i])
-
-	splat_times = np.zeros([nIons])
-	splat_times_json = tj["splatTimes"]
-	for i in range(len(splat_times_json)):
-		splat_times[i] = float(splat_times_json[i])
-
-	optional_attributes = {OptionalAttribute.PARTICLE_MASSES: masses}
-
-	result = Trajectory(
-		positions=positions,
-		times=times,
-		particle_attributes=ParticleAttributes(additional_parameters_names, additional_parameters),
-		optional_attributes=optional_attributes)
-
-	return result
-
 
 def _read_hdf5_v2_trajectory(tra_group):
 	attribs = tra_group.attrs
@@ -967,7 +913,7 @@ def filter_for_active_particles(trajectory):
 	return filtered_trajectory
 
 
-def center_of_charge(trajectory):
+def center_of_charge(trajectory, charge_attribute_name='Particle Charges'):
 	"""
 	Calculates the center of charge of an ensemble of particles in a Trajectory.
 
@@ -978,6 +924,8 @@ def center_of_charge(trajectory):
 
 	:param trajectory: Trajectory to calculate the center of charge for
 	:type trajectory: Trajectory
+	:param charge_attribute_name: (optional) Name of the particle attribute which contains the particle charges
+	:type charge_attribute_name: str
 	:return: Vector of the spatial position of the center of mass: Array with time steps as first and spatial dimension
 		(x,y,z) as second dimension
 	:rtype: numpy.ndarray
@@ -986,8 +934,8 @@ def center_of_charge(trajectory):
 	coc = np.zeros((n_timesteps, 3))
 
 	particle_charges = None
-	if trajectory.optional_attributes and OptionalAttribute.PARTICLE_CHARGES in trajectory.optional_attributes:
-		particle_charges = trajectory.optional_attributes[OptionalAttribute.PARTICLE_CHARGES]
+	if trajectory.optional_attributes and charge_attribute_name in trajectory.optional_attributes:
+		particle_charges = trajectory.optional_attributes[charge_attribute_name]
 
 	for i in range(n_timesteps):
 		p_pos = trajectory.get_positions(i)

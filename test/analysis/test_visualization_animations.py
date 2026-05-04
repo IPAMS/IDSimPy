@@ -12,8 +12,6 @@ class TestVisualizationAnimations(unittest.TestCase):
 		data_base_path = os.path.join('test', 'analysis', 'data')
 		hdf5_v2_path = os.path.join(data_base_path, 'trajectory_v2')
 		hdf5_v3_path = os.path.join(data_base_path, 'trajectory_v3')
-		cls.test_json_trajectory = os.path.join(data_base_path, 'test_trajectories.json')
-		cls.test_json_projectName = os.path.join(data_base_path, 'test')
 
 		cls.test_reactive_projectName = os.path.join(
 			hdf5_v3_path, 'qitSim_2019_04_scanningTrapTest', 'qitSim_2019_04_15_001')
@@ -77,10 +75,6 @@ class TestVisualizationAnimations(unittest.TestCase):
 		                             xlim=(-1e-3,1e-3), ylim=(-1e-3,1e-3), zlim=(-1e-2,1e-2),
 		                             interval=1, alpha=0.5, crange=(0, 100), cmap='coolwarm',
 		                             color_parameter='global index', projection='xy_yz')
-
-	def test_scatter_animation_json_trajectory(self):
-		result_name = os.path.join(self.result_path, 'scatter_animation_test_1')
-		vis.render_scatter_animation(self.test_json_projectName, result_name, file_type='json')
 
 	def test_scatter_animation_hdf5_trajectory(self):
 		result_name = os.path.join(self.result_path, 'scatter_animation_test_2')
@@ -161,23 +155,6 @@ class TestVisualizationAnimations(unittest.TestCase):
 		vis.render_xz_density_animation(
 			self.new_hdf5_static_projectName, result_name,
 			xedges=40, zedges=40, axis_equal=True)
-
-	def test_comparison_density_animation_with_json(self):
-		project_names = [self.test_json_projectName, self.test_json_projectName]
-		masses = [73, 55]
-		result_name = os.path.join(self.result_path, 'animation_test_1')
-		vis.render_xz_density_comparison_animation(
-			project_names, masses, result_name, n_frames=100, interval=1, s_lim=7,
-			select_mode='mass', annotation="", mode="lin", file_type='json')
-
-	def test_comparison_animation_with_custom_limits_with_json(self):
-		project_names = [self.test_json_projectName, self.test_json_projectName]
-		masses = [73, 55]
-		result_name = os.path.join(self.result_path, 'animation_test_2')
-		vis.render_xz_density_comparison_animation(
-			project_names, masses, result_name, n_frames=100, interval=1,
-			select_mode='mass', s_lim=[-1, 5, -1, 1], n_bins=[100, 20],
-			annotation="", mode="log", file_type='json')
 
 	def test_comparison_animation_with_custom_limits_with_hdf5(self):
 		project_names = [self.hdf5_reactive_ims_projectName, self.hdf5_reactive_ims_projectName]

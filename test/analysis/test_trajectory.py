@@ -42,7 +42,6 @@ class TestTrajectory(unittest.TestCase):
 		cls.hdf5_unit_test_trajectory = os.path.join(hdf_v3_path, 'synthetic_test_trajectories',
 		                                                   'test_trajectory_unit_test.h5')
 
-		cls.test_json_fname = os.path.join(data_base_path, 'test_trajectories.json')
 		cls.result_path = os.path.join('test', 'test_results')
 
 	@classmethod
@@ -277,13 +276,6 @@ class TestTrajectory(unittest.TestCase):
 		self.assertEqual(tra.particle_attributes.number_of_attributes, 9)
 		self.assertEqual(tra.particle_attributes.number_of_timesteps, 41)
 
-	def test_basic_json_trajectory_reading(self):
-		tra = ia.read_json_trajectory_file(self.test_json_fname)
-		self.assertEqual(tra.positions.shape, (2000, 3, 101))
-		self.assertEqual(tra.particle_attributes.number_of_timesteps, 101)
-		self.assertEqual(tra.particle_attributes.number_of_attributes, 1)
-		self.assertEqual(len(tra.optional_attributes[ia.OptionalAttribute.PARTICLE_MASSES]), 2000)
-
 	#  --------------- test Trajectory filtering ---------------
 
 	def test_parameter_filter_with_synthetic_trajectory(self):
@@ -408,7 +400,7 @@ class TestTrajectory(unittest.TestCase):
 		np.testing.assert_almost_equal(coc_synth_tra[0], (0.0, 0.0, 0.0))
 
 		charge_weights = np.array((0, 10, 1, 0, 0))
-		synth_tra_static.optional_attributes = {ia.OptionalAttribute.PARTICLE_CHARGES: charge_weights}
+		synth_tra_static.optional_attributes = {'Particle Charges': charge_weights}
 
 		coc_synth_tra_weighted = ia.center_of_charge(synth_tra_static)
 		np.testing.assert_almost_equal(coc_synth_tra_weighted[0], (9.0909091, 9.0909091, 9.0909091))
