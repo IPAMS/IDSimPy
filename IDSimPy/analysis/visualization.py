@@ -512,7 +512,13 @@ def animate_scatter_plot(
 		p_attrib = trajectory.particle_attributes
 
 		if type(color_parameter) is str:
-			c_param = p_attrib.get(color_parameter)
+			if color_parameter in p_attrib.attribute_names:
+				c_param = p_attrib.get(color_parameter)
+			elif color_parameter in trajectory.optional_attributes:
+				t_param = trajectory.optional_attributes[color_parameter] # is a one dimensional array
+				c_param = np.tile(t_param, (1, n_timesteps)) # tile it for every timestep
+			else:
+				raise ValueError("color parameter " + color_parameter + " not found in particle or trajectory attributes")
 		elif hasattr(color_parameter, "__iter__"):  # is iterable
 			c_param = np.tile(color_parameter, (n_timesteps, 1)).T
 

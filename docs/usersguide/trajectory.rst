@@ -233,9 +233,7 @@ The number of particles varies between time steps in variable trajectories. Thus
 Optional trajectory attributes
 ------------------------------
 
-Trajectory objects can have an arbitrary set of optional attributes, which are not commonly set by all IDSimF simulation applications. Typical examples are the masses of simulated particles or the charges of simulated particles. The optional trajectory attributes are technically stored as key-value pairs in a ``dict`` which can be accessed with the :py:attr:`optional_attributes` attribute of the :py:class:`Trajectory` class. 
-
-To allow structured access to the optional trajectory attributes, an extensible set of semantic keys is provided by the :py:class:`.OptionalAttribute` enum class. 
+Trajectory objects can have an arbitrary set of optional attributes, which are not commonly set by all IDSimF simulation applications. Typical examples are the masses of simulated particles or the charges of simulated particles. The optional trajectory attributes are technically stored as key-value pairs in a ``dict`` which can be accessed by their keys, simple descriptive strings (``str``). 
 
 For example, the retrieval of the particle masses from a trajectory ``tra`` is done by
 
@@ -243,13 +241,7 @@ For example, the retrieval of the particle masses from a trajectory ``tra`` is d
     
     import IDSimPy.analysis as ia
 
-    particle_masses = tra.optional_attributes[ia.OptionalAttribute.PARTICLE_MASSES]
-
-:py:class:`.OptionalAttribute` has currently two optional trajectory attribute keys: 
-
-* :py:attr:`.OptionalAttribute.PARTICLE_MASSES` masses of the simulated particles
-* :py:attr:`.OptionalAttribute.PARTICLE_CHARGES` charges of the simulated particles
-
+    particle_masses = tra.optional_attributes["Particle Masses"]
 
 ----------------------------------
 Particle start / splat information

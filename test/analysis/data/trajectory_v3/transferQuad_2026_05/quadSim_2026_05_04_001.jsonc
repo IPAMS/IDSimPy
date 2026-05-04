@@ -1,0 +1,23 @@
+{
+"sim_time_steps":100,
+"trajectory_write_interval":10,
+"dt":1e-8,
+"n_ions":[100,100,100],
+"ion_masses":[200,400,600],
+"V_rf":600.0,
+"V_entrance":0.0,
+"P_factor":2.0,
+"space_charge_factor":0.0,
+"collision_gas_mass_amu":28.0,
+"collision_gas_diameter_angstrom":3.64,
+"background_temperature":298,
+"start_base_pos_mm":0.1,
+"start_length_mm":1.0,
+"entrance_aperture_mm":0.7,
+"x_range_mm":[-1.0, 100],
+"max_r_mm":10.0,
+"rho_field_file":"quad_fields/sparta_run_2017_047_29_001_3d_pressure.h5",
+"flow_field_file":"quad_fields/sparta_run_2017_047_29_001_3d_flow.h5",
+"electric_field_rf_file":"quad_fields/comsol_rf_field_Q0_simple_001.h5",
+"electric_field_entrance_file":"quad_fields/comsol_entrance_field_Q0_simple_001.h5"
+}

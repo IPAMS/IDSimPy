@@ -10,13 +10,13 @@ from enum import Enum
 import IDSimPy
 
 
-class OptionalAttribute(Enum):
-	"""
-	Optional trajectory attributes identifiers: Distinct and extensible identifiers for optional trajectory
-	data attributes.
-	"""
-	PARTICLE_MASSES = 1  #: Particle masses
-	PARTICLE_CHARGES = 2  #: Particle charges
+#class OptionalAttribute(Enum):
+	#"""
+	#Optional trajectory attributes identifiers: Distinct and extensible identifiers for optional trajectory
+	#data attributes.
+	#"""
+	#PARTICLE_MASSES = 1  #: Particle masses
+	#PARTICLE_CHARGES = 2  #: Particle charges
 
 
 class ParticleAttributes:
@@ -973,7 +973,7 @@ def center_of_charge(trajectory):
 
 	**Note:**
 	If there is no explicit information about the particle charges in the input trajectory object
-	(the optional trajectory attribute ``OptionalAttribute.PARTICLE_MASSES`` is not present) *all* particles are
+	(the optional trajectory attribute ``OptionalAttribute.PARTICLE_CHARGES`` is not present) *all* particles are
 	assumed to be singly positively charged.
 
 	:param trajectory: Trajectory to calculate the center of charge for
