@@ -469,7 +469,7 @@ def render_xz_density_comparison_animation(
 def animate_scatter_plot(
 		trajectory, xlim=None, ylim=None, zlim=None,
 		n_frames=None, interval=1,
-		color_parameter=None, crange=None, cmap=plt.cm.get_cmap('viridis'),
+		color_parameter=None, crange=None, cmap=plt.colormaps.get_cmap('viridis'),
 		projection='xy_xz', alpha=0.1, figsize=(13, 5)):
 	"""
 	Generates a scatter animation of the particles in a static ion trajectory.
@@ -608,7 +608,7 @@ def animate_scatter_plot(
 
 def animate_variable_scatter_plot(
 		trajectory, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
-		color_parameter=None, crange=None, cmap=plt.cm.get_cmap('viridis'),
+		color_parameter=None, crange=None, cmap=plt.colormaps.get_cmap('viridis'),
 		projection='xy_xz', alpha=0.1, figsize=(13, 5)):
 	"""
 	TODO:/ FIXME: Usage of color parameter is not yet implemented
@@ -752,7 +752,7 @@ def animate_variable_scatter_plot(
 
 def render_scatter_animation(
 		project_name, result_name, xlim=None, ylim=None, zlim=None, n_frames=None, interval=1,
-		color_parameter=None, crange=None, cmap=plt.cm.get_cmap('viridis'),
+		color_parameter=None, crange=None, cmap=plt.colormaps.get_cmap('viridis'),
 		projection='xy_xz', alpha=0.1, fps=20,
 		figsize=(13, 5), file_type='hdf5', only_active_particles=False):
 	"""
